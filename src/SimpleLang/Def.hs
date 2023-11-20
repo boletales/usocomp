@@ -96,8 +96,9 @@ data SLBlock =
 
 data SLFuncBlock =
       SLFuncBlock {
-          slfName    :: SLFuncName
-        , slfBlock   :: SLBlock
+          slfName     :: SLFuncName
+        , slfArgCount :: Int
+        , slfBlock    :: SLBlock
       }
       deriving (Show, Eq)
 

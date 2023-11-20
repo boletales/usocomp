@@ -41,10 +41,10 @@ clipslm m = do
   let SLMState _ blocks = execState m (SLMState cnt V.empty)
   pure (SLBMulti blocks)
 
-runslm :: SLFuncName -> SLManualBlockM () -> SLFuncBlock
-runslm name m =
+runslm :: Int -> SLFuncName -> SLManualBlockM () -> SLFuncBlock
+runslm args name m =
   let SLMState _ blocks = execState m (SLMState 0 V.empty)
-  in SLFuncBlock name (SLBMulti blocks)
+  in SLFuncBlock name args (SLBMulti blocks)
 
 data MyNat =
         MyZero
@@ -105,7 +105,7 @@ naryCreateList p = naryCreateHelper [] p (id :: [a] -> [a])
 
 
 _app :: forall n. NAryFamC n => SLMFunc n -> NAryFamD SLExp SLExp n
-_app (SLMFunc (SLFuncBlock name _)) =
+_app (SLMFunc (SLFuncBlock name _ _)) =
   naryCreate (Proxy :: Proxy n) (V.fromList >>> SLEPushCall (SLSolidFunc name))
 
 newtype SLMFuncsM x =
@@ -125,16 +125,16 @@ instance (SLMFGenNAryC n t) => SLMFGenNAryC ('MySucc n) (SLMArg -> t) where
   toNAryFamD _ f arg = toNAryFamD (Proxy :: Proxy n) (f arg)
 
 
-slmFunc :: forall (n :: MyNat) (t :: Type). (NAryFamC n, SLMFGenNAryC n t) => SLFuncName -> t -> SLMFuncsM (SLMFunc n)
+slmFunc :: forall (n :: MyNat) (t :: Type). (KnownMyNat n, NAryFamC n, SLMFGenNAryC n t) => SLFuncName -> t -> SLMFuncsM (SLMFunc n)
 slmFunc name f = do
-  let fblock = runslm name $ naryCrush (Proxy :: Proxy n) (\(i :: Int) -> (SLMArg i, i+1)) 0 (toNAryFamD (Proxy :: Proxy n) f)
+  let fblock = runslm (natVal (Proxy :: Proxy n)) name $ naryCrush (Proxy :: Proxy n) (\(i :: Int) -> (SLMArg i, i+1)) 0 (toNAryFamD (Proxy :: Proxy n) f)
   S.modify (M.insert name fblock)
   pure (SLMFunc fblock)
 
 
 
-slmVirtualFunc :: SLFuncName -> SLMFunc n
-slmVirtualFunc name = SLMFunc (SLFuncBlock name (SLBMulti V.empty))
+slmVirtualFunc :: forall (n :: MyNat). KnownMyNat n => SLFuncName -> SLMFunc n
+slmVirtualFunc name = SLMFunc (SLFuncBlock name (natVal (Proxy :: Proxy n)) (SLBMulti V.empty))
 
-slmSetRealFunc :: forall (n :: MyNat) (t :: Type). (NAryFamC n, SLMFGenNAryC n t) => SLMFunc n -> t -> SLMFuncsM ()
-slmSetRealFunc (SLMFunc (SLFuncBlock name _)) f = void $ slmFunc name f
+slmSetRealFunc :: forall (n :: MyNat) (t :: Type). (KnownMyNat n, NAryFamC n, SLMFGenNAryC n t) => SLMFunc n -> t -> SLMFuncsM ()
+slmSetRealFunc (SLMFunc (SLFuncBlock name _ _)) f = void $ slmFunc name f

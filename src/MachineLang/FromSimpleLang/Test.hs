@@ -1,10 +1,12 @@
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
+{-# OPTIONS_GHC -Wno-unused-imports #-}
 
 module MachineLang.FromSimpleLang.Test () where
 
 import SimpleLang.Def
 import SimpleLang.Tools.Manual
+import SimpleLang.Tools
 import Data.Vector as V
 
 

@@ -25,14 +25,12 @@ source-repository head
 
 library
   exposed-modules:
-      MachineLang
       MachineLang.Def
       MachineLang.FromSimpleLang
       MachineLang.FromSimpleLang.Debugger
       MachineLang.FromSimpleLang.Test
       MachineLang.Machine
       MachineLang.Tools
-      SimpleLang
       SimpleLang.Def
       SimpleLang.Tools
       SimpleLang.Tools.Manual

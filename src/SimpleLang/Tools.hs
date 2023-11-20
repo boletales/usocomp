@@ -127,26 +127,26 @@ prettyPrintSLBlock indent block =
         <>  V.singleton (indentText <> "}")
       
       SLBCase cases elseBlock ->
-            V.singleton (indentText <> "case {")
-        <>  ((\(exp, body) ->
-                V.singleton (indentText <> "  when (" <> prettyPrintSLExp exp <> "){") <>
-                prettyPrintSLBlock (indent + 2) body <>
-                V.singleton (indentText <> "  }")
+            ((\(exp, body) ->
+                V.singleton (indentText <> "when " <> prettyPrintSLExp exp ) <>
+                prettyPrintSLBlock indent body
               ) =<< cases)
-        <>  (   V.singleton (indentText <> "  else {") <>
-                prettyPrintSLBlock (indent + 2) elseBlock <>
-                V.singleton (indentText <> "  }")
+        <>  (   V.singleton (indentText <> "else") <>
+                prettyPrintSLBlock indent elseBlock
               )
-        <>  V.singleton (indentText <> "}")
+        <>      V.singleton ""
       
       SLBWhile cond body ->
-          V.singleton (indentText <> "while (" <> prettyPrintSLExp cond <> "){")
-        <> prettyPrintSLBlock (indent + 1) body
-        <> V.singleton (indentText <> "}")
+          V.singleton (indentText <> "while " <> prettyPrintSLExp cond)
+        <> prettyPrintSLBlock indent body
+        <>      V.singleton ""
 
 prettyPrintSLProgram :: SLProgram -> Text
 prettyPrintSLProgram program =
   T.intercalate "\n" $ 
-    (\(name, SLFuncBlock _ block) -> 
-          ("\nfunction " <> prettyPrintFuncName name) : V.toList (prettyPrintSLBlock 0 block)
+    (\(name, SLFuncBlock _ args block) -> 
+          ("\nfunction " 
+              <> prettyPrintFuncName name
+              <> " (" <> T.intercalate ", " ((\i -> "$A" <> pack (show i)) <$> [0 .. args]) <> ")")
+           : V.toList (prettyPrintSLBlock 0 block)
       ) =<< M.assocs program
