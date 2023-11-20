@@ -1,8 +1,8 @@
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# OPTIONS_GHC -Wno-missing-export-lists #-}
 
 module SimpleLang.Tools.Manual.Internal where
 
@@ -125,9 +125,8 @@ instance (SLMFGenNAryC n t) => SLMFGenNAryC ('MySucc n) (SLMArg -> t) where
   toNAryFamD _ f arg = toNAryFamD (Proxy :: Proxy n) (f arg)
 
 
-slmFunc :: forall (n :: MyNat) (t :: Type). (KnownMyNat n, NAryFamC n, SLMFGenNAryC n t) => SLFuncName -> t -> SLMFuncsM (SLMFunc n)
+slmFunc :: forall (n :: MyNat) (t :: Type). (NAryFamC n, SLMFGenNAryC n t) => SLFuncName -> t -> SLMFuncsM (SLMFunc n)
 slmFunc name f = do
-  let nval = natVal (Proxy :: Proxy n)
   let fblock = runslm name $ naryCrush (Proxy :: Proxy n) (\(i :: Int) -> (SLMArg i, i+1)) 0 (toNAryFamD (Proxy :: Proxy n) f)
   S.modify (M.insert name fblock)
   pure (SLMFunc fblock)
@@ -137,5 +136,5 @@ slmFunc name f = do
 slmVirtualFunc :: SLFuncName -> SLMFunc n
 slmVirtualFunc name = SLMFunc (SLFuncBlock name (SLBMulti V.empty))
 
-slmSetRealFunc :: forall (n :: MyNat) (t :: Type). (KnownMyNat n, NAryFamC n, SLMFGenNAryC n t) => SLMFunc n -> t -> SLMFuncsM ()
+slmSetRealFunc :: forall (n :: MyNat) (t :: Type). (NAryFamC n, SLMFGenNAryC n t) => SLMFunc n -> t -> SLMFuncsM ()
 slmSetRealFunc (SLMFunc (SLFuncBlock name _)) f = void $ slmFunc name f

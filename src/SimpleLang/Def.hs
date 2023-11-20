@@ -3,11 +3,24 @@ Module      : SimpleLang.Def
 Description : SimpleLangの定義
 -}
 
-module SimpleLang.Def where
+module SimpleLang.Def (
+    SLAddr (..)
+  , SLVal (..)
+  , SLFuncName (..)
+  , SLCallable (..)
+  , SLPrim1 (..)
+  , SLPrim2 (..)
+  , SLExp (..)
+  , SLRef (..)
+  , SLStatement (..)
+  , SLBlock (..)
+  , SLFuncBlock (..)
+  , SLProgram
+)where
 
 import Data.Vector as V
 import Data.Map as M
-import Data.Text as T
+import Data.Text
 
 -- 接頭辞 SL: SimpleLang に関連するものの型
 
@@ -24,15 +37,13 @@ newtype SLVal  = SLVal  Int deriving (Show, Eq)
 
 data SLFuncName =
         SLFuncMain
-      | SLUserFunc String String
+      | SLUserFunc Text Text
       deriving (Show, Eq, Ord)
 
 data SLCallable =
         SLSolidFunc SLFuncName
       | SLFuncRef   SLExp
       deriving (Show, Eq)
-
-data SLFuction
 
 data SLPrim1 =
         SLPrim1Inv
@@ -70,8 +81,8 @@ data SLRef =
 data SLStatement =
       --   SLSPrimPush SLExp
       -- | SLSPrimPop
-        SLSInitVar SLExp
-      | SLSSubst    SLRef SLExp
+        SLSInitVar Int SLExp
+      | SLSSubst   SLRef SLExp
       | SLSReturn  SLExp
       | SLSTailCallReturn SLCallable (V.Vector SLExp)
       deriving (Show, Eq)

@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE LambdaCase #-}
-
 {-|
   Module      : MachineLang.FromSimpleLang.Debugger
   Description : MachineLang.FromSimpleLangのデバッガ
@@ -15,21 +14,16 @@ module MachineLang.FromSimpleLang.Debugger (
 import SimpleLang.Def
 import MachineLang.FromSimpleLang
 import SimpleLang.Tools
-import MachineLang.Def
 import MachineLang.Tools
 import MachineLang.Machine
 
 import Data.Vector as V
-import Data.Map as M
 import Data.Text as T
 import qualified Data.Text.IO as TIO
-import Data.Foldable as F
-import Data.Vector.Mutable as MV
 import Control.Monad.Except
 import Data.Maybe (fromMaybe)
 import Control.Monad
 
-import qualified Data.List as L
 
 tshow :: Show a => a -> Text
 tshow = T.pack . show
@@ -99,7 +93,7 @@ prettyPrintMemState regs mem =
 
 
 debugMLCDebugger :: MLDebugger SLPos (ExceptT MLRuntimeError IO)
-debugMLCDebugger (inst, pos, pc, mem, regs, time) = lift $ do
+debugMLCDebugger (inst, pos, _, mem, regs, time) = lift $ do
   TIO.putStrLn "==============================="
   TIO.putStrLn ("Tick: " <> tshow time)
   TIO.putStrLn ""
@@ -118,7 +112,7 @@ silentDebugger :: MLDebugger SLPos (ExceptT MLRuntimeError IO)
 silentDebugger _ = pure ()
 
 tickDebugger :: MLDebugger SLPos (ExceptT MLRuntimeError IO)
-tickDebugger (inst, pos, pc, mem, regs, time) = lift $ do
+tickDebugger (_, _, _, _, _, time) = lift $ do
   TIO.putStr ("\rtick: " <> tshow time)
 
 {-| インタラクティブなデバッガを起動します -}
@@ -167,7 +161,7 @@ debugMLC program =
               Nothing       -> mainloop m
               Just (_, posnow) ->
                 silentloop m (
-                    fmap (maybe True (\(inst, pos) -> poscond posnow pos)) . getInst
+                    fmap (maybe True (\(_, pos) -> poscond posnow pos)) . getInst
                   )
 
         in mainloop machine

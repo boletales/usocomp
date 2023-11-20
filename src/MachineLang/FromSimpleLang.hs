@@ -513,7 +513,7 @@ slSingleToMLC statement =
   case statement of
     --SLSPrimPush exp -> slPushToMLC exp
     --SLSPrimPop      -> slPopToMLC
-    SLSInitVar expr   -> slPushToMLC expr >> mlcInternalShiftVarCnt 1
+    SLSInitVar _ expr -> slPushToMLC expr >> mlcInternalShiftVarCnt 1
     SLSSubst ref expr ->
       case ref of
         SLRefPtr   ptr -> slSubstPtrToMLC ptr expr

@@ -1,15 +1,12 @@
-{-# LANGUAGE DataKinds #-}
+{-# OPTIONS_GHC -Wno-unused-matches #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
-module MachineLang.FromSimpleLang.Test where
+module MachineLang.FromSimpleLang.Test () where
 
 import SimpleLang.Def
-import SimpleLang.Tools
 import SimpleLang.Tools.Manual
-import SimpleLang.Tools.Manual.Internal
-import MachineLang.FromSimpleLang.Debugger
 import Data.Vector as V
 
-import Data.Map as M
 
 substTest :: SLProgram
 substTest =

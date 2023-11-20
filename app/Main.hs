@@ -1,21 +1,28 @@
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
 
 import SimpleLang.Def
 import SimpleLang.Tools
 import SimpleLang.Tools.Manual
-import MachineLang.FromSimpleLang
 import MachineLang.FromSimpleLang.Debugger
-import Data.Vector as V
+import Data.Text.IO as TIO
+import Prelude hiding (exp)
 
-import Data.Map as M
-import SimpleLang.Tools.Manual
 
 
 main :: IO ()
-main = 
-  debugMLC funcTest
+main = do
+  TIO.putStrLn "this:"
+  TIO.putStrLn (prettyPrintSLProgram funcTest)
+
+  TIO.putStrLn ""
+  TIO.putStrLn "compiles into this:"
+  TIO.putStrLn (mlcResultText funcTest)
+  TIO.putStrLn ""
+  
+  runMLC funcTest
+  --debugMLC funcTest
 
 
 funcTest :: SLProgram
@@ -23,9 +30,8 @@ funcTest =
   runSLMFuncsM $ do
     let exp = slmVirtualFunc (SLUserFunc "main" "exp") :: SLMFuncOf 2
 
-    main <- slmFunc SLFuncMain (do
+    _ <- slmFunc SLFuncMain (do
         x <- slmNewVar $ _app exp (_const 3) (_const 5)
-        i <- slmNewVar $ _app exp (_const 3) (_const 5)
         slmReturn (_local x)
         pure ()
       )

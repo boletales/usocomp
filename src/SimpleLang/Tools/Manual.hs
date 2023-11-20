@@ -1,5 +1,3 @@
-{-# LANGUAGE DataKinds #-}
-
 {-|
   Module      : SimpleLang.Tools.Manual
   Description : SimpleLangを手書きするためのツール。re-exportしないこと！
@@ -46,18 +44,17 @@ module SimpleLang.Tools.Manual (
 
 import SimpleLang.Tools.Manual.Internal
 import SimpleLang.Def
-import qualified Data.Foldable as M
 import Data.Vector as V
 import Control.Monad.State
 import Control.Category
-import Prelude hiding ((.), id)
+import Prelude hiding ((.), id, exp)
 
 slmNewVar :: SLExp -> SLManualBlockM SLMVar
 slmNewVar exp = do
   SLMState cnt blocks <- get
   let newVarId = cnt
   put (SLMState (cnt + 1) blocks)
-  slmStmt (SLSInitVar exp)
+  slmStmt (SLSInitVar newVarId exp)
   pure (SLMVar newVarId)
 
 slmStmt :: SLStatement -> SLManualBlockM ()
