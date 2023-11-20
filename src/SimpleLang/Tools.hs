@@ -18,7 +18,10 @@ data SLLocalPos =
       | SLLPWhileFooter
       deriving (Show, Eq, Ord)
 
-data SLPos = SLPos SLFuncName [SLLocalPos] deriving (Show, Eq, Ord)
+data SLPos = SLPos {
+    slpFuncName :: SLFuncName
+  , slpLocalPos :: [SLLocalPos]
+ } deriving (Show, Eq, Ord)
 
 pushPos :: SLLocalPos -> SLPos -> SLPos
 pushPos x (SLPos f xs) = SLPos f (x:xs)

@@ -92,3 +92,14 @@ whileTest =
       )
 
     pure ()
+
+
+smallTest :: SLProgram
+smallTest =
+  runSLMFuncsM $ do
+    main <- slmFunc SLFuncMain (do
+        slmReturn (_const 12345) 
+        pure ()
+      )
+
+    pure ()

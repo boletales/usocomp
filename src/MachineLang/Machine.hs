@@ -42,6 +42,7 @@ data MLRuntimeError =
       MLREMemOutOfRange     Int
     | MLREProgramOutOfRange Int
     | MLRETimeout
+    | MLRESuccess           Int
     deriving (Show, Eq)
 
 getInst :: forall p m. (PrimMonad m) => MLMachine p (PrimState m) -> m (Maybe (MLInst, p))
@@ -90,7 +91,10 @@ runMLMachine1 machine debugger =
         let minst = mlprogram machine V.!? pc
 
         case minst of
-          Nothing -> throwError (MLREProgramOutOfRange pc)
+          Nothing -> 
+            if pc == V.length (mlprogram machine)
+              then MV.read mem 0 >>= throwError . MLRESuccess
+              else throwError (MLREProgramOutOfRange pc)
           Just (inst, pos) -> do
             memold <- V.freeze mem
             regold <- V.freeze reg

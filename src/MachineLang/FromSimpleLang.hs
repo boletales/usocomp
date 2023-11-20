@@ -153,11 +153,12 @@ slReturnToMLC expr = do
       , MLIAdd    MLCRegX        MLCRegX MLCRegY
       , MLILoad   MLCRegPC       MLCRegX                 -- ジャンプ
     ]
+
 slSolidCallToMLC :: SLFuncName -> V.Vector SLExp -> MonadMLCFunc ()
 slSolidCallToMLC funcname args = do
   V.forM_ args slPushToMLC
 
-  let jumplength = 10
+  let jumplength = 9
   stateWriteFromList [
       -- リターンアドレス
         MLIConst  MLCRegX         (MLCValConst 1)
@@ -182,7 +183,7 @@ slSolidCallToMLC funcname args = do
 
 
       -- ジャンプ
-      , MLIConst  MLCRegPC        (MLCValJumpDestFunc funcname)        --jumplength: この命令のつぎまでの命令数
+      , MLIConst  MLCRegPC        (MLCValJumpDestFunc funcname)        --jumplength: この命令までの命令数
     ]
 
 slPtrCallToMLC :: SLExp -> V.Vector SLExp -> MonadMLCFunc ()
@@ -196,7 +197,7 @@ slPtrCallToMLC funcptr args = do
 
   V.forM_ args slPushToMLC
 
-  let jumplength = 10
+  let jumplength = 9
   stateWriteFromList [
       -- リターンアドレス
         MLIConst  MLCRegX         (MLCValConst 1)
@@ -221,7 +222,7 @@ slPtrCallToMLC funcptr args = do
 
 
       -- ジャンプ
-      , MLICopy   MLCRegPC         MLCRegZ                            --jumplength: この命令のつぎまでの命令数
+      , MLICopy   MLCRegPC         MLCRegZ                            --jumplength: この命令までの命令数
     ]
 
 slSolidTailCallReturnToMLC :: SLFuncName -> V.Vector SLExp -> MonadMLCFunc ()

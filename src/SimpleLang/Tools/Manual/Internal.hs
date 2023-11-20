@@ -2,6 +2,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 
 module SimpleLang.Tools.Manual.Internal where
 
@@ -49,40 +50,59 @@ data MyNat =
         MyZero
       | MySucc MyNat
 
-class MyNatC (n :: MyNat) where
+class KnownMyNat (n :: MyNat) where
   natVal :: Proxy n -> Int
 
-instance MyNatC 'MyZero where
+instance KnownMyNat 'MyZero where
   natVal _ = 0
 
-instance MyNatC n => MyNatC ('MySucc n) where
+instance KnownMyNat n => KnownMyNat ('MySucc n) where
   natVal _ = 1 + natVal (Proxy :: Proxy n)
 
--- type family FromGHCNat (n :: Nat) = (m :: MyNat) | m -> n where
---   FromGHCNat 0 = 'MyZero
---   FromGHCNat n = 'MySucc (FromGHCNat (n - 1))
+type family FromGHCNat (n :: Nat) = (m :: MyNat) where
+  FromGHCNat 0 = 'MyZero
+  FromGHCNat n = 'MySucc (FromGHCNat (n - 1))
+
+type family ToGHCNat (m :: MyNat) = (n :: Nat) where
+  ToGHCNat 'MyZero = 0
+  ToGHCNat ('MySucc n) = 1 + ToGHCNat n
 
 newtype SLMFunc (n :: MyNat) =
   SLMFunc SLFuncBlock
 
+type family SLMFuncOf (n :: Nat) where
+  SLMFuncOf n = SLMFunc (FromGHCNat n)
+
 
 class NAryFamC (n :: MyNat) where
   type NAryFamD a b n
-  naryCreateHelper :: Proxy n -> ([a] -> b) -> [a] -> NAryFamD a b n
-  naryCrush   :: Proxy n -> (Int -> a) -> NAryFamD a b n -> b
+  naryCreateHelper :: [a] -> Proxy n -> ([a] -> b) -> NAryFamD a b n
+  naryCrush  :: Proxy n -> (ctr -> (a, ctr)) -> ctr -> NAryFamD a b n -> b
 
 instance NAryFamC 'MyZero where
   type NAryFamD a b 'MyZero = b
-  naryCreateHelper _ f = L.reverse >>> f
-  naryCrush _ _ = id
+  naryCreateHelper l _ f = (L.reverse >>> f) l
+  naryCrush _ _ _ = id
 
-instance (NAryFamC n, MyNatC n) => NAryFamC ('MySucc n) where
+instance NAryFamC n => NAryFamC ('MySucc n) where
   type NAryFamD a b ('MySucc n) = a -> NAryFamD a b n
-  naryCreateHelper _ f xs x = naryCreateHelper (Proxy :: Proxy n) f (x:xs)
-  naryCrush _ arggen f = naryCrush (Proxy :: Proxy n) arggen (f (arggen (natVal (Proxy :: Proxy n))))
+  naryCreateHelper xs _ f x = naryCreateHelper (x:xs) (Proxy :: Proxy n) f
+  naryCrush _ arggen ctr f = 
+    let (a, ctr') = arggen ctr
+    in  naryCrush (Proxy :: Proxy n) arggen ctr' (f a)
 
-naryCreate :: NAryFamC n => Proxy n -> ([a] -> b) -> NAryFamD a b n
-naryCreate p f = naryCreateHelper p f []
+naryCreate :: forall (a :: Type) (b :: Type) (n :: MyNat).
+                NAryFamC n => Proxy n -> ([a] -> b) -> NAryFamD a b n
+naryCreate = naryCreateHelper []
+
+naryCreateList :: forall (a :: Type) (n :: MyNat).
+                    NAryFamC n => Proxy n -> NAryFamD a [a] n
+naryCreateList p = naryCreateHelper [] p (id :: [a] -> [a])
+
+
+-- >>> naryCreate (Proxy :: Proxy ('MySucc ('MySucc ('MySucc MyZero)))) id 1 2 3
+-- [1,2,3]
+
 
 _app :: forall n. NAryFamC n => SLMFunc n -> NAryFamD SLExp SLExp n
 _app (SLMFunc (SLFuncBlock name _)) =
@@ -105,16 +125,17 @@ instance (SLMFGenNAryC n t) => SLMFGenNAryC ('MySucc n) (SLMArg -> t) where
   toNAryFamD _ f arg = toNAryFamD (Proxy :: Proxy n) (f arg)
 
 
-slmFunc :: forall (n :: MyNat) (t :: Type). (NAryFamC n, SLMFGenNAryC n t) => SLFuncName -> t -> SLMFuncsM (SLMFunc n)
+slmFunc :: forall (n :: MyNat) (t :: Type). (KnownMyNat n, NAryFamC n, SLMFGenNAryC n t) => SLFuncName -> t -> SLMFuncsM (SLMFunc n)
 slmFunc name f = do
-  let fblock = runslm name $ naryCrush (Proxy :: Proxy n) SLMArg (toNAryFamD (Proxy :: Proxy n) f)
+  let nval = natVal (Proxy :: Proxy n)
+  let fblock = runslm name $ naryCrush (Proxy :: Proxy n) (\(i :: Int) -> (SLMArg i, i+1)) 0 (toNAryFamD (Proxy :: Proxy n) f)
   S.modify (M.insert name fblock)
   pure (SLMFunc fblock)
 
 
 
-virtualFunc :: SLFuncName -> SLMFunc n
-virtualFunc name = SLMFunc (SLFuncBlock name (SLBMulti V.empty))
+slmVirtualFunc :: SLFuncName -> SLMFunc n
+slmVirtualFunc name = SLMFunc (SLFuncBlock name (SLBMulti V.empty))
 
-setRealFunc :: forall (n :: MyNat) (t :: Type). (NAryFamC n, SLMFGenNAryC n t) => SLMFunc n -> t -> SLMFuncsM ()
-setRealFunc (SLMFunc (SLFuncBlock name _)) f = void $ slmFunc name f
+slmSetRealFunc :: forall (n :: MyNat) (t :: Type). (KnownMyNat n, NAryFamC n, SLMFGenNAryC n t) => SLMFunc n -> t -> SLMFuncsM ()
+slmSetRealFunc (SLMFunc (SLFuncBlock name _)) f = void $ slmFunc name f

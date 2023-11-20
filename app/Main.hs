@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds #-}
+
 module Main (main) where
 
 import SimpleLang.Def
@@ -8,57 +10,37 @@ import MachineLang.FromSimpleLang.Debugger
 import Data.Vector as V
 
 import Data.Map as M
+import SimpleLang.Tools.Manual
 
 
 main :: IO ()
 main = 
-  debugMLC substTest
+  debugMLC funcTest
 
-substTest :: SLProgram
-substTest =
-  M.fromList [
-      runslm SLFuncMain (do
-          i <- slmNewVar (_const 100)
-          j <- slmNewVar (_const 200)
-          k <- slmNewVar (_const 300)
-          l <- slmNewVar (_const 400)
-          _reflocal k <<- _const 10000
-          pure ()
-        )
-    ]
 
-whileTest :: SLProgram
-whileTest =
-  M.fromList [
-      runslm SLFuncMain (do
-          i <- slmNewVar (SLEConst (SLVal 1))
-          slmWhile (_local i `_lt` _const 1000) (do
-              _reflocal i <<- _local i `_add` _local i
-              pure ()
-            )
-          pure ()
-        )
-    ]
-
-{-
 funcTest :: SLProgram
 funcTest =
-  M.fromList [
-        runslm SLFuncMain (do
-            i <- slmNewVar (SLEConst (SLVal 100))
-            j <- slmNewVar (SLEConst (SLVal 200))
-            k <- slmNewVar (SLEConst (SLVal 300))
-            l <- slmNewVar (SLEConst (SLVal 400))
-            slmStmt (SLSSubst (SLRefLocal k) (SLEConst (SLVal 10000)))
+  runSLMFuncsM $ do
+    let exp = slmVirtualFunc (SLUserFunc "main" "exp") :: SLMFuncOf 2
+
+    main <- slmFunc SLFuncMain (do
+        x <- slmNewVar $ _app exp (_const 3) (_const 5)
+        i <- slmNewVar $ _app exp (_const 3) (_const 5)
+        slmReturn (_local x)
+        pure ()
+      )
+
+
+    slmSetRealFunc exp (\a b -> slmFundef $ do
+        x <- slmNewVar (_const 1)
+        i <- slmNewVar (_const 0)
+        slmWhile (_local i `_lt` _arg b) (do
+            _reflocal x <<- _local x `_mult` _arg a
+            _reflocal i <<- _local i `_add` _const 1
             pure ()
           )
-      , runslm (SLUserFunc "main" "") (do
-            i <- slmNewVar (SLEConst (SLVal 100))
-            j <- slmNewVar (SLEConst (SLVal 200))
-            k <- slmNewVar (SLEConst (SLVal 300))
-            l <- slmNewVar (SLEConst (SLVal 400))
-            slmStmt (SLSSubst (SLRefLocal k) (SLEConst (SLVal 10000)))
-            pure ()
-          )
-    ]
--}
+        slmReturn (_local x)
+        pure ()
+      )
+
+    pure ()

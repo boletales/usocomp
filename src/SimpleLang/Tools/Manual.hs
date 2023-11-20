@@ -11,7 +11,11 @@ module SimpleLang.Tools.Manual (
   , slmBlk
   , slmWhile
   , slmCase
+  , slmReturn
   , slmFunc
+  , slmVirtualFunc
+  , slmSetRealFunc
+  , slmFundef
   , SLMFuncsM
   , runSLMFuncsM
   , _const
@@ -33,11 +37,11 @@ module SimpleLang.Tools.Manual (
   , _eq
   , _inv
   , _app
-  , fundef
   , SLMArg
   , SLMVar
   , SLMState
   , SLManualBlockM
+  , SLMFuncOf
 ) where
 
 import SimpleLang.Tools.Manual.Internal
@@ -80,6 +84,8 @@ slmCase cases elsecase = do
   elsecase' <- clipslm elsecase
   slmBlk (SLBCase cases' elsecase')
 
+slmReturn :: SLExp -> SLManualBlockM ()
+slmReturn expr = slmStmt (SLSReturn expr)
 
 _const :: Int -> SLExp
 _const = SLVal >>> SLEConst
@@ -99,8 +105,8 @@ _ptr = SLEPtr
 _refptr :: SLExp -> SLRef
 _refptr = SLRefPtr
 
-fundef :: SLManualBlockM () -> NAryFamD SLMArg (SLManualBlockM ()) 'MyZero
-fundef = id
+slmFundef :: SLManualBlockM () -> NAryFamD SLMArg (SLManualBlockM ()) 'MyZero
+slmFundef = id
 
 infix 1 <<-
 

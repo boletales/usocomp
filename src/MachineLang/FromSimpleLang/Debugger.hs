@@ -7,6 +7,7 @@
 -}
 module MachineLang.FromSimpleLang.Debugger (
     debugMLC
+  , runMLC
   , mlcResultText
 ) where
 
@@ -116,6 +117,10 @@ debugMLCDebugger (inst, pos, pc, mem, regs, time) = lift $ do
 silentDebugger :: MLDebugger SLPos (ExceptT MLRuntimeError IO)
 silentDebugger _ = pure ()
 
+tickDebugger :: MLDebugger SLPos (ExceptT MLRuntimeError IO)
+tickDebugger (inst, pos, pc, mem, regs, time) = lift $ do
+  TIO.putStr ("\rtick: " <> tshow time)
+
 {-| インタラクティブなデバッガを起動します -}
 
 debugMLC :: SLProgram -> IO ()
@@ -127,36 +132,68 @@ debugMLC program =
       TIO.putStrLn "Running..."
       machine <- initMLMacine (MLConfig 100000) mlp
 
-      let mainloop m = do
+      let end e = do
+            case e of
+              MLRESuccess c -> TIO.putStrLn ("successfully terminated. code: " <> tshow c)
+              _ -> TIO.putStrLn (tshow e)
+            -- mem <- V.unsafeFreeze $ mlmemory machine
+            -- let memmini = V.slice 0 20 mem
+            -- TIO.putStrLn (tshow memmini)
+
+          mainloop m = do
             result <- runExceptT $ runMLMachine1 m debugMLCDebugger
             case result of
-              Left e -> TIO.putStrLn (tshow e)
+              Left e -> end e
               Right _  -> do
-                TIO.putStrLn "Enter: s (skip), q (quit), else (step)"
+                TIO.putStrLn "Enter: s (skip to next), q (quit), else (step)"
                 str <- TIO.getLine
                 case str of
                   "q" -> pure ()
-                  "s" ->
-                    getInst m >>= \case
-                      Nothing       -> mainloop m
-                      Just (_, posnow) ->
-                        silentloop m (
-                            fmap (maybe True (\(inst, pos) -> pos /= posnow)) . getInst
-                          )
+                  "s" -> skipWithPosCond m (/=)
                   _   -> mainloop m
 
           silentloop m exitcond = do
             result <- runExceptT $ runMLMachine1 m silentDebugger
             case result of
-              Left e -> TIO.putStrLn (tshow e)
+              Left e -> end e
               Right _  -> do
                 cond <- exitcond m
                 if cond
                   then mainloop m
                   else silentloop m exitcond
+          
+          skipWithPosCond m poscond = 
+            getInst m >>= \case
+              Nothing       -> mainloop m
+              Just (_, posnow) ->
+                silentloop m (
+                    fmap (maybe True (\(inst, pos) -> poscond posnow pos)) . getInst
+                  )
 
         in mainloop machine
 
+
+runMLC :: SLProgram -> IO ()
+runMLC program =
+  case compileSLProgram program of
+    Left err -> TIO.putStrLn (tshow err)
+    Right mlp -> do
+      TIO.putStrLn "Compiled!"
+      TIO.putStrLn "Running..."
+      machine <- initMLMacine (MLConfig 100000) mlp
+
+      let end e = do
+            TIO.putStrLn ""
+            case e of
+              MLRESuccess c -> TIO.putStrLn ("successfully terminated. code: " <> tshow c)
+              _ -> TIO.putStrLn (tshow e)
+
+          mainloop m = do
+            result <- runExceptT $ runMLMachine1 m tickDebugger
+            case result of
+              Left e -> end e
+              Right _  ->  mainloop m
+        in mainloop machine
 
 {-| 人間可読なコンパイル成果物を吐きます -}
 mlcResultText :: SLProgram -> Text
