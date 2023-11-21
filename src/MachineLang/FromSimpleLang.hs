@@ -88,6 +88,7 @@ newtype MonadMLCFunc x =
 unMonadMLCFunc :: MonadMLCFunc x -> StateT MonadMLCFuncState (Either MLCError) x
 unMonadMLCFunc (MonadMLCFunc v) = v
 
+-- ソースマップの位置情報に階層を追加
 inPos :: SLLocalPos -> MonadMLCFunc x -> MonadMLCFunc x
 inPos pos (MonadMLCFunc v) = MonadMLCFunc (do
     oldpos <- gets mmlcfsLineInfo
@@ -114,6 +115,7 @@ execMonadMLCFunc v lineinfo =
   (flip execStateT (MonadMLCFuncState VB.empty lineinfo 0)
     >>> fmap mmlcfsFlagment) (unMonadMLCFunc v)
 
+-- ソースマップの情報を覚えたままコード片を抽出
 clipBlockFlagment :: MonadMLCFunc () -> MonadMLCFunc MLCFlagment
 clipBlockFlagment v = MonadMLCFunc $ do
   lineinfo <- gets mmlcfsLineInfo

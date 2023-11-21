@@ -29,12 +29,13 @@ unSLMArg :: SLMArg -> Int
 unSLMArg (SLMArg x) = x
 
 data SLMState = SLMState {
-      slmVarCnt :: Int
-    , slmBlocks :: V.Vector SLBlock
+      slmVarCnt :: Int              -- 今のスコープで有効なローカル変数の個数
+    , slmBlocks :: V.Vector SLBlock -- コード
   }
 
 type SLManualBlockM = State SLMState
 
+-- 今のスコープで有効なローカル変数の個数を覚えたままコード片を抽出
 clipslm :: SLManualBlockM () -> SLManualBlockM SLBlock
 clipslm m = do
   cnt <- gets slmVarCnt
@@ -73,7 +74,7 @@ newtype SLMFunc (n :: MyNat) =
 type family SLMFuncOf (n :: Nat) where
   SLMFuncOf n = SLMFunc (FromGHCNat n)
 
-
+-- NAryFamD a b n := a -> a -> ... -> a -> b
 class NAryFamC (n :: MyNat) where
   type NAryFamD a b n
   naryCreateHelper :: [a] -> Proxy n -> ([a] -> b) -> NAryFamD a b n
