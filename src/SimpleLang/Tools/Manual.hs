@@ -14,6 +14,7 @@ module SimpleLang.Tools.Manual (
   , slmVirtualFunc
   , slmSetRealFunc
   , slmFundef
+  , slmTailCall
   , SLMFuncsM
   , runSLMFuncsM
   , _const

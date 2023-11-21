@@ -8,6 +8,7 @@ module MachineLang.FromSimpleLang.Debugger (
     debugMLC
   , runMLC
   , mlcResultText
+  , runMLCinST
 ) where
 
 
@@ -23,6 +24,9 @@ import qualified Data.Text.IO as TIO
 import Control.Monad.Except
 import Data.Maybe (fromMaybe)
 import Control.Monad
+import Control.Monad.ST
+import Control.Monad.Primitive
+import Data.STRef (readSTRef)
 
 
 tshow :: Show a => a -> Text
@@ -108,7 +112,7 @@ debugMLCDebugger (inst, pos, _, mem, regs, time) = lift $ do
   TIO.putStrLn ""
   TIO.putStrLn ""
 
-silentDebugger :: MLDebugger SLPos (ExceptT MLRuntimeError IO)
+silentDebugger :: forall m. Monad m => MLDebugger SLPos (ExceptT MLRuntimeError m)
 silentDebugger _ = pure ()
 
 tickDebugger :: MLDebugger SLPos (ExceptT MLRuntimeError IO)
@@ -179,8 +183,8 @@ runMLC program =
       let end e = do
             TIO.putStrLn ""
             case e of
-              MLRESuccess c -> TIO.putStrLn ("successfully terminated. code: " <> tshow c)
-              _ -> TIO.putStrLn (tshow e)
+              MLRESuccess c -> TIO.putStrLn ("successfully terminated. code:" <> tshow c)
+              _ -> TIO.putStrLn ("runtime error:" <> tshow e)
 
           mainloop m = do
             result <- runExceptT $ runMLMachine1 m tickDebugger
@@ -188,6 +192,28 @@ runMLC program =
               Left e -> end e
               Right _  ->  mainloop m
         in mainloop machine
+
+
+runMLCinST :: SLProgram -> Text
+runMLCinST program =
+  case compileSLProgram program of
+    Left err -> "compile error: " <> (tshow err)
+    Right mlp -> runST ((do
+      machine <- primToST (initMLMacine (MLConfig 100000) mlp  :: ST s (MLMachine SLPos s))
+      let end :: MLRuntimeError -> ST s Text
+          end e = do
+            time <- readSTRef $ mltime machine
+            case e of
+              MLRESuccess c -> pure $ "(" <> tshow time <> " ticks) successfully terminated. code:" <> tshow c
+              _ -> pure $ "(" <> tshow time <> " ticks) runtime error:" <> tshow e
+
+          mainloop :: MLMachine SLPos s -> ST s Text
+          mainloop m = do
+            result <- primToST $ (runExceptT $ runMLMachine1 m silentDebugger :: ST s (Either MLRuntimeError ()))
+            case result of
+              Left e  -> end e
+              Right _ -> mainloop m
+        in mainloop machine) :: forall s. ST s Text)
 
 {-| 人間可読なコンパイル成果物を吐きます -}
 mlcResultText :: SLProgram -> Text

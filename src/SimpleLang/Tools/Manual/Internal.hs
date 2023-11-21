@@ -108,6 +108,12 @@ _app :: forall n. NAryFamC n => SLMFunc n -> NAryFamD SLExp SLExp n
 _app (SLMFunc (SLFuncBlock name _ _)) =
   naryCreate (Proxy :: Proxy n) (V.fromList >>> SLEPushCall (SLSolidFunc name))
 
+slmTailCall :: forall n. NAryFamC n => SLMFunc n -> NAryFamD SLExp (SLManualBlockM ()) n
+slmTailCall (SLMFunc (SLFuncBlock name _ _)) = 
+  naryCreate (Proxy :: Proxy n) ((\l -> do
+      SLMState cnt blocks <- get
+      put (SLMState cnt (V.snoc blocks (SLBSingle (SLSTailCallReturn (SLSolidFunc name) (V.fromList l)))))
+    ) :: [SLExp] -> SLManualBlockM ())
 newtype SLMFuncsM x =
       SLMFuncsM (State (M.Map SLFuncName SLFuncBlock) x)
     deriving (Functor, Applicative, Monad, MonadState (M.Map SLFuncName SLFuncBlock))

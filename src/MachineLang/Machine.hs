@@ -3,7 +3,15 @@
 {-# HLINT ignore "Use >=>" #-}
 {-# HLINT ignore "Use newtype instead of data" #-}
 
-module MachineLang.Machine where
+module MachineLang.Machine (
+    MLMachine (..)
+  , MLConfig (..)
+  , initMLMacine
+  , MLDebugger
+  , MLRuntimeError (..)
+  , getInst
+  , runMLMachine1
+ ) where
 
 import Data.Vector as V
 import Data.Vector.Mutable as MV
@@ -117,6 +125,9 @@ runMLMachine1 machine debugger =
               MLIAnd     dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (.&.) v1 v2);
               MLIOr      dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (.|.) v1 v2);
               MLIXor     dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 xor   v1 v2);
+              MLIEq      dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (\a b -> if a == b then 1 else 0) v1 v2);
+              MLIGt      dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (\a b -> if a >  b then 1 else 0) v1 v2);
+              MLILt      dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (\a b -> if a <  b then 1 else 0) v1 v2);
               MLIInv     dest   source1         -> do v1 <- readReg reg source1;                            writeReg reg dest (over1 complement v1);
               MLICopy    dest   source1         -> do v1 <- readReg reg source1;                            writeReg reg dest v1;
               MLIJump    jumpto                 -> do ja <- readReg reg jumpto; writeReg reg MLRegPC ja

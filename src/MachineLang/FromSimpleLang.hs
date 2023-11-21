@@ -228,7 +228,6 @@ slPtrCallToMLC funcptr args = do
 slSolidTailCallReturnToMLC :: SLFuncName -> V.Vector SLExp -> MonadMLCFunc ()
 slSolidTailCallReturnToMLC funcname args = do
   V.forM_ args slPushToMLC
-  --slPushToMLC func
   stateWriteFromList [
         MLIConst MLCRegY        (MLCValConst (-2))
       , MLIAdd   MLCRegY         MLCRegY        MLCRegFramePtr
@@ -250,17 +249,19 @@ slSolidTailCallReturnToMLC funcname args = do
       , MLIConst MLCRegY        (MLCValConst (-2 - V.length args))
       , MLIAdd   MLCRegY         MLCRegY MLCRegStackPtr  -- 引っ越し元開始位置: ↑で評価した引数の一番下
 
-      , MLIConst MLCRegX        (MLCValConst (-1))
-      , MLIAdd   MLCRegX         MLCRegStackPtr MLCRegX
-      , MLILoad  MLCRegStackPtr  MLCRegX
-      , MLIConst MLCRegX        (MLCValConst 1)
-      , MLIAdd   MLCRegX         MLCRegStackPtr MLCRegX  -- 引っ越し先開始位置: スタックフレームの底
+      , MLIConst MLCRegZ        (MLCValConst (-1))
+      , MLIAdd   MLCRegZ         MLCRegStackPtr MLCRegZ
+      , MLILoad  MLCRegStackPtr  MLCRegZ
+      , MLIAdd   MLCRegStackPtr  MLCRegStackPtr MLCRegX  -- 引っ越し先開始位置: スタックフレームの底
+      
+      , MLIConst MLCRegZ        (MLCValConst (V.length args + 2))
+      , MLIAdd   MLCRegFramePtr  MLCRegStackPtr MLCRegZ  -- フレームポインタ書き換え
     ]
 
   stateWriteFromList ( (L.replicate (V.length args + 3) >>> join) [
         MLILoad  MLCRegZ        MLCRegY
       , MLIStore MLCRegZ        MLCRegStackPtr
-      , MLIAdd   MLCRegZ        MLCRegZ        MLCRegX
+      , MLIAdd   MLCRegY        MLCRegY        MLCRegX
       , MLIAdd   MLCRegStackPtr MLCRegStackPtr MLCRegX
     ]) -- 引っ越し
 
@@ -278,7 +279,6 @@ slPtrTailCallReturnToMLC funcptr args = do
     ]
 
   V.forM_ args slPushToMLC
-  --slPushToMLC exp
   stateWriteFromList [
         MLIConst MLCRegY        (MLCValConst (-2))
       , MLIAdd   MLCRegY         MLCRegY        MLCRegFramePtr
@@ -405,30 +405,6 @@ slPrim2ToMLC prim exp1 exp2 =
             , MLIStore  MLCRegY          MLCRegStackPtr
           ]
 
-      gt = do
-        stateWriteFromList [
-              MLIConst  MLCRegX         (MLCValConst (-1))
-            , MLILoad   MLCRegZ          MLCRegStackPtr
-            , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-            , MLILoad   MLCRegY          MLCRegStackPtr
-            , MLISub    MLCRegZ          MLCRegZ MLCRegY
-            , MLIConst  MLCRegY         (MLCValConst (minBound :: Int))
-            , MLIAnd    MLCRegY          MLCRegY MLCRegZ
-            , MLIStore  MLCRegY          MLCRegStackPtr
-          ]
-
-      lt = do
-        stateWriteFromList [
-              MLIConst  MLCRegX         (MLCValConst (-1))
-            , MLILoad   MLCRegZ          MLCRegStackPtr
-            , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-            , MLILoad   MLCRegY          MLCRegStackPtr
-            , MLISub    MLCRegZ          MLCRegY MLCRegZ
-            , MLIConst  MLCRegY         (MLCValConst (minBound :: Int))
-            , MLIAnd    MLCRegY          MLCRegY MLCRegZ
-            , MLIStore  MLCRegY          MLCRegStackPtr
-          ]
-
   in case prim of
       SLPrim2Add   -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIAdd  
       SLPrim2Sub   -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLISub  
@@ -437,9 +413,9 @@ slPrim2ToMLC prim exp1 exp2 =
       SLPrim2And   -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIAnd  
       SLPrim2Or    -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIOr   
       SLPrim2Xor   -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIXor  
-      SLPrim2Gt    -> slPushToMLC exp1 >> slPushToMLC exp2 >> gt                  
-      SLPrim2Lt    -> slPushToMLC exp1 >> slPushToMLC exp2 >> lt                  
-      SLPrim2Eq    -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLISub  
+      SLPrim2Gt    -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIGt
+      SLPrim2Lt    -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLILt
+      SLPrim2Eq    -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIEq
 
 mlcInternalSetVarCnt :: Int -> MonadMLCFunc ()
 mlcInternalSetVarCnt n =

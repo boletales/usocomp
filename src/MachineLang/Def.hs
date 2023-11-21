@@ -38,6 +38,9 @@ data MLInst' r v =
   | MLIAnd     r r r --
   | MLIOr      r r r --
   | MLIXor     r r r --
+  | MLIEq      r r r --
+  | MLIGt      r r r --
+  | MLILt      r r r --
   | MLIInv     r r   --
   | MLICopy    r r   --
   | MLIJump    r     --
@@ -60,6 +63,9 @@ instance Bifunctor MLInst' where
       MLIAnd     r1 r2 r3 -> MLIAnd     (f r1) (f r2) (f r3)
       MLIOr      r1 r2 r3 -> MLIOr      (f r1) (f r2) (f r3)
       MLIXor     r1 r2 r3 -> MLIXor     (f r1) (f r2) (f r3)
+      MLIEq      r1 r2 r3 -> MLIEq      (f r1) (f r2) (f r3)
+      MLIGt      r1 r2 r3 -> MLIGt      (f r1) (f r2) (f r3)
+      MLILt      r1 r2 r3 -> MLILt      (f r1) (f r2) (f r3)
       MLIInv     r1 r2    -> MLIInv     (f r1) (f r2)
       MLICopy    r1 r2    -> MLICopy    (f r1) (f r2)
       MLIJump    r1       -> MLIJump    (f r1)
@@ -81,6 +87,9 @@ instance Bifoldable MLInst' where
       MLIAnd     r1 r2 r3 -> f r1 <> f r2 <> f r3
       MLIOr      r1 r2 r3 -> f r1 <> f r2 <> f r3
       MLIXor     r1 r2 r3 -> f r1 <> f r2 <> f r3
+      MLIEq      r1 r2 r3 -> f r1 <> f r2 <> f r3
+      MLIGt      r1 r2 r3 -> f r1 <> f r2 <> f r3
+      MLILt      r1 r2 r3 -> f r1 <> f r2 <> f r3
       MLIInv     r1 r2    -> f r1 <> f r2
       MLICopy    r1 r2    -> f r1 <> f r2
       MLIJump    r1       -> f r1
@@ -102,6 +111,9 @@ instance Bitraversable MLInst' where
       MLIAnd     r1 r2 r3 -> MLIAnd     <$> f r1 <*> f r2 <*> f r3
       MLIOr      r1 r2 r3 -> MLIOr      <$> f r1 <*> f r2 <*> f r3
       MLIXor     r1 r2 r3 -> MLIXor     <$> f r1 <*> f r2 <*> f r3
+      MLIEq      r1 r2 r3 -> MLIEq      <$> f r1 <*> f r2 <*> f r3
+      MLIGt      r1 r2 r3 -> MLIGt      <$> f r1 <*> f r2 <*> f r3
+      MLILt      r1 r2 r3 -> MLILt      <$> f r1 <*> f r2 <*> f r3
       MLIInv     r1 r2    -> MLIInv     <$> f r1 <*> f r2
       MLICopy    r1 r2    -> MLICopy    <$> f r1 <*> f r2
       MLIJump    r1       -> MLIJump    <$> f r1
