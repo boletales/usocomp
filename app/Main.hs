@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+{-# OPTIONS_GHC -Wno-unused-matches #-}
 
 module Main (main) where
 
@@ -6,7 +8,7 @@ import SimpleLang.Def
 import SimpleLang.Tools
 import SimpleLang.Tools.Manual
 import MachineLang.FromSimpleLang.Debugger
-import Data.Text as T
+import Data.Text as T ()
 import Data.Text.IO as TIO
 import Prelude hiding (exp)
 import Data.Vector as V
@@ -80,7 +82,7 @@ function #main.fibonacci ($A0, $A1, $A2, $A3)
 substTest :: SLProgram
 substTest =
   runSLMFuncsM $ do
-    main <- slmFunc SLFuncMain (do
+    _ <- slmFunc SLFuncMain (do
           i <- slmNewVar (_const 100)
           j <- slmNewVar (_const 200)
           k <- slmNewVar (_const 300)
