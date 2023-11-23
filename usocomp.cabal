@@ -25,6 +25,7 @@ source-repository head
 
 library
   exposed-modules:
+      FuncLang.Def
       MachineLang.Def
       MachineLang.FromSimpleLang
       MachineLang.FromSimpleLang.Debugger
