@@ -49,6 +49,7 @@ import Data.Vector as V
 import Control.Monad.State
 import Control.Category
 import Prelude hiding ((.), id, exp)
+import Internal.MyNat
 
 slmNewVar :: SLExp -> SLManualBlockM SLMVar
 slmNewVar exp = do
