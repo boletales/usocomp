@@ -134,6 +134,11 @@ poshere :: MonadMLCFunc SLPos
 poshere = MonadMLCFunc (gets mmlcfsLineInfo)
 -}
 
+slDeRef :: SLRef -> SLExp
+slDeRef ref =
+  case ref of
+    SLRefLocal i -> SLELocal i
+    SLRefPtr  e  -> SLEPtr   e
 
 slReturnToMLC :: SLExp -> MonadMLCFunc ()
 slReturnToMLC expr = do
@@ -188,9 +193,9 @@ slSolidCallToMLC funcname args = do
       , MLIConst  MLCRegPC        (MLCValJumpDestFunc funcname)        --jumplength: この命令までの命令数
     ]
 
-slPtrCallToMLC :: SLExp -> V.Vector SLExp -> MonadMLCFunc ()
-slPtrCallToMLC funcptr args = do
-  slPushToMLC funcptr
+slPtrCallToMLC :: SLRef -> V.Vector SLExp -> MonadMLCFunc ()
+slPtrCallToMLC ref args = do
+  slPushToMLC (slDeRef ref)
   stateWriteFromList [
         MLILoad   MLCRegZ          MLCRegStackPtr
       , MLIConst  MLCRegX         (MLCValConst -1)
@@ -271,9 +276,9 @@ slSolidTailCallReturnToMLC funcname args = do
         MLIConst MLCRegPC (MLCValJumpDestFunc funcname)
     ]
 
-slPtrTailCallReturnToMLC :: SLExp -> V.Vector SLExp -> MonadMLCFunc ()
-slPtrTailCallReturnToMLC funcptr args = do
-  slPushToMLC funcptr
+slPtrTailCallReturnToMLC :: SLRef -> V.Vector SLExp -> MonadMLCFunc ()
+slPtrTailCallReturnToMLC ref args = do
+  slPushToMLC (slDeRef ref)
   stateWriteFromList [
         MLILoad   MLCRegW          MLCRegStackPtr
       , MLIConst  MLCRegX         (MLCValConst -1)
@@ -319,6 +324,7 @@ slPtrTailCallReturnToMLC funcptr args = do
   stateWriteFromList [
         MLICopy MLCRegPC MLCRegW
     ]
+
 
 slPushToMLC :: SLExp -> MonadMLCFunc ()
 slPushToMLC expr = do
@@ -369,14 +375,14 @@ slPushToMLC expr = do
           , MLIStore  MLCRegX          MLCRegStackPtr
         ] -- expr'の評価先を再利用
 
-    SLEPushCall f args -> do
+    SLEPushCall call -> do
       stateWriteFromList [
             MLIConst  MLCRegX         (MLCValConst 1)
           , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
         ] -- 返り値のためにスタックを一個高くしておく
-      case f of
-        SLSolidFunc fname -> slSolidCallToMLC fname args
-        SLFuncRef   fptr  -> slPtrCallToMLC   fptr  args
+      case call of
+        SLSolidFuncCall fname args -> slSolidCallToMLC fname args
+        SLFuncRefCall   fref  args -> slPtrCallToMLC   fref  args
 
     SLEPrim1 prim exp1      -> slPrim1ToMLC prim exp1
 
@@ -497,10 +503,10 @@ slSingleToMLC statement =
         SLRefPtr   ptr -> slSubstPtrToMLC ptr expr
         SLRefLocal var -> slSubstVarToMLC var expr
     SLSReturn expr  -> slReturnToMLC expr
-    SLSTailCallReturn f args ->
-      case f of
-        SLSolidFunc fname -> slSolidTailCallReturnToMLC fname args
-        SLFuncRef   fptr  -> slPtrTailCallReturnToMLC   fptr  args
+    SLSTailCallReturn call ->
+      case call of
+        SLSolidFuncCall fname args -> slSolidTailCallReturnToMLC fname args
+        SLFuncRefCall   fref  args -> slPtrTailCallReturnToMLC   fref  args
 
 slMultiToMLC :: V.Vector SLBlock -> MonadMLCFunc ()
 slMultiToMLC blocks = do

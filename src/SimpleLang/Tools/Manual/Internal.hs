@@ -57,13 +57,13 @@ type family SLMFuncOf (n :: Nat) where
 
 _app :: forall n. NAryFamC n => SLMFunc n -> NAryFamD SLExp SLExp n
 _app (SLMFunc (SLFuncBlock name _ _)) =
-  naryCreate (Proxy :: Proxy n) (V.fromList >>> SLEPushCall (SLSolidFunc name))
+  naryCreate (Proxy :: Proxy n) (V.fromList >>> SLSolidFuncCall name >>> SLEPushCall)
 
 slmTailCall :: forall n. NAryFamC n => SLMFunc n -> NAryFamD SLExp (SLManualBlockM ()) n
 slmTailCall (SLMFunc (SLFuncBlock name _ _)) = 
   naryCreate (Proxy :: Proxy n) ((\l -> do
       SLMState cnt blocks <- get
-      put (SLMState cnt (V.snoc blocks (SLBSingle (SLSTailCallReturn (SLSolidFunc name) (V.fromList l)))))
+      put (SLMState cnt (V.snoc blocks (SLBSingle (SLSTailCallReturn (SLSolidFuncCall name (V.fromList l)) ))))
     ) :: [SLExp] -> SLManualBlockM ())
 newtype SLMFuncsM x =
       SLMFuncsM (State (M.Map SLFuncName SLFuncBlock) x)

@@ -54,6 +54,12 @@ prettyPrintFuncName name =
     SLFuncMain -> "#main"
     SLUserFunc moduleName funcName -> "#" <> moduleName <> "." <> funcName
 
+prettyPrintSLRef :: SLRef -> Text
+prettyPrintSLRef ref =
+  case ref of
+    SLRefPtr exp -> "*" <> prettyPrintSLExp exp
+    SLRefLocal x -> "$L" <> pack (show x)
+
 prettyPrintSLExp :: SLExp -> Text
 prettyPrintSLExp expr =
   case expr of
@@ -65,12 +71,10 @@ prettyPrintSLExp expr =
     
     SLEPtr exp -> "*" <> prettyPrintSLExp exp
 
-    SLEPushCall callable args ->
-      let callableText = case callable of
-            SLSolidFunc funcName -> prettyPrintFuncName funcName
-            SLFuncRef exp        -> prettyPrintSLExp exp
-          argTexts = V.toList $ prettyPrintSLExp <$> args
-      in callableText <> "(" <> intercalate ", " argTexts <> ")"
+    SLEPushCall call ->
+      case call of
+        SLSolidFuncCall funcName args -> prettyPrintFuncName funcName <> "(" <> intercalate ", " (V.toList $ prettyPrintSLExp <$> args) <> ")"
+        SLFuncRefCall   ref      args -> prettyPrintSLRef    ref      <> "(" <> intercalate ", " (V.toList $ prettyPrintSLExp <$> args) <> ")"
     
     SLEFuncPtr funcName -> prettyPrintFuncName funcName
 
@@ -96,24 +100,16 @@ prettyPrintSLExp expr =
                       SLPrim2Eq    -> "=="
       in "(" <> exp1Text <> " " <> opText <> " " <> exp2Text <> ")"
 
-prettyPrintSLRef :: SLRef -> Text
-prettyPrintSLRef ref =
-  case ref of
-    SLRefPtr exp -> "*" <> prettyPrintSLExp exp
-    SLRefLocal x -> "$L" <> pack (show x)
-
 prettyPrintSLStatement :: SLStatement -> Text
 prettyPrintSLStatement stmt =
   case stmt of
     SLSInitVar varid exp -> "var " <> "$L" <> pack (show varid) <> " = " <> prettyPrintSLExp exp
     SLSSubst ref exp -> prettyPrintSLRef ref <> " = " <> prettyPrintSLExp exp
     SLSReturn exp -> "return " <> prettyPrintSLExp exp
-    SLSTailCallReturn callable args ->
-      let callableText = case callable of
-            SLSolidFunc funcName -> prettyPrintFuncName funcName
-            SLFuncRef exp        -> prettyPrintSLExp exp
-          argTexts = V.toList $ prettyPrintSLExp <$> args
-      in "tailcall " <> callableText <> "(" <> intercalate ", " argTexts <> ")"
+    SLSTailCallReturn call ->
+      case call of
+        SLSolidFuncCall funcName args -> "tailcall " <> prettyPrintFuncName funcName <> "(" <> intercalate ", " (V.toList $ prettyPrintSLExp <$> args) <> ")"
+        SLFuncRefCall   ref      args -> "tailcall " <> prettyPrintSLRef ref         <> "(" <> intercalate ", " (V.toList $ prettyPrintSLExp <$> args) <> ")"
 
 
 prettyPrintSLBlock :: Int -> SLBlock -> V.Vector Text

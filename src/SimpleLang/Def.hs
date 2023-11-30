@@ -7,7 +7,7 @@ module SimpleLang.Def (
     SLAddr (..)
   , SLVal (..)
   , SLFuncName (..)
-  , SLCallable (..)
+  , SLCall (..)
   , SLPrim1 (..)
   , SLPrim2 (..)
   , SLExp (..)
@@ -32,6 +32,7 @@ import Data.Text
 -}
 
 
+
 newtype SLAddr = SLAddr Int deriving (Show, Eq)
 newtype SLVal  = SLVal  Int deriving (Show, Eq)
 
@@ -40,9 +41,9 @@ data SLFuncName =
       | SLUserFunc Text Text
       deriving (Show, Eq, Ord)
 
-data SLCallable =
-        SLSolidFunc SLFuncName
-      | SLFuncRef   SLExp
+data SLCall =
+        SLSolidFuncCall SLFuncName (V.Vector SLExp)
+      | SLFuncRefCall   SLRef      (V.Vector SLExp)
       deriving (Show, Eq)
 
 data SLPrim1 =
@@ -67,7 +68,7 @@ data SLExp =
       | SLELocal    Int
       | SLEArg      Int
       | SLEPtr      SLExp
-      | SLEPushCall SLCallable (V.Vector SLExp)
+      | SLEPushCall SLCall
       | SLEFuncPtr  SLFuncName
       | SLEPrim1    SLPrim1 SLExp
       | SLEPrim2    SLPrim2 SLExp SLExp
@@ -84,7 +85,7 @@ data SLStatement =
         SLSInitVar Int SLExp
       | SLSSubst   SLRef SLExp
       | SLSReturn  SLExp
-      | SLSTailCallReturn SLCallable (V.Vector SLExp)
+      | SLSTailCallReturn SLCall
       deriving (Show, Eq)
 
 data SLBlock =
