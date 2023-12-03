@@ -1,9 +1,4 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
-
 
 {-| 
 Module      : SimpleLang.Def
@@ -11,38 +6,29 @@ Description : SimpleLangの定義
 -}
 
 module SimpleLang.Def (
-      SLAddr (..)
-    , SLVal (..)
-    , SLFuncName (..)
-    , SLCall (..)
-    , SLPrim1 (..)
-    , SLPrim2 (..)
-    , SLExp (..)
-    , SLRef (..)
-    , SLStatement (..)
-    , SLBlock (..)
-    , SLFuncBlock (..)
-    , SLProgram
-    , DePhantomSLFuncBlock (..)
-    , DePhantomSLFuncName  (..)
-    , SLType (..)
-    , prettyPrintFuncName
-    , prettyPrintSLExp
-    , prettyPrintSLRef
-    , prettyPrintSLStatement
-    , prettyPrintSLBlock
-    , prettyPrintSLProgram
-  ) where
+    SLAddr (..)
+  , SLVal (..)
+  , SLFuncName (..)
+  , SLCall (..)
+  , SLPrim1 (..)
+  , SLPrim2 (..)
+  , SLExp (..)
+  , SLRef (..)
+  , SLStatement (..)
+  , SLBlock (..)
+  , SLFuncBlock (..)
+  , SLProgram
+  , prettyPrintFuncName
+  , prettyPrintSLRef
+  , prettyPrintSLExp
+  , prettyPrintSLStatement
+  , prettyPrintSLBlock
+  , prettyPrintSLProgram
+)where
 
 import Data.Vector as V
 import Data.Map as M
-import Data.Text
-import GHC.TypeNats
-import Data.Type.Bool
-import Data.Proxy
 import Data.Text as T
-import Data.Text as T
-import Control.Monad (when)
 
 -- 接頭辞 SL: SimpleLang に関連するものの型
 
@@ -53,46 +39,36 @@ import Control.Monad (when)
   包含関係にないスコープ間では変数の番号が一意ではありません。
 -}
 
+
 data SLType =
       SLTUnit
     | SLTInt
     | SLTFuncPtr [SLType] SLType
-    | SLTPtr SLType
-    | SLTStruct [SLType]
-    | SLTUnion  [SLType]
+    | SLTPtr      SLType
+    | SLTStruct  [SLType]
+    | SLTUnion   [SLType]
     deriving (Show, Eq)
 
-type family NatMax (n :: Nat) (m :: Nat) :: Nat where
-  NatMax n m = If (n <=? m) m n
-
-type family SLTSizeOf (t :: SLType) :: Nat where
-  SLTSizeOf SLTUnit               = 0
-  SLTSizeOf SLTInt                = 1
-  SLTSizeOf (SLTFuncPtr args ret) = 1
-  SLTSizeOf (SLTPtr t           ) = 1
-  SLTSizeOf (SLTStruct (t:ts)   ) = SLTSizeOf t + SLTSizeOf (SLTStruct ts)
-  SLTSizeOf (SLTStruct '[]      ) = 0
-  SLTSizeOf (SLTUnion  (t:ts)   ) = NatMax (SLTSizeOf t) (SLTSizeOf (SLTUnion ts))
-  SLTSizeOf (SLTUnion  '[]      ) = 0
-
-class Member (t :: SLType) (ts :: [SLType])
-
-instance Member t (t:ts)
-instance Member t ts => Member t (t':ts)
 
 newtype SLAddr = SLAddr Int deriving (Show, Eq)
 newtype SLVal  = SLVal  Int deriving (Show, Eq)
 
-data SLFuncName (args :: [SLType]) (ret :: SLType) =
+data SLFuncName =
         SLFuncMain
       | SLUserFunc Text Text
-      deriving (Show, Eq, Ord)
+      deriving (Eq, Ord)
 
-data SLCall (t :: SLType) where
-    SLSolidFuncCall :: SLFuncName ts t          -> SLExp ('SLTStruct ts) -> SLCall t
-    SLFuncRefCall   :: SLRef ('SLTFuncPtr ts t) -> SLExp ('SLTStruct ts) -> SLCall t
+instance Show SLFuncName where
+  show = T.unpack . prettyPrintFuncName
 
-deriving instance Show (SLCall t)
+data SLCall =
+        SLSolidFuncCall SLFuncName (V.Vector SLExp)
+      | SLFuncRefCall   SLRef      (V.Vector SLExp)
+      deriving (Eq)
+
+instance Show SLCall where
+  show = T.unpack . prettyPrintSLExp . SLEPushCall
+
 
 data SLPrim1 =
         SLPrim1Inv
@@ -111,104 +87,105 @@ data SLPrim2 =
       | SLPrim2Eq
       deriving (Show, Eq)
 
-data SLExp (t :: SLType) where
-    SLEConst      :: SLVal                                     -> SLExp 'SLTInt
-    SLELocal      :: Int                                       -> SLExp t
-    SLEArg        :: Int                                       -> SLExp t
-    SLEPtr        :: SLExp t                                   -> SLExp ('SLTPtr t)
-    SLEPushCall   :: SLCall t                                  -> SLExp t
-    SLEFuncPtr    :: SLFuncName args ret                       -> SLExp ('SLTFuncPtr args ret)
-    SLEPrim1      :: SLPrim1 -> SLExp 'SLTInt                  -> SLExp 'SLTInt
-    SLEPrim2      :: SLPrim2 -> SLExp 'SLTInt -> SLExp 'SLTInt -> SLExp 'SLTInt
-    SLEStructNil  ::                                              SLExp ('SLTStruct '[])
-    SLEStructCons :: SLExp t -> SLExp ('SLTStruct ts)          -> SLExp ('SLTStruct (t:ts)) 
-    SLEUnion      :: Member t ts => SLExp t                    -> SLExp ('SLTUnion     ts ) 
+data SLStruct =
+    SLStructNil
+  | SLStructCons SLExp SLStruct
+  deriving (Eq)
 
-instance Show (SLExp t) where
+instance Show SLStruct where
+  show = T.unpack . prettyPrintSLStruct
+
+
+data SLExp =
+        SLEConst     SLVal
+      | SLELocal     Int
+      | SLEArg       Int
+      | SLEPtr       SLExp
+      | SLEPushCall  SLCall
+      | SLEFuncPtr   SLFuncName
+      | SLEPrim1     SLPrim1 SLExp
+      | SLEPrim2     SLPrim2 SLExp SLExp
+      | SLEStruct    SLStruct
+      | SLEUnion     SLExp
+      deriving (Eq)
+
+instance Show SLExp where
   show = T.unpack . prettyPrintSLExp
 
-data SLRef (t :: SLType) = 
-          SLRefPtr   (SLExp t)
+
+data SLRef = 
+          SLRefPtr   SLExp
         | SLRefLocal Int
-instance Show (SLRef t) where
+      deriving (Eq)
+
+instance Show SLRef where
   show = T.unpack . prettyPrintSLRef
 
-data SLStatement where
-  SLSInitVar        :: Int -> SLExp t     -> SLStatement
-  SLSSubst          :: SLRef t -> SLExp t -> SLStatement
-  SLSReturn         :: SLExp t            -> SLStatement
-  SLSTailCallReturn :: SLCall t           -> SLStatement
+    
+
+data SLStatement =
+      --   SLSPrimPush SLExp
+      -- | SLSPrimPop
+        SLSInitVar Int SLExp
+      | SLSSubst   SLRef SLExp
+      | SLSReturn  SLExp
+      | SLSTailCallReturn SLCall
+      deriving (Eq)
 
 instance Show SLStatement where
   show = T.unpack . prettyPrintSLStatement
 
-data SLBlock where
-    SLBSingle :: SLStatement -> SLBlock
-    SLBMulti  :: V.Vector SLBlock -> SLBlock
-    SLBCase   :: V.Vector (SLExp 'SLTInt, SLBlock) -> SLBlock -> SLBlock
-    SLBWhile  :: SLExp 'SLTInt -> SLBlock -> SLBlock
+
+data SLBlock =
+        SLBSingle  SLStatement
+      | SLBMulti  (V.Vector SLBlock)
+      | SLBCase   (V.Vector (SLExp, SLBlock)) SLBlock
+      | SLBWhile   SLExp SLBlock
+      deriving (Eq)
 
 instance Show SLBlock where
   show = T.unpack . T.intercalate "\n" . V.toList . prettyPrintSLBlock 0
 
-data SLFuncBlock (args :: [SLType]) (ret :: SLType) =
+
+data SLFuncBlock =
       SLFuncBlock {
-          slfName     :: SLFuncName args ret
+          slfName     :: SLFuncName
         , slfArgCount :: Int
         , slfBlock    :: SLBlock
       }
-      deriving (Show)
+      deriving (Eq)
 
-data DePhantomSLFuncName where
-  DePhantomSLFuncName  :: SLFuncName args ret -> DePhantomSLFuncName
-
-instance Show DePhantomSLFuncName where
-  show = T.unpack . prettyPrintFuncName
-
-instance Eq  DePhantomSLFuncName where
-  DePhantomSLFuncName SLFuncMain == DePhantomSLFuncName SLFuncMain             = True
-  DePhantomSLFuncName (SLUserFunc m f) == DePhantomSLFuncName (SLUserFunc n g) = (m == n) && (f == g)
-  _ == _ = False
-
-instance Ord DePhantomSLFuncName where
-  compare (DePhantomSLFuncName SLFuncMain) (DePhantomSLFuncName SLFuncMain) = EQ
-  compare (DePhantomSLFuncName SLFuncMain) _                                = LT
-  compare _                                (DePhantomSLFuncName SLFuncMain) = GT
-  compare (DePhantomSLFuncName (SLUserFunc m f)) (DePhantomSLFuncName (SLUserFunc n g)) =
-    case compare m n of
-      EQ -> compare f g
-      x  -> x
-
-
-data DePhantomSLFuncBlock where
-  DePhantomSLFuncBlock :: SLFuncBlock args ret -> DePhantomSLFuncBlock
-deriving instance Show DePhantomSLFuncBlock
+instance Show SLFuncBlock where
+  show = T.unpack . T.intercalate "\n" . V.toList . prettyPrintSLBlock 0 . slfBlock
 
 type SLProgram =
-        M.Map DePhantomSLFuncName DePhantomSLFuncBlock
+        M.Map SLFuncName SLFuncBlock
 
 
-
-
-prettyPrintFuncName :: DePhantomSLFuncName -> Text
+prettyPrintFuncName :: SLFuncName -> Text
 prettyPrintFuncName name =
   case name of
-    DePhantomSLFuncName  SLFuncMain                      -> "#main"
-    DePhantomSLFuncName (SLUserFunc moduleName funcName) -> "#" <> moduleName <> "." <> funcName
+    SLFuncMain -> "#main"
+    SLUserFunc moduleName funcName -> "#" <> moduleName <> "." <> funcName
 
-prettyPrintSLRef :: forall t. SLRef t -> Text
+prettyPrintSLRef :: SLRef -> Text
 prettyPrintSLRef ref =
   case ref of
     SLRefPtr exp -> "*" <> prettyPrintSLExp exp
     SLRefLocal x -> "$L" <> pack (show x)
 
-prettyPrintSLCall :: forall t. SLCall t -> Text
-prettyPrintSLCall call =
-  case call of
-    SLSolidFuncCall funcName args -> prettyPrintFuncName (DePhantomSLFuncName funcName) <> prettyPrintSLExp args <> ")"
-    SLFuncRefCall   ref      args -> prettyPrintSLRef    ref                            <> prettyPrintSLExp args <> ")"
+prettyPrintSLStruct :: SLStruct -> Text
+prettyPrintSLStruct struct =
+  case struct of
+    SLStructNil -> "{}"
+    SLStructCons _ _ -> 
+      let go s =
+            case s of
+              SLStructNil           -> ""
+              SLStructCons x rest -> prettyPrintSLExp x <> ", " <> go rest
+      in "{" <> go struct <> "}"
 
-prettyPrintSLExp :: forall t. SLExp t -> Text
+prettyPrintSLExp :: SLExp -> Text
 prettyPrintSLExp expr =
   case expr of
     SLEConst (SLVal x) -> pack (show x)
@@ -219,9 +196,12 @@ prettyPrintSLExp expr =
     
     SLEPtr exp -> "*" <> prettyPrintSLExp exp
 
-    SLEPushCall call -> prettyPrintSLCall call
+    SLEPushCall call ->
+      case call of
+        SLSolidFuncCall funcName args -> prettyPrintFuncName funcName <> "(" <> intercalate ", " (V.toList $ prettyPrintSLExp <$> args) <> ")"
+        SLFuncRefCall   ref      args -> prettyPrintSLRef    ref      <> "(" <> intercalate ", " (V.toList $ prettyPrintSLExp <$> args) <> ")"
     
-    SLEFuncPtr funcName -> prettyPrintFuncName (DePhantomSLFuncName funcName)
+    SLEFuncPtr funcName -> prettyPrintFuncName funcName
 
     SLEPrim1 prim exp ->
       let expText = prettyPrintSLExp exp
@@ -244,29 +224,17 @@ prettyPrintSLExp expr =
                       SLPrim2Lt    -> "<" 
                       SLPrim2Eq    -> "=="
       in "(" <> exp1Text <> " " <> opText <> " " <> exp2Text <> ")"
-    
-    SLEStructNil -> "()"
-    SLEStructCons e1 e2 ->
-      let go :: forall ts. SLExp ('SLTStruct ts) -> Text
-          go exp =
-            case exp of
-              SLEStructNil -> ")"
-              SLEStructCons exp1 exp2 ->
-                let exp1Text = prettyPrintSLExp exp1
-                    exp2Text = go exp2
-                in  exp1Text <> ", " <> exp2Text <> ")"
-              otherexp -> ", " <> prettyPrintSLExp otherexp <> ") [ERROR! this should not happen]"
-      in "(" <> go (SLEStructCons e1 e2)
-    
-    SLEUnion exp -> prettyPrintSLExp exp
 
 prettyPrintSLStatement :: SLStatement -> Text
 prettyPrintSLStatement stmt =
   case stmt of
     SLSInitVar varid exp -> "var " <> "$L" <> pack (show varid) <> " = " <> prettyPrintSLExp exp
     SLSSubst ref exp -> prettyPrintSLRef ref <> " = " <> prettyPrintSLExp exp
-    SLSReturn exp          -> "return "   <> prettyPrintSLExp exp
-    SLSTailCallReturn call -> "tailcall " <> prettyPrintSLCall call
+    SLSReturn exp -> "return " <> prettyPrintSLExp exp
+    SLSTailCallReturn call ->
+      case call of
+        SLSolidFuncCall funcName args -> "tailcall " <> prettyPrintFuncName funcName <> "(" <> intercalate ", " (V.toList $ prettyPrintSLExp <$> args) <> ")"
+        SLFuncRefCall   ref      args -> "tailcall " <> prettyPrintSLRef ref         <> "(" <> intercalate ", " (V.toList $ prettyPrintSLExp <$> args) <> ")"
 
 
 prettyPrintSLBlock :: Int -> SLBlock -> V.Vector Text
@@ -297,7 +265,7 @@ prettyPrintSLBlock indent block =
 prettyPrintSLProgram :: SLProgram -> Text
 prettyPrintSLProgram program =
   T.intercalate "\n" $ 
-    (\(name, DePhantomSLFuncBlock (SLFuncBlock _ args block)) -> 
+    (\(name, SLFuncBlock _ args block) -> 
           ("\nfunction " 
               <> prettyPrintFuncName name
               <> " (" <> T.intercalate ", " ((\i -> "$A" <> pack (show i)) <$> [0 .. args]) <> ")")

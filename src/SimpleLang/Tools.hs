@@ -27,7 +27,7 @@ data SLLocalPos =
       deriving (Show, Eq, Ord)
 
 data SLPos = SLPos {
-    slpFuncName :: DePhantomSLFuncName
+    slpFuncName :: SLFuncName
   , slpLocalPos :: [SLLocalPos]
  } deriving (Show, Eq, Ord)
 
