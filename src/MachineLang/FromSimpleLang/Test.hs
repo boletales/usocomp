@@ -13,12 +13,14 @@ import Data.Vector as V
 substTest :: SLProgram
 substTest =
   runSLMFuncsM $ do
-    main <- slmFunc SLFuncMain (do
+    main :: ('[] ->> 'SLTInt) <- slmFunc SLFuncMain (do
           i <- slmNewVar (_const 100)
           j <- slmNewVar (_const 200)
           k <- slmNewVar (_const 300)
           l <- slmNewVar (_const 400)
           _reflocal k <<- _const 10000
+
+          slmReturn (_const 0)
           pure ()
         )
     
@@ -27,7 +29,7 @@ substTest =
 ifTest :: SLProgram
 ifTest =
   runSLMFuncsM $ do
-    main <- slmFunc SLFuncMain (do
+    main :: ('[] ->> 'SLTInt) <- slmFunc SLFuncMain (do
           i <- slmNewVar (_const 100 )
           j <- slmNewVar (_const 200 )
           a <- slmNewVar (_const 1000)
@@ -81,7 +83,7 @@ ifTest =
 whileTest :: SLProgram
 whileTest =
   runSLMFuncsM $ do
-    main <- slmFunc SLFuncMain (do
+    main :: ('[] ->> 'SLTInt) <- slmFunc SLFuncMain (do
         i <- slmNewVar (SLEConst (SLVal 1))
         slmWhile (_local i `_lt` _const 1000) (do
             _reflocal i <<- _local i `_add` _local i
@@ -96,7 +98,7 @@ whileTest =
 smallTest :: SLProgram
 smallTest =
   runSLMFuncsM $ do
-    main <- slmFunc SLFuncMain (do
+    main :: ('[] ->> 'SLTInt) <- slmFunc SLFuncMain (do
         slmReturn (_const 12345) 
         pure ()
       )

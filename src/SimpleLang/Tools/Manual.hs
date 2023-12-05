@@ -52,7 +52,7 @@ import Prelude hiding ((.), id, exp)
 import GHC.TypeNats
 import Data.Proxy
 
-slmNewVar :: forall t r. (KnownNat (SLTSizeOf t)) => SLExp t -> SLManualBlockM r (SLMVar t)
+slmNewVar :: forall t r. (KnownNat (SLTSizeOf t)) => TypedSLExp t -> SLManualBlockM r (SLMVar t)
 slmNewVar exp = do
   SLMState cnt blocks <- get
   let newVarId = cnt
@@ -70,12 +70,12 @@ slmBlk block = do
   SLMState cnt blocks <- get
   put (SLMState cnt (V.snoc blocks block))
 
-slmWhile :: SLExp 'SLTInt -> SLManualBlockM r () -> SLManualBlockM r ()
+slmWhile :: TypedSLExp 'SLTInt -> SLManualBlockM r () -> SLManualBlockM r ()
 slmWhile cond body = do
   block <- clipslm body
   slmBlk (SLBWhile cond block)
 
-slmCase :: V.Vector (SLExp 'SLTInt, SLManualBlockM r ()) -> SLManualBlockM r () -> SLManualBlockM r ()
+slmCase :: V.Vector (TypedSLExp 'SLTInt, SLManualBlockM r ()) -> SLManualBlockM r () -> SLManualBlockM r ()
 slmCase cases elsecase = do
   cases' <- V.mapM (\(cond, body) -> do
       block <- clipslm body
@@ -84,25 +84,25 @@ slmCase cases elsecase = do
   elsecase' <- clipslm elsecase
   slmBlk (SLBCase cases' elsecase')
 
-slmReturn :: SLExp r -> SLManualBlockM r ()
+slmReturn :: KnownSize r => TypedSLExp r -> SLManualBlockM r ()
 slmReturn expr = slmStmt (SLSReturn expr)
 
-_const :: Int -> SLExp 'SLTInt
+_const :: Int -> TypedSLExp 'SLTInt
 _const = SLVal >>> SLEConst
 
-_local :: SLMVar t -> SLExp t
+_local :: KnownSize t =>SLMVar t -> TypedSLExp t
 _local = unSLMVar >>> SLELocal
 
-_arg :: SLMArg t -> SLExp t
+_arg :: KnownSize t => SLMArg t -> TypedSLExp t
 _arg = unSLMArg >>> SLEArg
 
-_reflocal :: SLMVar t -> SLRef t
+_reflocal :: KnownSize t => SLMVar t -> SLRef t
 _reflocal = unSLMVar >>> SLRefLocal
 
-_ptr :: SLRef t -> SLExp ('SLTPtr t)
+_ptr :: KnownSize t => SLRef t -> TypedSLExp ('SLTPtr t)
 _ptr = SLEPtr
 
-_refptr :: SLExp ('SLTPtr t) -> SLRef t
+_refptr :: KnownSize t => TypedSLExp ('SLTPtr t) -> SLRef t
 _refptr = SLRefPtr
 
 slmFundef :: SLManualBlockM r () -> SLMNaryF '[] (SLManualBlockM r ())
@@ -110,14 +110,15 @@ slmFundef = id
 
 infix 1 <<-
 
-(<<-) :: SLRef t -> SLExp t -> SLManualBlockM r ()
+(<<-) :: KnownSize t => SLRef t -> TypedSLExp t -> SLManualBlockM r ()
 (<<-) a b = slmStmt (SLSSubst a b)
+
 
 
 {- SLEPrim2のラッパ -}
 
-type P2I = SLExp 'SLTInt -> SLExp 'SLTInt -> SLExp 'SLTInt
-type P1I = SLExp 'SLTInt -> SLExp 'SLTInt
+type P2I = TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt
+type P1I = TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt
 
 _add  :: P2I
 _add = SLEPrim2 SLPrim2Add
