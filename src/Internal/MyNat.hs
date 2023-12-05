@@ -24,7 +24,7 @@ instance KnownMyNat 'MyZero where
   myNatVal _ = 0
 
 instance KnownMyNat n => KnownMyNat ('MySucc n) where
-  myNatVal _ = 1 + natVal (Proxy :: Proxy n)
+  myNatVal _ = 1 + myNatVal (Proxy :: Proxy n)
 
 type family FromGHCNat (n :: Nat) = (m :: MyNat) where
   FromGHCNat 0 = 'MyZero

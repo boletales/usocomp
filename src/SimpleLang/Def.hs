@@ -48,7 +48,6 @@ import GHC.TypeNats
 import Data.Type.Bool
 import Data.Proxy
 import Data.Text as T
-import Control.Monad (when)
 import Data.Kind
 
 -- 接頭辞 SL: SimpleLang に関連するものの型
@@ -126,7 +125,7 @@ data SLExp (t :: SLType) where
     SLEConst      :: SLVal                                     -> SLExp 'SLTInt
     SLELocal      :: Int                                       -> SLExp t
     SLEArg        :: Int                                       -> SLExp t
-    SLEPtr        :: SLExp t                                   -> SLExp ('SLTPtr t)
+    SLEPtr        :: SLRef t                                   -> SLExp ('SLTPtr t)
     SLEPushCall   :: SLCall t                                  -> SLExp t
     SLEFuncPtr    :: TypedSLFuncName args ret                  -> SLExp ('SLTFuncPtr args ret)
     SLEPrim1      :: SLPrim1 -> SLExp 'SLTInt                  -> SLExp 'SLTInt
@@ -139,7 +138,7 @@ instance Show (SLExp t) where
   show = T.unpack . prettyPrintSLExp
 
 data SLRef (t :: SLType) = 
-          SLRefPtr   (SLExp t)
+          SLRefPtr   (SLExp (SLTPtr t))
         | SLRefLocal Int
 instance Show (SLRef t) where
   show = T.unpack . prettyPrintSLRef
@@ -231,7 +230,7 @@ prettyPrintSLExp expr =
 
     SLEArg x -> "$A" <> pack (show x)
     
-    SLEPtr exp -> "*" <> prettyPrintSLExp exp
+    SLEPtr exp -> "*" <> prettyPrintSLRef exp
 
     SLEPushCall call -> prettyPrintSLCall call
     

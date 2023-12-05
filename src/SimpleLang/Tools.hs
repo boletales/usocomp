@@ -10,9 +10,6 @@ module SimpleLang.Tools (
   ) where
 
 import SimpleLang.Def
-import Data.Vector as V
-import Data.Map as M
-import Control.Monad.State
 import Data.Text as T
 import Prelude hiding (exp)
 
@@ -27,7 +24,7 @@ data SLLocalPos =
       deriving (Show, Eq, Ord)
 
 data SLPos = SLPos {
-    slpFuncName :: DePhantomSLFuncName
+    slpFuncName :: SLFuncName
   , slpLocalPos :: [SLLocalPos]
  } deriving (Show, Eq, Ord)
 

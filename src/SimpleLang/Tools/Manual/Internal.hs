@@ -17,14 +17,14 @@ import Data.Kind
 import Data.Map qualified as M
 import GHC.TypeNats
 
-newtype SLMVar = SLMVar Int deriving (Show, Eq, Ord)
+newtype SLMVar (t :: SLType) = SLMVar Int deriving (Show, Eq, Ord)
 
-unSLMVar :: SLMVar -> Int
+unSLMVar :: SLMVar t -> Int
 unSLMVar (SLMVar x) = x
 
-newtype SLMArg = SLMArg Int deriving (Show, Eq, Ord)
+newtype SLMArg (t :: SLType) = SLMArg Int deriving (Show, Eq, Ord)
 
-unSLMArg :: SLMArg -> Int
+unSLMArg :: SLMArg t -> Int
 unSLMArg (SLMArg x) = x
 
 newtype SLMBlock (ret :: SLType) = SLMBlock SLBlock
