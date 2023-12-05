@@ -37,7 +37,6 @@ library
       SimpleLang.Tools
       SimpleLang.Tools.Manual
       SimpleLang.Tools.Manual.Internal
-      SimpleLang.Tools.Manual.TypeLevelSLTypeCheck
   other-modules:
       Paths_usocomp
   autogen-modules:

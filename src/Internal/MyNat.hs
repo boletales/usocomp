@@ -18,13 +18,13 @@ data MyNat =
       | MySucc MyNat
 
 class KnownMyNat (n :: MyNat) where
-  natVal :: Proxy n -> Int
+  myNatVal :: Proxy n -> Int
 
 instance KnownMyNat 'MyZero where
-  natVal _ = 0
+  myNatVal _ = 0
 
 instance KnownMyNat n => KnownMyNat ('MySucc n) where
-  natVal _ = 1 + natVal (Proxy :: Proxy n)
+  myNatVal _ = 1 + myNatVal (Proxy :: Proxy n)
 
 type family FromGHCNat (n :: Nat) = (m :: MyNat) where
   FromGHCNat 0 = 'MyZero
