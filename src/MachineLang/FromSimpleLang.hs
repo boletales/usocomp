@@ -166,6 +166,7 @@ slReturnToMLC expr = do
       , MLILoad   MLCRegPC       MLCRegX                 -- ジャンプ
     ]
 
+
 slSolidCallToMLC ::  forall args ret. (KnownSizes args) => TypedSLFuncName args ret -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
 slSolidCallToMLC funcname args = do
   slPushToMLC args
@@ -684,7 +685,9 @@ data MLCError =
 
 compileSLFunc :: SLFuncBlock -> Either MLCError MLCFlagment
 compileSLFunc slfunc =
-  execMonadMLCFunc (slBlockToMLC (slfBlock slfunc) >> slReturnToMLC (SLEConst (SLVal 0))) (SLPos (slfName slfunc) [])
+  execMonadMLCFunc (slBlockToMLC (slfBlock slfunc) >> inPos SLLPForceReturn (slReturnToMLC (SLEConst (SLVal 0)))) (SLPos (slfName slfunc) [])
+
+{- SLLPForceReturnのところで 'SLTInt を返してはいるが、値が返った先でのサイズは呼出直前のスタックポインタで決まっているため、問題ない -}
 
 
 interpretReg :: MLCReg -> MLReg

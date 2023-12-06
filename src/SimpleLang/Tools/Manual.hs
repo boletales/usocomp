@@ -1,3 +1,5 @@
+{-# LANGUAGE ExplicitNamespaces #-}
+
 {-|
   Module      : SimpleLang.Tools.Manual
   Description : SimpleLangを手書きするためのツール。re-exportしないこと！
@@ -42,6 +44,7 @@ module SimpleLang.Tools.Manual (
   , SLMState
   , SLManualBlockM
   , SLMNaryF
+  , type (-->)
 ) where
 
 import SimpleLang.Tools.Manual.Internal
@@ -52,6 +55,8 @@ import Control.Category
 import Prelude hiding ((.), id, exp)
 import GHC.TypeNats
 import Data.Proxy
+
+type (-->) args ret = TypedSLFuncBlock args ret
 
 slmNewVar :: forall t r. (KnownNat (SLTSizeOf t)) => TypedSLExp t -> SLManualBlockM r (SLMVar t)
 slmNewVar exp = do

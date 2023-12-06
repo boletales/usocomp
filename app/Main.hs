@@ -32,9 +32,9 @@ main = do
 tailRecTest :: SLProgram
 tailRecTest =
   runSLMFuncsM $ do
-    let fibonacci = slmVirtualFunc (SLUserFunc "main" "fibonacci") :: '[SLTInt, SLTInt, SLTInt] ->> SLTInt
+    let fibonacci = slmVirtualFunc (SLUserFunc "main" "fibonacci") :: '[SLTInt, SLTInt, SLTInt] --> SLTInt
 
-    _ :: '[] ->> SLTInt <- slmFunc SLFuncMain (do
+    _ :: '[] --> SLTInt <- slmFunc SLFuncMain (do
         x <- slmNewVar $ _app fibonacci (_const 20) (_const 0) (_const 1)
         slmReturn (_local x)
         pure ()
@@ -81,7 +81,7 @@ function #main.fibonacci ($A0, $A1, $A2, $A3)
 substTest :: SLProgram
 substTest =
   runSLMFuncsM $ do
-    _ :: '[] ->> SLTInt <- slmFunc SLFuncMain (do
+    _ :: '[] --> SLTInt <- slmFunc SLFuncMain (do
           i <- slmNewVar (_const 100)
           j <- slmNewVar (_const 200)
           k <- slmNewVar (_const 300)
