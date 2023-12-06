@@ -96,8 +96,8 @@ instance {-# OVERLAPPABLE #-} Member t ts => Member t (t':ts)
 
 class StructAt (i :: Nat) (ts :: [SLType]) (t :: SLType) | i ts -> t
 
-instance StructAt 0 (t:ts) t
-instance (StructAt i ts t, SLTSizeOf t ~ s, j ~ i + s) => StructAt j (t':ts) t'
+instance {-# OVERLAPPING #-}   StructAt 0 (t:ts) t
+instance {-# OVERLAPPABLE #-} (StructAt i ts t, SLTSizeOf t ~ s, j ~ i + s) => StructAt j (t':ts) t'
 
 
 newtype SLAddr = SLAddr Int deriving (Show, Eq)
@@ -155,7 +155,7 @@ data TypedSLExp (t :: SLType) where
     SLEUnion      :: (KnownSize t, Member t ts                               ) => TypedSLExp t                                        -> TypedSLExp ('SLTUnion     ts ) 
     SLEDeRef      :: (KnownSize t                                            ) => TypedSLExp ('SLTPtr t)                              -> TypedSLExp t
     SLEPtrShift   :: (KnownSize t                                            ) => TypedSLExp ('SLTPtr t) -> TypedSLExp 'SLTInt        -> TypedSLExp ('SLTPtr t)
-    SLEStructGet  :: (KnownSize t, KnownSizes ts, StructAt i ts t, KnownNat i) => Proxy i -> TypedSLExp ('SLTStruct ts)               -> TypedSLExp t
+    SLEStructGet  :: (KnownSize t, KnownSizes ts, StructAt i ts t, KnownNat i) => TypedSLExp ('SLTStruct ts) -> Proxy i               -> TypedSLExp t
     SLECast       :: (KnownSize t, KnownSize u, SLTSizeOf t ~ SLTSizeOf u    ) => TypedSLExp t                                        -> TypedSLExp u
 
 instance Show (TypedSLExp t) where
@@ -316,7 +316,7 @@ prettyPrintSLExp expr =
           exp2Text = prettyPrintSLExp exp2
       in "(" <> exp1Text <> " + " <> exp2Text <> ")"
 
-    SLEStructGet p exp -> prettyPrintSLExp exp <> "." <> pack (show (natVal p))
+    SLEStructGet exp p -> prettyPrintSLExp exp <> "." <> pack (show (natVal p))
 
     SLECast exp -> prettyPrintSLExp exp
 

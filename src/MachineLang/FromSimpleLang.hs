@@ -26,7 +26,6 @@ import VectorBuilder.Vector as VB
 import Data.Bitraversable (Bitraversable(bitraverse))
 import Control.Monad.Except
 import GHC.TypeNats
-import Data.Traversable
 import Data.Proxy
 
 -- 接頭辞 MLC: MachineLang.FromSimpleLang の内部でのみ利用する型
@@ -147,7 +146,7 @@ slReturnToMLC expr = do
       , MLILoad   MLCRegZ        MLCRegZ                 -- MLCRegZ ← 旧スタックポインタの中身(返り値アドレス)
     ]
 
-  Control.Monad.forM_ [0 .. (sleSizeOf expr - 1)] (\i ->
+  Control.Monad.forM_ [0 .. (sleSizeOf expr - 1)] (\_ ->
     stateWriteFromList [
         MLILoad   MLCRegY        MLCRegStackPtr          -- MLCRegY ← 返り値の中身
       , MLIStore  MLCRegY        MLCRegZ                 -- 返り値を入れる
@@ -171,7 +170,7 @@ slSolidCallToMLC ::  forall args ret. (KnownSizes args) => TypedSLFuncName args 
 slSolidCallToMLC funcname args = do
   slPushToMLC args
 
-  let argsize = (natVal >>> fromIntegral) (Proxy :: Proxy (SLTSizeOf ('SLTStruct args)))
+  let argsize = sleSizeOf args
 
   let jumplength = 9
   stateWriteFromList [
@@ -212,7 +211,7 @@ slPtrCallToMLC ref args = do
 
   slPushToMLC args
 
-  let argsize = (natVal >>> fromIntegral) (Proxy :: Proxy (SLTSizeOf ('SLTStruct args)))
+  let argsize = sleSizeOf args
 
   let jumplength = 9
   stateWriteFromList [
@@ -244,7 +243,7 @@ slPtrCallToMLC ref args = do
 
 slSolidTailCallReturnToMLC :: forall args ret. (KnownSizes args) => TypedSLFuncName args ret -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
 slSolidTailCallReturnToMLC funcname args = do
-  let argsize = (natVal >>> fromIntegral) (Proxy :: Proxy (SLTSizeOf ('SLTStruct args)))
+  let argsize = sleSizeOf args
   slPushToMLC args
   stateWriteFromList [
         MLIConst MLCRegY        (MLCValConst (-2))
@@ -296,7 +295,7 @@ slPtrTailCallReturnToMLC ref args = do
       , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
     ]
 
-  let argsize = (natVal >>> fromIntegral) (Proxy :: Proxy (SLTSizeOf ('SLTStruct args)))
+  let argsize = sleSizeOf args
   slPushToMLC args
   stateWriteFromList [
         MLIConst MLCRegY        (MLCValConst (-2))
@@ -432,19 +431,19 @@ slPushToMLC expr = do
 
     SLEPtrShift ptr shift -> slPrim2ToMLC SLPrim2Add ptr (SLECast shift)
 
-    SLEStructGet (Proxy :: Proxy i) expr' -> do
+    SLEStructGet expr' (Proxy :: Proxy i) -> do
       let offset = fromIntegral (natVal (Proxy :: Proxy i))
       slPushToMLC expr'
 
       stateWriteFromList [
-            MLIConst  MLCRegX         (MLCValConst (negate (sleSizeOf expr)))
+            MLIConst  MLCRegX         (MLCValConst (negate (sleSizeOf expr')))
           , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
           , MLIConst  MLCRegX         (MLCValConst offset)
           , MLIAdd    MLCRegY          MLCRegStackPtr MLCRegX
           , MLIConst  MLCRegX         (MLCValConst 1)
         ]
 
-      Control.Monad.forM_ [0 .. (sleSizeOf expr' - 1)] (\i ->
+      Control.Monad.forM_ [0 .. (sleSizeOf expr - 1)] (\_ ->
           stateWriteFromList [
                 MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
               , MLIAdd    MLCRegY          MLCRegY        MLCRegX
@@ -526,7 +525,7 @@ slPopnToMLC n = do
 slSubstVarToMLC :: forall t. (KnownSize t) => Int -> TypedSLExp t -> MonadMLCFunc ()
 slSubstVarToMLC var expr = do
   slPushToMLC expr
-  Control.Monad.forM_ (L.reverse [0..((natVal >>> fromIntegral) (Proxy @(SLTSizeOf t)) - 1)]) (\i ->
+  Control.Monad.forM_ (L.reverse [0..(sleSizeOf expr - 1)]) (\i ->
       stateWriteFromList [
             MLILoad   MLCRegY          MLCRegStackPtr
           , MLIConst  MLCRegX         (MLCValConst (-1))
@@ -546,7 +545,7 @@ slSubstPtrToMLC ptr expr = do
       , MLIConst  MLCRegX         (MLCValConst (-1))
       , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
     ]
-  Control.Monad.forM_ (L.reverse [0..((natVal >>> fromIntegral) (Proxy @(SLTSizeOf t)) - 1)]) (\i ->
+  Control.Monad.forM_ (L.reverse [0..(sleSizeOf expr - 1)]) (\i ->
     stateWriteFromList [
               MLILoad   MLCRegY          MLCRegStackPtr
             , MLIConst  MLCRegX         (MLCValConst (-1))
@@ -572,7 +571,7 @@ slSingleToMLC statement =
   case statement of
     --SLSPrimPush exp -> slPushToMLC exp
     --SLSPrimPop      -> slPopToMLC
-    SLSInitVar _ expr -> slPushToMLC expr >> mlcInternalShiftVarCnt 1
+    SLSInitVar _ expr -> slPushToMLC expr >> mlcInternalShiftVarCnt (sleSizeOf expr)
     SLSSubst ref expr ->
       case ref of
         SLRefPtr   ptr -> slSubstPtrToMLC ptr expr

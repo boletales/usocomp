@@ -1,3 +1,6 @@
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DataKinds #-}
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
@@ -8,6 +11,9 @@ import SimpleLang.Def
 import SimpleLang.Tools.Manual
 import SimpleLang.Tools
 import Data.Vector as V
+import Data.Proxy
+import GHC.TypeNats
+import MachineLang.FromSimpleLang.Debugger
 
 
 substTest :: SLProgram
@@ -103,4 +109,41 @@ smallTest =
         pure ()
       )
 
+    pure ()
+
+structTest :: SLProgram
+structTest =
+  runSLMFuncsM $ do
+    _ :: ('[] ->> SLTInt) <- slmFunc SLFuncMain (do
+        str <- slmNewVar (_const 100 >: _const 200 >: _const 300 >: SLEStructNil)
+        x :: SLMVar 'SLTInt <- slmNewVar (_local str `SLEStructGet` Proxy @1)
+        slmReturn (_local x)
+      )
+    pure ()
+
+type SLTComplex = 'SLTStruct '[ 'SLTInt, 'SLTInt ]
+
+complexTest :: SLProgram
+complexTest =
+  runSLMFuncsM $ do
+    complexProd :: ('[SLTComplex, SLTComplex] ->> SLTComplex) <- slmFunc (SLUserFunc "main" "complexProd") (\c1 c2 -> do
+        re1 <- slmNewVar (c1 `SLEStructGet` Proxy @0)
+        im1 <- slmNewVar (c1 `SLEStructGet` Proxy @1)
+        re2 <- slmNewVar (c2 `SLEStructGet` Proxy @0)
+        im2 <- slmNewVar (c2 `SLEStructGet` Proxy @1)
+        re3 <- slmNewVar ((_local re1 `_mul` _local re2) `_sub` (_local im1 `_mul` _local im2))
+        im3 <- slmNewVar ((_local re1 `_mul` _local im2) `_add` (_local im1 `_mul` _local re2))
+        slmReturn (SLEStructCons (_local re3) (SLEStructCons (_local im3) SLEStructNil))
+        pure ()
+      )
+
+    _ :: ('[] ->> SLTInt) <- slmFunc SLFuncMain (do
+        c1 <- slmNewVar (SLEStructCons (_const 100) (SLEStructCons (_const 200) SLEStructNil))
+        c2 <- slmNewVar (SLEStructCons (_const 300) (SLEStructCons (_const 400) SLEStructNil))
+        d <- slmNewVar (_const 1111111)
+        c3 <- slmNewVar (_app complexProd (_local c1) (_local c2))
+        e <- slmNewVar (_const 2222222)
+        slmReturn (_local c2 `SLEStructGet` Proxy @1)
+        pure ()
+      )
     pure ()

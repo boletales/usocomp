@@ -24,9 +24,10 @@ module SimpleLang.Tools.Manual (
   , _ptr
   , _refptr
   , (<<-)
+  , (>:)
   , _add
   , _sub
-  , _mult
+  , _mul
   , _shift
   , _and
   , _or
@@ -113,6 +114,11 @@ infix 1 <<-
 (<<-) :: KnownSize t => SLRef t -> TypedSLExp t -> SLManualBlockM r ()
 (<<-) a b = slmStmt (SLSSubst a b)
 
+infixr 2 >:
+
+(>:) :: (KnownSize t, KnownSizes ts ) => TypedSLExp t -> TypedSLExp ('SLTStruct ts) -> TypedSLExp ('SLTStruct (t:ts))
+(>:) = SLEStructCons
+
 
 
 {- SLEPrim2のラッパ -}
@@ -126,8 +132,8 @@ _add = SLEPrim2 SLPrim2Add
 _sub  :: P2I
 _sub = SLEPrim2 SLPrim2Sub
 
-_mult :: P2I
-_mult = SLEPrim2 SLPrim2Mult
+_mul :: P2I
+_mul = SLEPrim2 SLPrim2Mult
 
 _shift :: P2I
 _shift = SLEPrim2 SLPrim2Shift
