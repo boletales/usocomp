@@ -1,6 +1,7 @@
 {-# LANGUAGE NegativeLiterals #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE MonoLocalBinds #-}
 
 module MachineLang.FromSimpleLang (
       compileSLProgram
@@ -24,6 +25,8 @@ import VectorBuilder.Builder as VB
 import VectorBuilder.Vector as VB
 import Data.Bitraversable (Bitraversable(bitraverse))
 import Control.Monad.Except
+import GHC.TypeNats
+import Data.Proxy
 
 -- 接頭辞 MLC: MachineLang.FromSimpleLang の内部でのみ利用する型
 
@@ -134,18 +137,25 @@ poshere :: MonadMLCFunc SLPos
 poshere = MonadMLCFunc (gets mmlcfsLineInfo)
 -}
 
-
-slReturnToMLC :: SLExp -> MonadMLCFunc ()
+slReturnToMLC :: KnownSize t => TypedSLExp t -> MonadMLCFunc ()
 slReturnToMLC expr = do
   slPushToMLC expr
   stateWriteFromList [
         MLIConst  MLCRegX       (MLCValConst (-1))
-      , MLIAdd    MLCRegX        MLCRegX MLCRegFramePtr  -- MLCRegX ← 旧スタックポインタ置き場のアドレス
-      , MLILoad   MLCRegX        MLCRegX                 -- MLCRegX ← 旧スタックポインタの中身(返り値アドレス)
-      , MLILoad   MLCRegY        MLCRegStackPtr          -- MLCRegY ← 返り値の中身
-      , MLIStore  MLCRegY        MLCRegX                 -- 返り値を入れる
+      , MLIAdd    MLCRegZ        MLCRegX MLCRegFramePtr  -- MLCRegZ ← 旧スタックポインタ置き場のアドレス
+      , MLILoad   MLCRegZ        MLCRegZ                 -- MLCRegZ ← 旧スタックポインタの中身(返り値アドレス)
+    ]
 
-      , MLICopy   MLCRegX        MLCRegFramePtr          -- 現フレームポインタを覚えておく
+  Control.Monad.forM_ [0 .. (sleSizeOf expr - 1)] (\_ ->
+    stateWriteFromList [
+        MLILoad   MLCRegY        MLCRegStackPtr          -- MLCRegY ← 返り値の中身
+      , MLIStore  MLCRegY        MLCRegZ                 -- 返り値を入れる
+      , MLIAdd    MLCRegStackPtr MLCRegStackPtr MLCRegX
+      , MLIAdd    MLCRegZ        MLCRegZ        MLCRegX
+    ])
+
+  stateWriteFromList [
+        MLICopy   MLCRegX        MLCRegFramePtr          -- 現フレームポインタを覚えておく
       , MLILoad   MLCRegFramePtr MLCRegFramePtr          -- フレームポインタを戻す
 
       , MLIConst  MLCRegY       (MLCValConst (-1))
@@ -156,9 +166,11 @@ slReturnToMLC expr = do
       , MLILoad   MLCRegPC       MLCRegX                 -- ジャンプ
     ]
 
-slSolidCallToMLC :: SLFuncName -> V.Vector SLExp -> MonadMLCFunc ()
+slSolidCallToMLC ::  forall args ret. (KnownSizes args) => TypedSLFuncName args ret -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
 slSolidCallToMLC funcname args = do
-  V.forM_ args slPushToMLC
+  slPushToMLC args
+
+  let argsize = sleSizeOf args
 
   let jumplength = 9
   stateWriteFromList [
@@ -171,7 +183,7 @@ slSolidCallToMLC funcname args = do
 
       -- 旧スタックポインタ
       , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-      , MLIConst  MLCRegY         (MLCValConst (-(V.length args) - 2))
+      , MLIConst  MLCRegY         (MLCValConst (-argsize - 2))
       , MLIAdd    MLCRegY          MLCRegStackPtr MLCRegY              -- MLCRegY ← 現スタックポインタ - 引数の個数 - 2 (= 返り値置き場のアドレス)
       , MLIStore  MLCRegY          MLCRegStackPtr
 
@@ -185,19 +197,21 @@ slSolidCallToMLC funcname args = do
 
 
       -- ジャンプ
-      , MLIConst  MLCRegPC        (MLCValJumpDestFunc funcname)        --jumplength: この命令までの命令数
+      , MLIConst  MLCRegPC        (MLCValJumpDestFunc (unTypedSLFuncName funcname))        --jumplength: この命令までの命令数
     ]
 
-slPtrCallToMLC :: SLExp -> V.Vector SLExp -> MonadMLCFunc ()
-slPtrCallToMLC funcptr args = do
-  slPushToMLC funcptr
+slPtrCallToMLC ::  forall args ret. (KnownSizes args) => SLRef ('SLTFuncPtr args ret) -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
+slPtrCallToMLC ref args = do
+  slPushToMLC (slRefToPtr ref)
   stateWriteFromList [
         MLILoad   MLCRegZ          MLCRegStackPtr
       , MLIConst  MLCRegX         (MLCValConst -1)
       , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
     ]
 
-  V.forM_ args slPushToMLC
+  slPushToMLC args
+
+  let argsize = sleSizeOf args
 
   let jumplength = 9
   stateWriteFromList [
@@ -210,7 +224,7 @@ slPtrCallToMLC funcptr args = do
 
       -- 旧スタックポインタ
       , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-      , MLIConst  MLCRegY         (MLCValConst (-(V.length args) - 2))
+      , MLIConst  MLCRegY         (MLCValConst (-argsize - 2))
       , MLIAdd    MLCRegY          MLCRegStackPtr MLCRegY              -- MLCRegX ← 現スタックポインタ - 引数の個数 - 2 (= 返り値置き場のアドレス)
       , MLIStore  MLCRegY          MLCRegStackPtr
 
@@ -227,9 +241,10 @@ slPtrCallToMLC funcptr args = do
       , MLICopy   MLCRegPC         MLCRegZ                            --jumplength: この命令までの命令数
     ]
 
-slSolidTailCallReturnToMLC :: SLFuncName -> V.Vector SLExp -> MonadMLCFunc ()
+slSolidTailCallReturnToMLC :: forall args ret. (KnownSizes args) => TypedSLFuncName args ret -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
 slSolidTailCallReturnToMLC funcname args = do
-  V.forM_ args slPushToMLC
+  let argsize = sleSizeOf args
+  slPushToMLC args
   stateWriteFromList [
         MLIConst MLCRegY        (MLCValConst (-2))
       , MLIAdd   MLCRegY         MLCRegY        MLCRegFramePtr
@@ -248,19 +263,19 @@ slSolidTailCallReturnToMLC funcname args = do
       , MLILoad  MLCRegZ         MLCRegY
       , MLIStore MLCRegZ         MLCRegStackPtr          -- 旧フレームポインタをスタックトップにコピー
 
-      , MLIConst MLCRegY        (MLCValConst (-2 - V.length args))
+      , MLIConst MLCRegY        (MLCValConst (-2 - argsize))
       , MLIAdd   MLCRegY         MLCRegY MLCRegStackPtr  -- 引っ越し元開始位置: ↑で評価した引数の一番下
 
       , MLIConst MLCRegZ        (MLCValConst (-1))
       , MLIAdd   MLCRegZ         MLCRegStackPtr MLCRegZ
       , MLILoad  MLCRegStackPtr  MLCRegZ
       , MLIAdd   MLCRegStackPtr  MLCRegStackPtr MLCRegX  -- 引っ越し先開始位置: スタックフレームの底
-      
-      , MLIConst MLCRegZ        (MLCValConst (V.length args + 2))
+
+      , MLIConst MLCRegZ        (MLCValConst (argsize + 2))
       , MLIAdd   MLCRegFramePtr  MLCRegStackPtr MLCRegZ  -- フレームポインタ書き換え
     ]
 
-  stateWriteFromList ( (L.replicate (V.length args + 3) >>> join) [
+  stateWriteFromList ( (L.replicate (argsize + 3) >>> join) [
         MLILoad  MLCRegZ        MLCRegY
       , MLIStore MLCRegZ        MLCRegStackPtr
       , MLIAdd   MLCRegY        MLCRegY        MLCRegX
@@ -268,19 +283,20 @@ slSolidTailCallReturnToMLC funcname args = do
     ]) -- 引っ越し
 
   stateWriteFromList [
-        MLIConst MLCRegPC (MLCValJumpDestFunc funcname)
+        MLIConst MLCRegPC (MLCValJumpDestFunc (unTypedSLFuncName funcname))
     ]
 
-slPtrTailCallReturnToMLC :: SLExp -> V.Vector SLExp -> MonadMLCFunc ()
-slPtrTailCallReturnToMLC funcptr args = do
-  slPushToMLC funcptr
+slPtrTailCallReturnToMLC :: forall args ret. (KnownSizes args) => SLRef ('SLTFuncPtr args ret) -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
+slPtrTailCallReturnToMLC ref args = do
+  slPushToMLC (slRefToPtr ref)
   stateWriteFromList [
         MLILoad   MLCRegW          MLCRegStackPtr
       , MLIConst  MLCRegX         (MLCValConst -1)
       , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
     ]
 
-  V.forM_ args slPushToMLC
+  let argsize = sleSizeOf args
+  slPushToMLC args
   stateWriteFromList [
         MLIConst MLCRegY        (MLCValConst (-2))
       , MLIAdd   MLCRegY         MLCRegY        MLCRegFramePtr
@@ -299,7 +315,7 @@ slPtrTailCallReturnToMLC funcptr args = do
       , MLILoad  MLCRegZ         MLCRegY
       , MLIStore MLCRegZ         MLCRegStackPtr          -- 旧フレームポインタをスタックトップにコピー
 
-      , MLIConst MLCRegY        (MLCValConst (-3 - V.length args))
+      , MLIConst MLCRegY        (MLCValConst (-3 - argsize))
       , MLIAdd   MLCRegY         MLCRegY MLCRegStackPtr  -- 引っ越し元開始位置: ↑で評価した引数の一番下
 
       , MLIConst MLCRegX        (MLCValConst (-1))
@@ -309,7 +325,7 @@ slPtrTailCallReturnToMLC funcptr args = do
       , MLIAdd   MLCRegX         MLCRegStackPtr MLCRegX  -- 引っ越し先開始位置: スタックフレームの底
     ]
 
-  stateWriteFromList ( (L.replicate (V.length args + 3) >>> join) [
+  stateWriteFromList ( (L.replicate (argsize + 3) >>> join) [
         MLILoad  MLCRegZ        MLCRegY
       , MLIStore MLCRegZ        MLCRegStackPtr
       , MLIAdd   MLCRegZ        MLCRegZ        MLCRegX
@@ -320,7 +336,8 @@ slPtrTailCallReturnToMLC funcptr args = do
         MLICopy MLCRegPC MLCRegW
     ]
 
-slPushToMLC :: SLExp -> MonadMLCFunc ()
+
+slPushToMLC :: KnownSize t => TypedSLExp t -> MonadMLCFunc ()
 slPushToMLC expr = do
   case expr of
     SLEConst (SLVal v) ->
@@ -335,55 +352,109 @@ slPushToMLC expr = do
       stateWriteFromList [
             MLIConst  MLCRegX         (MLCValConst 1)
           , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-          , MLIConst  MLCRegStackPtr  (MLCValJumpDestFunc fname)
+          , MLIConst  MLCRegStackPtr  (MLCValJumpDestFunc (unTypedSLFuncName fname))
         ]
 
-    SLELocal i ->
+    SLELocal v ->
+      Control.Monad.forM_ [0 .. (sleSizeOf expr - 1)] (\i ->
+          stateWriteFromList [
+                MLIConst  MLCRegX         (MLCValConst  1)
+              , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+              , MLIConst  MLCRegX         (MLCValConst (1 + v + i))
+              , MLIAdd    MLCRegX          MLCRegX MLCRegFramePtr -- i番目のローカル変数は、フレームポインタ指し先 + i + 1
+              , MLILoad   MLCRegX          MLCRegX
+              , MLIStore  MLCRegX          MLCRegStackPtr
+            ]
+        )
+
+    SLEArg a ->
+      Control.Monad.forM_ [0 .. (sleSizeOf expr - 1)] (\i ->
+          stateWriteFromList [
+                MLIConst  MLCRegX         (MLCValConst 1)
+              , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+              , MLIConst  MLCRegX         (MLCValConst (-1))
+              , MLIAdd    MLCRegX          MLCRegX MLCRegFramePtr -- MLCRegX ← 旧スタックポインタ置き場のアドレス
+              , MLILoad   MLCRegX          MLCRegX                -- MLCRegX ← 旧スタックポインタの指し先
+              , MLIConst  MLCRegY         (MLCValConst (1 + a + i))
+              , MLIAdd    MLCRegX          MLCRegX MLCRegY        -- i番目のローカル変数は、旧スタックポインタ指し先 + i + 1
+              , MLILoad   MLCRegX          MLCRegX
+              , MLIStore  MLCRegX          MLCRegStackPtr
+            ]
+        )
+
+    SLEPushCall call -> do
       stateWriteFromList [
-            MLIConst  MLCRegX         (MLCValConst 1)
+            MLIConst  MLCRegX         (MLCValConst (sleSizeOf expr))
           , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-          , MLIConst  MLCRegX         (MLCValConst (1 + i))
-          , MLIAdd    MLCRegX          MLCRegX MLCRegFramePtr -- i番目のローカル変数は、フレームポインタ指し先 + i + 1
-          , MLILoad   MLCRegX          MLCRegX
-          , MLIStore  MLCRegX          MLCRegStackPtr
-        ]
+        ] -- 返り値のためにスタックを高くしておく
+      case call of
+        SLSolidFuncCall fname args -> slSolidCallToMLC fname args
+        SLFuncRefCall   fref  args -> slPtrCallToMLC   fref  args
 
-    SLEArg i ->
-      stateWriteFromList [
-            MLIConst  MLCRegX         (MLCValConst 1)
-          , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-          , MLIConst  MLCRegX         (MLCValConst (-1))
-          , MLIAdd    MLCRegX          MLCRegX MLCRegFramePtr -- MLCRegX ← 旧スタックポインタ置き場のアドレス
-          , MLILoad   MLCRegX          MLCRegX                -- MLCRegX ← 旧スタックポインタの指し先
-          , MLIConst  MLCRegY         (MLCValConst (1 + i))
-          , MLIAdd    MLCRegX          MLCRegX MLCRegY        -- i番目のローカル変数は、旧スタックポインタ指し先 + i + 1
-          , MLILoad   MLCRegX          MLCRegX
-          , MLIStore  MLCRegX          MLCRegStackPtr
-        ]
+    SLEPrim1 prim exp1       -> slPrim1ToMLC prim exp1
 
-    SLEPtr expr' -> do
+    SLEPrim2 prim exp1 exp2  -> slPrim2ToMLC prim exp1 exp2
+
+
+    SLEStructNil       -> pure ()
+    SLEStructCons e es -> slPushToMLC e >> slPushToMLC es
+
+    SLEUnion     expr' -> do
       slPushToMLC expr'
+      stateWriteFromList [
+            MLIConst  MLCRegX         (MLCValConst (sleSizeOf expr - sleSizeOf expr'))
+          , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+        ]
+
+
+    SLEDeRef ptr -> do
+      slPushToMLC ptr
       stateWriteFromList [
             MLILoad   MLCRegX          MLCRegStackPtr
           , MLILoad   MLCRegX          MLCRegX
           , MLIStore  MLCRegX          MLCRegStackPtr
         ] -- expr'の評価先を再利用
 
-    SLEPushCall f args -> do
+    SLEPtr ref ->
+      case ref of
+        SLRefLocal v ->
+          stateWriteFromList [
+                MLIConst  MLCRegX         (MLCValConst  1)
+              , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+              , MLIConst  MLCRegX         (MLCValConst (1 + v))
+              , MLIAdd    MLCRegX          MLCRegX MLCRegFramePtr -- i番目のローカル変数は、フレームポインタ指し先 + i + 1
+              , MLIStore  MLCRegX          MLCRegStackPtr
+            ]
+
+        SLRefPtr ptr ->
+          slPushToMLC ptr
+
+    SLEPtrShift ptr shift -> slPrim2ToMLC SLPrim2Add ptr (SLECast shift)
+
+    SLEStructGet expr' (Proxy :: Proxy i) -> do
+      let offset = fromIntegral (natVal (Proxy :: Proxy i))
+      slPushToMLC expr'
+
       stateWriteFromList [
-            MLIConst  MLCRegX         (MLCValConst 1)
+            MLIConst  MLCRegX         (MLCValConst (negate (sleSizeOf expr')))
           , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-        ] -- 返り値のためにスタックを一個高くしておく
-      case f of
-        SLSolidFunc fname -> slSolidCallToMLC fname args
-        SLFuncRef   fptr  -> slPtrCallToMLC   fptr  args
+          , MLIConst  MLCRegX         (MLCValConst offset)
+          , MLIAdd    MLCRegY          MLCRegStackPtr MLCRegX
+          , MLIConst  MLCRegX         (MLCValConst 1)
+        ]
 
-    SLEPrim1 prim exp1      -> slPrim1ToMLC prim exp1
+      Control.Monad.forM_ [0 .. (sleSizeOf expr - 1)] (\_ ->
+          stateWriteFromList [
+                MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+              , MLIAdd    MLCRegY          MLCRegY        MLCRegX
+              , MLILoad   MLCRegZ          MLCRegY
+              , MLIStore  MLCRegZ          MLCRegStackPtr
+            ]
+        )
+    
+    SLECast expr' -> slPushToMLC expr'
 
-    SLEPrim2 prim exp1 exp2 -> slPrim2ToMLC prim exp1 exp2
-
-
-slPrim1ToMLC :: SLPrim1 -> SLExp ->MonadMLCFunc ()
+slPrim1ToMLC :: (SLTSizeOf t ~ 1) => SLPrim1 -> TypedSLExp t ->MonadMLCFunc ()
 slPrim1ToMLC prim exp1 =
   let prim1helper inst = do
         stateWriteFromList [
@@ -393,9 +464,9 @@ slPrim1ToMLC prim exp1 =
           ]
 
   in case prim of
-      SLPrim1Inv   -> slPushToMLC exp1 >> prim1helper MLIInv  
+      SLPrim1Inv   -> slPushToMLC exp1 >> prim1helper MLIInv
 
-slPrim2ToMLC :: SLPrim2 -> SLExp -> SLExp -> MonadMLCFunc ()
+slPrim2ToMLC :: (SLTSizeOf t ~ 1) => SLPrim2 -> TypedSLExp t -> TypedSLExp t -> MonadMLCFunc ()
 slPrim2ToMLC prim exp1 exp2 =
   let prim2helper inst = do
         stateWriteFromList [
@@ -408,13 +479,13 @@ slPrim2ToMLC prim exp1 exp2 =
           ]
 
   in case prim of
-      SLPrim2Add   -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIAdd  
-      SLPrim2Sub   -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLISub  
-      SLPrim2Mult  -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIMult 
+      SLPrim2Add   -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIAdd
+      SLPrim2Sub   -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLISub
+      SLPrim2Mult  -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIMult
       SLPrim2Shift -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIShift
-      SLPrim2And   -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIAnd  
-      SLPrim2Or    -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIOr   
-      SLPrim2Xor   -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIXor  
+      SLPrim2And   -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIAnd
+      SLPrim2Or    -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIOr
+      SLPrim2Xor   -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIXor
       SLPrim2Gt    -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIGt
       SLPrim2Lt    -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLILt
       SLPrim2Eq    -> slPushToMLC exp1 >> slPushToMLC exp2 >> prim2helper MLIEq
@@ -428,8 +499,8 @@ mlcInternalShiftVarCnt n =
   MonadMLCFunc (S.modify (\s -> s {mmlcfsVarCnt = mmlcfsVarCnt s + n}))
 
 mlcVarScope :: MonadMLCFunc () -> MonadMLCFunc ()
-mlcVarScope v = 
-  let 
+mlcVarScope v =
+  let
     trashScopedVars :: MonadMLCFunc ()
     trashScopedVars = do
       varcnt <- MonadMLCFunc (gets mmlcfsVarCnt)
@@ -451,30 +522,39 @@ slPopnToMLC n = do
     ]
 
 
-slSubstVarToMLC :: Int -> SLExp -> MonadMLCFunc ()
+slSubstVarToMLC :: forall t. (KnownSize t) => Int -> TypedSLExp t -> MonadMLCFunc ()
 slSubstVarToMLC var expr = do
   slPushToMLC expr
-  stateWriteFromList [
-        MLILoad   MLCRegY          MLCRegStackPtr
-      , MLIConst  MLCRegX         (MLCValConst (-1))
-      , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-      , MLIConst  MLCRegX         (MLCValConst (1 + var))
-      , MLIAdd    MLCRegX          MLCRegX MLCRegFramePtr -- i番目のローカル変数は、フレームポインタ指し先 + i + 1
-      , MLIStore  MLCRegY          MLCRegX
-    ]
+  Control.Monad.forM_ (L.reverse [0..(sleSizeOf expr - 1)]) (\i ->
+      stateWriteFromList [
+            MLILoad   MLCRegY          MLCRegStackPtr
+          , MLIConst  MLCRegX         (MLCValConst (-1))
+          , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+          , MLIConst  MLCRegX         (MLCValConst (1 + var + i))
+          , MLIAdd    MLCRegX          MLCRegX MLCRegFramePtr -- i番目のローカル変数は、フレームポインタ指し先 + i + 1
+          , MLIStore  MLCRegY          MLCRegX
+        ]
+    )
 
-slSubstPtrToMLC :: SLExp -> SLExp -> MonadMLCFunc ()
+slSubstPtrToMLC :: forall t. (KnownSize t) => TypedSLExp ('SLTPtr t) -> TypedSLExp t -> MonadMLCFunc ()
 slSubstPtrToMLC ptr expr = do
-  slPushToMLC expr -- -> RegZ
-  slPushToMLC ptr  -- -> RegY
+  slPushToMLC expr -- -> RegY
+  slPushToMLC ptr  -- -> RegZ
   stateWriteFromList [
-        MLILoad   MLCRegY          MLCRegStackPtr
+        MLILoad   MLCRegZ          MLCRegStackPtr
       , MLIConst  MLCRegX         (MLCValConst (-1))
       , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-      , MLILoad   MLCRegZ          MLCRegStackPtr
-      , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-      , MLIStore  MLCRegZ          MLCRegY
     ]
+  Control.Monad.forM_ (L.reverse [0..(sleSizeOf expr - 1)]) (\i ->
+    stateWriteFromList [
+              MLILoad   MLCRegY          MLCRegStackPtr
+            , MLIConst  MLCRegX         (MLCValConst (-1))
+            , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+            , MLIConst  MLCRegX         (MLCValConst i)
+            , MLIAdd    MLCRegX          MLCRegX MLCRegZ
+            , MLIStore  MLCRegY          MLCRegX
+      ]
+    )
 
 
 
@@ -491,16 +571,16 @@ slSingleToMLC statement =
   case statement of
     --SLSPrimPush exp -> slPushToMLC exp
     --SLSPrimPop      -> slPopToMLC
-    SLSInitVar _ expr -> slPushToMLC expr >> mlcInternalShiftVarCnt 1
+    SLSInitVar _ expr -> slPushToMLC expr >> mlcInternalShiftVarCnt (sleSizeOf expr)
     SLSSubst ref expr ->
       case ref of
         SLRefPtr   ptr -> slSubstPtrToMLC ptr expr
         SLRefLocal var -> slSubstVarToMLC var expr
     SLSReturn expr  -> slReturnToMLC expr
-    SLSTailCallReturn f args ->
-      case f of
-        SLSolidFunc fname -> slSolidTailCallReturnToMLC fname args
-        SLFuncRef   fptr  -> slPtrTailCallReturnToMLC   fptr  args
+    SLSTailCallReturn call ->
+      case call of
+        SLSolidFuncCall fname args -> slSolidTailCallReturnToMLC fname args
+        SLFuncRefCall   fref  args -> slPtrTailCallReturnToMLC   fref  args
 
 slMultiToMLC :: V.Vector SLBlock -> MonadMLCFunc ()
 slMultiToMLC blocks = do
@@ -511,7 +591,7 @@ slMultiToMLC blocks = do
       )
 
 
-slWhileToMLC :: SLExp -> SLBlock -> MonadMLCFunc ()
+slWhileToMLC :: TypedSLExp 'SLTInt -> SLBlock -> MonadMLCFunc ()
 slWhileToMLC cond block = do
   body <- clipBlockFlagment $ mlcVarScope $ inPos SLLPWhileBody $ slBlockToMLC block
   let bodysize = getFlagmentSize body
@@ -539,7 +619,7 @@ slWhileToMLC cond block = do
 
   stateWriteFromFlagment header >> stateWriteFromFlagment body >> stateWriteFromFlagment footer
 
-slCaseToMLC :: V.Vector (SLExp, SLBlock) -> SLBlock -> MonadMLCFunc ()
+slCaseToMLC :: V.Vector (TypedSLExp 'SLTInt, SLBlock) -> SLBlock -> MonadMLCFunc ()
 slCaseToMLC cases defaultBlock = do
   elseflagment <- clipBlockFlagment $ mlcVarScope $ inPos SLLPCaseElseBody (slBlockToMLC defaultBlock)
   stateWriteFromFlagment =<< V.ifoldM (\code i (cond, block)-> do

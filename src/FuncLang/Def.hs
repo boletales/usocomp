@@ -19,4 +19,4 @@ data FLExp (t :: FLType) where
   FLEVar    :: FLVar tag t -> FLExp t
   FLELambda :: FLVar tag t -> FLExp t2 -> FLExp ('FLTLambda t1 t2)
   FLEApp    :: FLExp ('FLTLambda t1 t2) -> FLExp t1 -> FLExp t2
-  FLELet    :: FLVar tag t1 -> FLExp t1 -> FLExp t2 -> FLExp t2g
+  FLELet    :: FLVar tag t1 -> FLExp t1 -> FLExp t2 -> FLExp t2

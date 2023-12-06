@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 
@@ -12,7 +13,6 @@ import Data.Text as T ()
 import Data.Text.IO as TIO
 import Prelude hiding (exp)
 import Data.Vector as V
-
 
 main :: IO ()
 main = do
@@ -32,9 +32,9 @@ main = do
 tailRecTest :: SLProgram
 tailRecTest =
   runSLMFuncsM $ do
-    let fibonacci = slmVirtualFunc (SLUserFunc "main" "fibonacci") :: SLMFuncOf 3
+    let fibonacci = slmVirtualFunc (SLUserFunc "main" "fibonacci") :: '[SLTInt, SLTInt, SLTInt] ->> SLTInt
 
-    _ <- slmFunc SLFuncMain (do
+    _ :: '[] ->> SLTInt <- slmFunc SLFuncMain (do
         x <- slmNewVar $ _app fibonacci (_const 20) (_const 0) (_const 1)
         slmReturn (_local x)
         pure ()
@@ -42,12 +42,12 @@ tailRecTest =
     
     slmSetRealFunc fibonacci (\steps a b -> slmFundef $ do
         slmCase (V.fromList [
-            ( _arg steps `_eq` _const 0, do
-                slmReturn (_arg b)
+            ( steps `_eq` _const 0, do
+                slmReturn b
                 pure ()
               )
           ]) (do
-            slmTailCall fibonacci (_arg steps `_sub` _const 1) (_arg b) (_arg a `_add` _arg b)
+            slmTailCall fibonacci (steps `_sub` _const 1) (b) (a `_add` b)
           )
         pure ()
       )
@@ -74,7 +74,6 @@ function #main.fibonacci ($A0, $A1, $A2, $A3)
     tailcall #main.fibonacci(($A0 - 1), $A2, ($A1 + $A2))
   }
 }
-
 -}
 
 
@@ -82,7 +81,7 @@ function #main.fibonacci ($A0, $A1, $A2, $A3)
 substTest :: SLProgram
 substTest =
   runSLMFuncsM $ do
-    _ <- slmFunc SLFuncMain (do
+    _ :: '[] ->> SLTInt <- slmFunc SLFuncMain (do
           i <- slmNewVar (_const 100)
           j <- slmNewVar (_const 200)
           k <- slmNewVar (_const 300)
@@ -109,62 +108,64 @@ function #main ($A0)
 
 このコードは、以下のような仮想機械語にコンパイルされます：
 >>> error $ T.unpack $ mlcResultText substTest
-nop                                     SLFuncMain.
-const r2 1                              SLFuncMain.
-const r1 1                              SLFuncMain.
-const r3 57                             SLFuncMain.
-store r3 r1                             SLFuncMain.
-add   r1 r1 r2                          SLFuncMain.
-const r3 0                              SLFuncMain.
-store r3 r1                             SLFuncMain.
-const r3 0                              SLFuncMain.
-add   r1 r1 r2                          SLFuncMain.
-store r3 r1                             SLFuncMain.
-copy  r0 r1                             SLFuncMain.
-const pc 13                             SLFuncMain.
-const r2 1                              SLFuncMain.SLLPMulti 0
-add   r1 r1 r2                          SLFuncMain.SLLPMulti 0
-const r3 100                            SLFuncMain.SLLPMulti 0
-store r3 r1                             SLFuncMain.SLLPMulti 0
-const r2 1                              SLFuncMain.SLLPMulti 1
-add   r1 r1 r2                          SLFuncMain.SLLPMulti 1
-const r3 200                            SLFuncMain.SLLPMulti 1
-store r3 r1                             SLFuncMain.SLLPMulti 1
-const r2 1                              SLFuncMain.SLLPMulti 2
-add   r1 r1 r2                          SLFuncMain.SLLPMulti 2
-const r3 300                            SLFuncMain.SLLPMulti 2
-store r3 r1                             SLFuncMain.SLLPMulti 2
-const r2 1                              SLFuncMain.SLLPMulti 3
-add   r1 r1 r2                          SLFuncMain.SLLPMulti 3
-const r3 400                            SLFuncMain.SLLPMulti 3
-store r3 r1                             SLFuncMain.SLLPMulti 3
-const r2 1                              SLFuncMain.SLLPMulti 4
-add   r1 r1 r2                          SLFuncMain.SLLPMulti 4
-const r3 10000                          SLFuncMain.SLLPMulti 4
-store r3 r1                             SLFuncMain.SLLPMulti 4
-load  r3 r1                             SLFuncMain.SLLPMulti 4
-const r2 -1                             SLFuncMain.SLLPMulti 4
-add   r1 r1 r2                          SLFuncMain.SLLPMulti 4
-const r2 3                              SLFuncMain.SLLPMulti 4
-add   r2 r2 r0                          SLFuncMain.SLLPMulti 4
-store r3 r2                             SLFuncMain.SLLPMulti 4
-const r2 -4                             SLFuncMain.
-add   r1 r1 r2                          SLFuncMain.
-const r2 1                              SLFuncMain.
-add   r1 r1 r2                          SLFuncMain.
-const r3 0                              SLFuncMain.
-store r3 r1                             SLFuncMain.
-const r2 -1                             SLFuncMain.
-add   r2 r2 r0                          SLFuncMain.
-load  r2 r2                             SLFuncMain.
-load  r3 r1                             SLFuncMain.
-store r3 r2                             SLFuncMain.
-copy  r2 r0                             SLFuncMain.
-load  r0 r0                             SLFuncMain.
-const r3 -1                             SLFuncMain.
-add   r2 r2 r3                          SLFuncMain.
-load  r1 r2                             SLFuncMain.
-add   r2 r2 r3                          SLFuncMain.
-load  pc r2                             SLFuncMain.
-nop                                     SLFuncMain.
+nop                                     #main.
+const r2 1                              #main.
+const r1 1                              #main.
+const r3 59                             #main.
+store r3 r1                             #main.
+add   r1 r1 r2                          #main.
+const r3 0                              #main.
+store r3 r1                             #main.
+const r3 0                              #main.
+add   r1 r1 r2                          #main.
+store r3 r1                             #main.
+copy  r0 r1                             #main.
+const pc 13                             #main.
+const r2 1                              #main.SLLPMulti 0
+add   r1 r1 r2                          #main.SLLPMulti 0
+const r3 100                            #main.SLLPMulti 0
+store r3 r1                             #main.SLLPMulti 0
+const r2 1                              #main.SLLPMulti 1
+add   r1 r1 r2                          #main.SLLPMulti 1
+const r3 200                            #main.SLLPMulti 1
+store r3 r1                             #main.SLLPMulti 1
+const r2 1                              #main.SLLPMulti 2
+add   r1 r1 r2                          #main.SLLPMulti 2
+const r3 300                            #main.SLLPMulti 2
+store r3 r1                             #main.SLLPMulti 2
+const r2 1                              #main.SLLPMulti 3
+add   r1 r1 r2                          #main.SLLPMulti 3
+const r3 400                            #main.SLLPMulti 3
+store r3 r1                             #main.SLLPMulti 3
+const r2 1                              #main.SLLPMulti 4
+add   r1 r1 r2                          #main.SLLPMulti 4
+const r3 10000                          #main.SLLPMulti 4
+store r3 r1                             #main.SLLPMulti 4
+load  r3 r1                             #main.SLLPMulti 4
+const r2 -1                             #main.SLLPMulti 4
+add   r1 r1 r2                          #main.SLLPMulti 4
+const r2 3                              #main.SLLPMulti 4
+add   r2 r2 r0                          #main.SLLPMulti 4
+store r3 r2                             #main.SLLPMulti 4
+const r2 -4                             #main.
+add   r1 r1 r2                          #main.
+const r2 1                              #main.
+add   r1 r1 r2                          #main.
+const r3 0                              #main.
+store r3 r1                             #main.
+const r2 -1                             #main.
+add   r4 r2 r0                          #main.
+load  r4 r4                             #main.
+load  r3 r1                             #main.
+store r3 r4                             #main.
+add   r1 r1 r2                          #main.
+add   r4 r4 r2                          #main.
+copy  r2 r0                             #main.
+load  r0 r0                             #main.
+const r3 -1                             #main.
+add   r2 r2 r3                          #main.
+load  r1 r2                             #main.
+add   r2 r2 r3                          #main.
+load  pc r2                             #main.
+nop                                     #main.
 -}
