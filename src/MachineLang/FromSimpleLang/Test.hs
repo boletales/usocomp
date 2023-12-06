@@ -19,7 +19,7 @@ import MachineLang.FromSimpleLang.Debugger
 substTest :: SLProgram
 substTest =
   runSLMFuncsM $ do
-    main :: ('[] ->> 'SLTInt) <- slmFunc SLFuncMain (do
+    main :: ('[] --> 'SLTInt) <- slmFunc SLFuncMain (do
           i <- slmNewVar (_const 100)
           j <- slmNewVar (_const 200)
           k <- slmNewVar (_const 300)
@@ -35,7 +35,7 @@ substTest =
 ifTest :: SLProgram
 ifTest =
   runSLMFuncsM $ do
-    main :: ('[] ->> 'SLTInt) <- slmFunc SLFuncMain (do
+    main :: ('[] --> 'SLTInt) <- slmFunc SLFuncMain (do
           i <- slmNewVar (_const 100 )
           j <- slmNewVar (_const 200 )
           a <- slmNewVar (_const 1000)
@@ -89,7 +89,7 @@ ifTest =
 whileTest :: SLProgram
 whileTest =
   runSLMFuncsM $ do
-    main :: ('[] ->> 'SLTInt) <- slmFunc SLFuncMain (do
+    main :: ('[] --> 'SLTInt) <- slmFunc SLFuncMain (do
         i <- slmNewVar (SLEConst (SLVal 1))
         slmWhile (_local i `_lt` _const 1000) (do
             _reflocal i <<- _local i `_add` _local i
@@ -104,7 +104,7 @@ whileTest =
 smallTest :: SLProgram
 smallTest =
   runSLMFuncsM $ do
-    main :: ('[] ->> 'SLTInt) <- slmFunc SLFuncMain (do
+    main :: ('[] --> 'SLTInt) <- slmFunc SLFuncMain (do
         slmReturn (_const 12345) 
         pure ()
       )
@@ -114,7 +114,7 @@ smallTest =
 structTest :: SLProgram
 structTest =
   runSLMFuncsM $ do
-    _ :: ('[] ->> SLTInt) <- slmFunc SLFuncMain (do
+    _ :: ('[] --> SLTInt) <- slmFunc SLFuncMain (do
         str <- slmNewVar (_const 100 >: _const 200 >: _const 300 >: SLEStructNil)
         x :: SLMVar 'SLTInt <- slmNewVar (_local str `SLEStructGet` Proxy @1)
         slmReturn (_local x)
@@ -126,18 +126,18 @@ type SLTComplex = 'SLTStruct '[ 'SLTInt, 'SLTInt ]
 complexTest :: SLProgram
 complexTest =
   runSLMFuncsM $ do
-    complexProd :: ('[SLTComplex, SLTComplex] ->> SLTComplex) <- slmFunc (SLUserFunc "main" "complexProd") (\c1 c2 -> do
+    complexProd :: ('[SLTComplex, SLTComplex] --> SLTComplex) <- slmFunc (SLUserFunc "main" "complexProd") (\c1 c2 -> do
         re1 <- slmNewVar (c1 `SLEStructGet` Proxy @0)
         im1 <- slmNewVar (c1 `SLEStructGet` Proxy @1)
         re2 <- slmNewVar (c2 `SLEStructGet` Proxy @0)
         im2 <- slmNewVar (c2 `SLEStructGet` Proxy @1)
         re3 <- slmNewVar ((_local re1 `_mul` _local re2) `_sub` (_local im1 `_mul` _local im2))
         im3 <- slmNewVar ((_local re1 `_mul` _local im2) `_add` (_local im1 `_mul` _local re2))
-        slmReturn (SLEStructCons (_local re3) (SLEStructCons (_local im3) SLEStructNil))
+        --slmReturn (SLEStructCons (_local re3) (SLEStructCons (_local im3) SLEStructNil))
         pure ()
       )
 
-    _ :: ('[] ->> SLTInt) <- slmFunc SLFuncMain (do
+    _ :: ('[] --> SLTInt) <- slmFunc SLFuncMain (do
         c1 <- slmNewVar (SLEStructCons (_const 100) (SLEStructCons (_const 200) SLEStructNil))
         c2 <- slmNewVar (SLEStructCons (_const 300) (SLEStructCons (_const 400) SLEStructNil))
         d <- slmNewVar (_const 1111111)

@@ -6,7 +6,6 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
-{-# LANGUAGE ExplicitNamespaces #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
 
@@ -45,7 +44,6 @@ module SimpleLang.Def (
     , prettyPrintSLProgram
     , unTypedSLFuncBlock
     , unTypedSLFuncName
-    , type (->>)
   ) where
 
 import Data.Vector as V
@@ -196,7 +194,6 @@ unTypedSLFuncBlock :: forall args ret. (KnownNat (SLTSizeOf ('SLTStruct args))) 
 unTypedSLFuncBlock (TSLFuncBlock (TypedSLFuncName name) block) =
   SLFuncBlock name ((fromIntegral . natVal) (Proxy :: Proxy (SLTSizeOf ('SLTStruct args)))) block
 
-type (->>) args ret = TypedSLFuncBlock args ret
 
 data SLFuncBlock =
       SLFuncBlock {
@@ -240,7 +237,7 @@ prettyPrintFuncName :: SLFuncName -> Text
 prettyPrintFuncName name =
   case name of
     SLFuncMain                       -> "#main"
-    (SLUserFunc moduleName funcName) -> "#" <> moduleName <> "." <> funcName
+    (SLUserFunc moduleName funcName) -> "#" <> moduleName <> "/" <> funcName
 
 prettyPrintSLRef :: forall t. SLRef t -> Text
 prettyPrintSLRef ref =
