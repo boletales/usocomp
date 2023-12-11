@@ -432,28 +432,43 @@ slPushToMLC expr = do
 
     SLEPtrShift ptr shift -> slPrim2ToMLC SLPrim2Add ptr (SLECast shift)
 
-    SLEStructGet expr' (Proxy :: Proxy i) -> do
-      let offset = fromIntegral (natVal (Proxy :: Proxy i))
-      slPushToMLC expr'
+    SLEStructGet expr' (Proxy :: Proxy i) ->
+      let copyStractValOnRegYToStackTop offset size = do
+            slPushToMLC expr'
 
-      stateWriteFromList [
-            MLIConst  MLCRegX         (MLCValConst (negate (sleSizeOf expr')))
-          , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-          , MLIConst  MLCRegX         (MLCValConst offset)
-          , MLIAdd    MLCRegY          MLCRegStackPtr MLCRegX
-          , MLIConst  MLCRegX         (MLCValConst 1)
-        ]
+            stateWriteFromList [
+                  MLIConst  MLCRegX         (MLCValConst (negate (sleSizeOf expr')))
+                , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+                , MLIConst  MLCRegX         (MLCValConst offset)
+                , MLIAdd    MLCRegY          MLCRegStackPtr MLCRegX
+                , MLIConst  MLCRegX         (MLCValConst 1)
+              ]
 
-      Control.Monad.forM_ [0 .. (sleSizeOf expr - 1)] (\_ ->
-          stateWriteFromList [
-                MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-              , MLIAdd    MLCRegY          MLCRegY        MLCRegX
-              , MLILoad   MLCRegZ          MLCRegY
-              , MLIStore  MLCRegZ          MLCRegStackPtr
-            ]
-        )
-    
+            Control.Monad.forM_ [0 .. (size - 1)] (\_ ->
+                stateWriteFromList [
+                      MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+                    , MLIAdd    MLCRegY          MLCRegY        MLCRegX
+                    , MLILoad   MLCRegZ          MLCRegY
+                    , MLIStore  MLCRegZ          MLCRegStackPtr
+                  ]
+              )
+      in  do
+            case expr' of
+                _ -> do
+                  slPushToMLC expr'
+
+                  stateWriteFromList [
+                        MLIConst  MLCRegX         (MLCValConst (negate (sleSizeOf expr')))
+                      , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+                      , MLIConst  MLCRegX         (MLCValConst offset)
+                      , MLIAdd    MLCRegY          MLCRegStackPtr MLCRegX
+                      , MLIConst  MLCRegX         (MLCValConst 1)
+                    ]
+
+            structGetOnRegY (fromIntegral (natVal (Proxy :: Proxy i))) (sleSizeOf expr)
+      
     SLECast expr' -> slPushToMLC expr'
+
 
 slPrim1ToMLC :: (SLTSizeOf t ~ 1) => SLPrim1 -> TypedSLExp t ->MonadMLCFunc ()
 slPrim1ToMLC prim exp1 =
