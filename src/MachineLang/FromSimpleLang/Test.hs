@@ -121,6 +121,16 @@ structTest =
       )
     pure ()
 
+structTest2 :: SLProgram
+structTest2 =
+  runSLMFuncsM $ do
+    _ :: ('[] --> SLTInt) <- slmFunc SLFuncMain (do
+        str <- slmNewVar ((_const 100 >: _const 200 >: _const 300 >: SLEStructNil) >: (_const 1000 >: _const 2000 >: _const 3000 >: SLEStructNil) >: (_const 10000 >: _const 20000 >: _const 30000 >: SLEStructNil) >: SLEStructNil)
+        x :: SLMVar 'SLTInt <- slmNewVar ((_local str `SLEStructGet` Proxy @1) `SLEStructGet` Proxy @1)
+        slmReturn (_local x)
+      )
+    pure ()
+
 type SLTComplex = 'SLTStruct '[ 'SLTInt, 'SLTInt ]
 
 complexTest :: SLProgram
