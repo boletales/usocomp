@@ -27,7 +27,7 @@ import Data.Bitraversable (Bitraversable(bitraverse))
 import Control.Monad.Except
 import GHC.TypeNats
 import Data.Proxy
-import Debug.Trace
+--import Debug.Trace
 
 -- 接頭辞 MLC: MachineLang.FromSimpleLang の内部でのみ利用する型
 
@@ -220,7 +220,7 @@ slPtrCallToMLC ref args = do
   stateWriteFromList [
         MLIConst  MLCRegX         (MLCValConst (negate argsize))
       , MLIAdd    MLCRegZ          MLCRegStackPtr MLCRegX
-      , MLILoad   MLCRegZ          MLCRegStackPtr
+      , MLILoad   MLCRegZ          MLCRegZ
     ]
 
   stateWriteFromList (pushCallToRegZSnippet argsize)
@@ -228,14 +228,14 @@ slPtrCallToMLC ref args = do
 
 slClosureCallToMLC ::  forall args ret. (KnownSize ('SLTStruct ('SLTFuncPtr args ret ': args))) =>  TypedSLExp ('SLTStruct ('SLTFuncPtr args ret ': args)) -> MonadMLCFunc ()
 slClosureCallToMLC cls = do
-  let argsize = sleSizeOf cls
+  let argsize = sleSizeOf cls - 1
 
   slPushToMLC cls
 
   stateWriteFromList [
         MLIConst  MLCRegX         (MLCValConst (negate argsize))
       , MLIAdd    MLCRegZ          MLCRegStackPtr MLCRegX
-      , MLILoad   MLCRegZ          MLCRegStackPtr
+      , MLILoad   MLCRegZ          MLCRegZ
     ]
 
   stateWriteFromList (pushCallToRegZSnippet argsize)
@@ -307,7 +307,7 @@ slPtrTailCallReturnToMLC ref args = do
   stateWriteFromList [
         MLIConst  MLCRegX         (MLCValConst (negate argsize))
       , MLIAdd    MLCRegW          MLCRegStackPtr MLCRegX
-      , MLILoad   MLCRegW          MLCRegStackPtr
+      , MLILoad   MLCRegW          MLCRegW
     ]
 
   stateWriteFromList (tailCallToRegWSnippet argsize)
@@ -322,7 +322,7 @@ slClosureTailCallReturnToMLC cls = do
   stateWriteFromList [
         MLIConst  MLCRegX         (MLCValConst (negate argsize))
       , MLIAdd    MLCRegW          MLCRegStackPtr MLCRegX
-      , MLILoad   MLCRegW          MLCRegStackPtr
+      , MLILoad   MLCRegW          MLCRegW
     ]
 
   stateWriteFromList (tailCallToRegWSnippet argsize)
@@ -343,7 +343,8 @@ slPushToMLC expr = do
       stateWriteFromList [
             MLIConst  MLCRegX         (MLCValConst 1)
           , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-          , MLIConst  MLCRegStackPtr  (MLCValJumpDestFunc (unTypedSLFuncName fname))
+          , MLIConst  MLCRegY         (MLCValJumpDestFunc (unTypedSLFuncName fname))
+          , MLIStore  MLCRegY          MLCRegStackPtr
         ]
 
     SLELocal v ->
@@ -489,7 +490,7 @@ slStructGetRawToMLC expr returnsize offset =
                 , MLIStore  MLCRegZ          MLCRegStackPtr
               ]
           )
-  in trace (show expr <> "   " <> show returnsize <> "   " <>show offset) $ slegetRec expr offset
+  in slegetRec expr offset
 
 slPrim1ToMLC :: (SLTSizeOf t ~ 1) => SLPrim1 -> TypedSLExp t ->MonadMLCFunc ()
 slPrim1ToMLC prim exp1 =

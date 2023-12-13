@@ -157,7 +157,7 @@ data TypedSLExp (t :: SLType) where
     SLEArg        :: (KnownSize t                ) => Int                                                 -> TypedSLExp t
     SLEPtr        :: (KnownSize t                ) => SLRef t                                             -> TypedSLExp ('SLTPtr t)
     SLEPushCall   :: (KnownSize t                ) => SLCall t                                            -> TypedSLExp t
-    SLEFuncPtr    :: (KnownSize t                ) => TypedSLFuncName args ret                            -> TypedSLExp ('SLTFuncPtr args ret)
+    SLEFuncPtr    ::                                  TypedSLFuncName args ret                            -> TypedSLExp ('SLTFuncPtr args ret)
     SLEPrim1      ::                                  SLPrim1 -> TypedSLExp 'SLTInt                       -> TypedSLExp 'SLTInt
     SLEPrim2      ::                                  SLPrim2 -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt
     SLEStructNil  ::                                                                                         TypedSLExp ('SLTStruct '[])

@@ -183,3 +183,27 @@ tailRecTest =
       )
 
     pure ()
+
+closureTest :: SLProgram
+closureTest =
+  runSLMFuncsM $ do
+    let func1 = slmVirtualFunc (SLUserFunc "main" "func1") :: '[SLTInt, '[SLTInt, SLTInt] !--> SLTInt] --> SLTInt
+    let func2 = slmVirtualFunc (SLUserFunc "main" "func2") :: '[SLTInt, SLTInt] --> SLTInt
+
+    _ :: '[] --> SLTInt <- slmFunc SLFuncMain (do
+        slmReturn (SLEPushCall (SLClosureCall (_funcptr func1 >: _const 100 >: _funcptr func2 >: SLEStructNil)))
+        pure ()
+      )
+
+    slmSetRealFunc func1 (\x g -> slmFundef $ do
+        y <- slmNewVar (_const 200)
+        slmClsTailCall (g >: x >: _local y >: SLEStructNil)
+        pure ()
+      )
+
+    slmSetRealFunc func2 (\x y -> slmFundef $ do
+        slmReturn (x `_mul` y)
+        pure ()
+      )
+
+    pure ()
