@@ -1,9 +1,12 @@
 {-# LANGUAGE DerivingStrategies #-}
 
-module MachineLang.Def where
+module MachineLang.Def (
+    MLReg(..),
+    MLVal(..),
+    MLInst'(..),
+    MLInst,
+  ) where
 
-import Data.Vector as V
-import Data.Kind
 import Data.Bifunctor
 import Data.Bitraversable
 import Data.Bifoldable

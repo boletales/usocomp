@@ -17,14 +17,17 @@ module SimpleLang.Tools.Manual (
   , slmSetRealFunc
   , slmFundef
   , slmTailCall
+  , slmClsTailCall
   , SLMFuncsM
   , runSLMFuncsM
+  , _cls
   , _const
   , _local
   , _arg
   , _reflocal
   , _ptr
   , _refptr
+  , _funcptr
   , (<<-)
   , (>:)
   , _add
@@ -45,6 +48,7 @@ module SimpleLang.Tools.Manual (
   , SLManualBlockM
   , SLMNaryF
   , type (-->)
+  , type (!-->)
 ) where
 
 import SimpleLang.Tools.Manual.Internal
@@ -57,6 +61,7 @@ import GHC.TypeNats
 import Data.Proxy
 
 type (-->) args ret = TypedSLFuncBlock args ret
+type (!-->) args ret = 'SLTFuncPtr args ret
 
 slmNewVar :: forall t r. (KnownNat (SLTSizeOf t)) => TypedSLExp t -> SLManualBlockM r (SLMVar t)
 slmNewVar exp = do
@@ -93,6 +98,9 @@ slmCase cases elsecase = do
 slmReturn :: KnownSize r => TypedSLExp r -> SLManualBlockM r ()
 slmReturn expr = slmStmt (SLSReturn expr)
 
+slmClsTailCall :: forall args ret. (KnownSizes ('SLTFuncPtr args ret ': args), KnownSize ret) => TypedSLExp ('SLTStruct ('SLTFuncPtr args ret ': args)) -> SLManualBlockM ret ()
+slmClsTailCall cls = slmStmt (SLSTailCallReturn (SLClosureCall cls))
+
 _const :: Int -> TypedSLExp 'SLTInt
 _const = SLVal >>> SLEConst
 
@@ -110,6 +118,12 @@ _ptr = SLEPtr
 
 _refptr :: KnownSize t => TypedSLExp ('SLTPtr t) -> SLRef t
 _refptr = SLRefPtr
+
+_cls :: (KnownSize ('SLTStruct ('SLTFuncPtr ts t ': ts)), KnownSize t) => TypedSLExp ('SLTStruct ('SLTFuncPtr ts t ': ts)) -> TypedSLExp t
+_cls = SLClosureCall >>> SLEPushCall
+
+_funcptr :: forall a b. (a --> b) -> TypedSLExp ('SLTFuncPtr a b)
+_funcptr = tslfName >>> SLEFuncPtr
 
 slmFundef :: SLManualBlockM r () -> SLMNaryF '[] (SLManualBlockM r ())
 slmFundef = id

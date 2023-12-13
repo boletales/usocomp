@@ -34,7 +34,10 @@ module SimpleLang.Def (
     , SLCallable (..)
     , KnownSize
     , KnownSizes
+    , SLTStructIndexToOffset
+    , KnownOffset
     , sleSizeOf
+    , sleGetOffset
     , slRefToPtr
     , prettyPrintFuncName
     , prettyPrintSLExp
@@ -95,15 +98,24 @@ instance {-# OVERLAPPABLE #-} Member t ts => Member t (t':ts)
 class StructAt (i :: Nat) (ts :: [SLType]) (t :: SLType) | i ts -> t
 
 instance {-# OVERLAPPING #-}   StructAt 0 (t:ts) t
-instance {-# OVERLAPPABLE #-} (StructAt i ts t, SLTSizeOf t ~ s, j ~ i + s) => StructAt j (t':ts) t'
+instance {-# OVERLAPPABLE #-} (StructAt i ts t, j ~ i + 1) => StructAt j (t':ts) t'
 
+type family SLTStructIndexToOffset (i :: Nat) (ts :: [SLType]) :: Nat where
+  SLTStructIndexToOffset 0 (t:ts) = 0
+  SLTStructIndexToOffset i (t:ts) = SLTSizeOf t + SLTStructIndexToOffset (i - 1) ts
+
+type KnownOffset i ts = KnownNat (SLTStructIndexToOffset i ts)
+
+sleGetOffset :: forall i ts. (KnownOffset i ts) => TypedSLExp ('SLTStruct ts) -> Proxy i -> Int
+sleGetOffset _ _ = fromIntegral (natVal (Proxy :: Proxy (SLTStructIndexToOffset i ts)))
 
 newtype SLAddr = SLAddr Int deriving (Show, Eq)
 newtype SLVal  = SLVal  Int deriving (Show, Eq)
 
 data SLCall (t :: SLType) where
-    SLSolidFuncCall :: (KnownSize ('SLTStruct ts)) => TypedSLFuncName ts t     -> TypedSLExp ('SLTStruct ts) -> SLCall t
-    SLFuncRefCall   :: (KnownSize ('SLTStruct ts)) => SLRef ('SLTFuncPtr ts t) -> TypedSLExp ('SLTStruct ts) -> SLCall t
+    SLSolidFuncCall :: (KnownSize ('SLTStruct ts)                      ) => TypedSLFuncName ts t     -> TypedSLExp ('SLTStruct ts) -> SLCall t
+    SLFuncRefCall   :: (KnownSize ('SLTStruct ts)                      ) => SLRef ('SLTFuncPtr ts t) -> TypedSLExp ('SLTStruct ts) -> SLCall t
+    SLClosureCall   :: (KnownSize ('SLTStruct ('SLTFuncPtr ts t ': ts))) => TypedSLExp ('SLTStruct ('SLTFuncPtr ts t ': ts))       -> SLCall t
 
 class SLCallable (args :: [SLType]) (ret :: SLType) (t :: Type) | t -> args ret where
   slCall :: t -> TypedSLExp ('SLTStruct args) -> SLCall ret
@@ -140,21 +152,21 @@ data SLPrim2 =
       deriving (Show, Eq)
 
 data TypedSLExp (t :: SLType) where
-    SLEConst      ::                                                              SLVal                                               -> TypedSLExp 'SLTInt
-    SLELocal      :: (KnownSize t                                            ) => Int                                                 -> TypedSLExp t
-    SLEArg        :: (KnownSize t                                            ) => Int                                                 -> TypedSLExp t
-    SLEPtr        :: (KnownSize t                                            ) => SLRef t                                             -> TypedSLExp ('SLTPtr t)
-    SLEPushCall   :: (KnownSize t                                            ) => SLCall t                                            -> TypedSLExp t
-    SLEFuncPtr    :: (KnownSize t                                            ) => TypedSLFuncName args ret                            -> TypedSLExp ('SLTFuncPtr args ret)
-    SLEPrim1      ::                                                              SLPrim1 -> TypedSLExp 'SLTInt                       -> TypedSLExp 'SLTInt
-    SLEPrim2      ::                                                              SLPrim2 -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt
-    SLEStructNil  ::                                                                                                                     TypedSLExp ('SLTStruct '[])
-    SLEStructCons :: (KnownSize t, KnownSizes ts                             ) => TypedSLExp t -> TypedSLExp ('SLTStruct ts)          -> TypedSLExp ('SLTStruct (t:ts)) 
-    SLEUnion      :: (KnownSize t, Member t ts                               ) => TypedSLExp t                                        -> TypedSLExp ('SLTUnion     ts ) 
-    SLEDeRef      :: (KnownSize t                                            ) => TypedSLExp ('SLTPtr t)                              -> TypedSLExp t
-    SLEPtrShift   :: (KnownSize t                                            ) => TypedSLExp ('SLTPtr t) -> TypedSLExp 'SLTInt        -> TypedSLExp ('SLTPtr t)
-    SLEStructGet  :: (KnownSize t, KnownSizes ts, StructAt i ts t, KnownNat i) => TypedSLExp ('SLTStruct ts) -> Proxy i               -> TypedSLExp t
-    SLECast       :: (KnownSize t, KnownSize u, SLTSizeOf t ~ SLTSizeOf u    ) => TypedSLExp t                                        -> TypedSLExp u
+    SLEConst      ::                                  SLVal                                               -> TypedSLExp 'SLTInt
+    SLELocal      :: (KnownSize t                ) => Int                                                 -> TypedSLExp t
+    SLEArg        :: (KnownSize t                ) => Int                                                 -> TypedSLExp t
+    SLEPtr        :: (KnownSize t                ) => SLRef t                                             -> TypedSLExp ('SLTPtr t)
+    SLEPushCall   :: (KnownSize t                ) => SLCall t                                            -> TypedSLExp t
+    SLEFuncPtr    ::                                  TypedSLFuncName args ret                            -> TypedSLExp ('SLTFuncPtr args ret)
+    SLEPrim1      ::                                  SLPrim1 -> TypedSLExp 'SLTInt                       -> TypedSLExp 'SLTInt
+    SLEPrim2      ::                                  SLPrim2 -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt
+    SLEStructNil  ::                                                                                         TypedSLExp ('SLTStruct '[])
+    SLEStructCons :: (KnownSize t, KnownSizes ts ) => TypedSLExp t -> TypedSLExp ('SLTStruct ts)          -> TypedSLExp ('SLTStruct (t:ts)) 
+    SLEUnion      :: (KnownSize t, Member t ts   ) => TypedSLExp t                                        -> TypedSLExp ('SLTUnion     ts ) 
+    SLEDeRef      :: (KnownSize t                ) => TypedSLExp ('SLTPtr t)                              -> TypedSLExp t
+    SLEPtrShift   :: (KnownSize t                ) => TypedSLExp ('SLTPtr t) -> TypedSLExp 'SLTInt        -> TypedSLExp ('SLTPtr t)
+    SLEStructGet  :: (KnownSize t, KnownSizes ts, StructAt i ts t, KnownNat i, KnownOffset i ts) => TypedSLExp ('SLTStruct ts) -> Proxy i -> TypedSLExp t
+    SLECast       :: (KnownSize t, KnownSize u, SLTSizeOf t ~ SLTSizeOf u ) => TypedSLExp t -> TypedSLExp u
 
 instance Show (TypedSLExp t) where
   show = T.unpack . prettyPrintSLExp
@@ -226,7 +238,6 @@ type SLProgram =
 sleSizeOf :: forall t. KnownSize t => TypedSLExp t -> Int
 sleSizeOf _ = (fromIntegral . natVal) (Proxy :: Proxy (SLTSizeOf t))
 
-
 slRefToPtr :: KnownSize t => SLRef t -> TypedSLExp (SLTPtr t)
 slRefToPtr ref =
   case ref of
@@ -250,6 +261,7 @@ prettyPrintSLCall call =
   case call of
     SLSolidFuncCall funcName args -> prettyPrintFuncName (unTypedSLFuncName funcName) <> prettyPrintSLExp args
     SLFuncRefCall   ref      args -> prettyPrintSLRef    ref                          <> prettyPrintSLExp args
+    SLClosureCall   closure       -> prettyPrintSLExp    closure
 
 prettyPrintSLExp :: forall t. TypedSLExp t -> Text
 prettyPrintSLExp expr =
