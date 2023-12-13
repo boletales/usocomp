@@ -27,6 +27,7 @@ import Data.Bitraversable (Bitraversable(bitraverse))
 import Control.Monad.Except
 import GHC.TypeNats
 import Data.Proxy
+import Debug.Trace
 
 -- 接頭辞 MLC: MachineLang.FromSimpleLang の内部でのみ利用する型
 
@@ -377,7 +378,7 @@ slPushToMLC expr = do
               , MLIAdd    MLCRegX          MLCRegX MLCRegFramePtr -- MLCRegX ← 旧スタックポインタ置き場のアドレス
               , MLILoad   MLCRegX          MLCRegX                -- MLCRegX ← 旧スタックポインタの指し先
               , MLIConst  MLCRegY         (MLCValConst (1 + a + i))
-              , MLIAdd    MLCRegX          MLCRegX MLCRegY        -- i番目のローカル変数は、旧スタックポインタ指し先 + i + 1
+              , MLIAdd    MLCRegX          MLCRegX MLCRegY        -- i番目の引数は、旧スタックポインタ指し先 + i + 1
               , MLILoad   MLCRegX          MLCRegX
               , MLIStore  MLCRegX          MLCRegStackPtr
             ]
@@ -432,28 +433,73 @@ slPushToMLC expr = do
 
     SLEPtrShift ptr shift -> slPrim2ToMLC SLPrim2Add ptr (SLECast shift)
 
-    SLEStructGet expr' (Proxy :: Proxy i) -> do
-      let offset = fromIntegral (natVal (Proxy :: Proxy i))
-      slPushToMLC expr'
-
-      stateWriteFromList [
-            MLIConst  MLCRegX         (MLCValConst (negate (sleSizeOf expr')))
-          , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-          , MLIConst  MLCRegX         (MLCValConst offset)
-          , MLIAdd    MLCRegY          MLCRegStackPtr MLCRegX
-          , MLIConst  MLCRegX         (MLCValConst 1)
-        ]
-
-      Control.Monad.forM_ [0 .. (sleSizeOf expr - 1)] (\_ ->
-          stateWriteFromList [
-                MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-              , MLIAdd    MLCRegY          MLCRegY        MLCRegX
-              , MLILoad   MLCRegZ          MLCRegY
-              , MLIStore  MLCRegZ          MLCRegStackPtr
-            ]
-        )
-    
+    SLEStructGet expr' p -> slStructGetToMLC expr' (sleSizeOf expr) p
+      
     SLECast expr' -> slPushToMLC expr'
+
+slStructGetToMLC :: forall ts (i :: Nat). (KnownSizes ts, KnownOffset i ts) => TypedSLExp ('SLTStruct ts) -> Int -> Proxy i -> MonadMLCFunc ()
+slStructGetToMLC expr returnsize p =
+  let recHelper :: forall ts' i'. (KnownSizes ts') => Int -> TypedSLExp ('SLTStruct ts') -> Proxy i' -> MonadMLCFunc ()
+      recHelper offset expr' _ =
+        case expr' of
+            SLEStructGet expr'' p' ->
+              recHelper (offset + sleGetOffset expr'' p') expr'' p'
+
+            _ -> slStructGetRawToMLC expr' returnsize offset
+  in recHelper (sleGetOffset expr p) expr p
+
+
+slStructGetRawToMLC :: (KnownSizes ts) => TypedSLExp ('SLTStruct ts) -> Int -> Int -> MonadMLCFunc ()
+slStructGetRawToMLC expr returnsize offset =
+  let slegetRec expr' offset' = do
+        case expr' of
+            --SLEStructGet expr''' (Proxy :: Proxy j) -> slegetRec (offset + sleSizeOf expr''') expr'''
+
+            SLELocal v -> do
+              stateWriteFromList [
+                    MLIConst  MLCRegY         (MLCValConst (1 + v - 1))
+                  , MLIAdd    MLCRegY          MLCRegY MLCRegFramePtr -- i番目のローカル変数は、フレームポインタ指し先 + i + 1 なので、その直前
+                ]
+              copyStractValNextToRegYToStackTop offset'
+            
+            SLEArg a -> do
+              stateWriteFromList [
+                    MLIConst  MLCRegX         (MLCValConst (-1))
+                  , MLIAdd    MLCRegX          MLCRegX MLCRegFramePtr -- MLCRegX ← 旧スタックポインタ置き場のアドレス
+                  , MLILoad   MLCRegX          MLCRegX                -- MLCRegX ← 旧スタックポインタの指し先
+                  , MLIConst  MLCRegY         (MLCValConst (1 + a    - 1))
+                  , MLIAdd    MLCRegY          MLCRegX MLCRegY        -- i番目の引数は、旧スタックポインタ指し先 + i + 1 なので、その直前
+                ]
+              copyStractValNextToRegYToStackTop offset'
+              
+            _ -> do
+              slPushToMLC expr'
+
+              stateWriteFromList [
+                    MLIConst  MLCRegX         (MLCValConst (negate (sleSizeOf expr')))
+                  , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+                  , MLIAdd    MLCRegY          MLCRegStackPtr MLCRegX
+                ]
+            
+              copyStractValNextToRegYToStackTop offset
+
+      
+      copyStractValNextToRegYToStackTop offset' = do
+        stateWriteFromList [
+              MLIConst  MLCRegX         (MLCValConst offset')
+            , MLIAdd    MLCRegY          MLCRegY MLCRegX
+            , MLIConst  MLCRegX         (MLCValConst 1)
+          ]
+
+        Control.Monad.forM_ [0 .. (returnsize - 1)] (\_ ->
+            stateWriteFromList [
+                  MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+                , MLIAdd    MLCRegY          MLCRegY        MLCRegX
+                , MLILoad   MLCRegZ          MLCRegY
+                , MLIStore  MLCRegZ          MLCRegStackPtr
+              ]
+          )
+  in trace (show expr <> "   " <> show returnsize <> "   " <>show offset) $ slegetRec expr offset
 
 slPrim1ToMLC :: (SLTSizeOf t ~ 1) => SLPrim1 -> TypedSLExp t ->MonadMLCFunc ()
 slPrim1ToMLC prim exp1 =
