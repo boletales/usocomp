@@ -14,7 +14,7 @@ import Data.Vector as V
 import Data.Proxy
 import GHC.TypeNats
 import MachineLang.FromSimpleLang.Debugger
-
+import Data.Text.IO as TIO
 
 substTest :: SLProgram
 substTest =
@@ -156,4 +156,54 @@ complexTest =
         slmReturn (_local c2 `SLEStructGet` Proxy @1)
         pure ()
       )
+    pure ()
+
+
+tailRecTest :: SLProgram
+tailRecTest =
+  runSLMFuncsM $ do
+    let fibonacci = slmVirtualFunc (SLUserFunc "main" "fibonacci") :: '[SLTInt, SLTInt, SLTInt] --> SLTInt
+
+    _ :: '[] --> SLTInt <- slmFunc SLFuncMain (do
+        x <- slmNewVar $ _app fibonacci (_const 20) (_const 0) (_const 1)
+        slmReturn (_local x)
+        pure ()
+      )
+    
+    slmSetRealFunc fibonacci (\steps a b -> slmFundef $ do
+        slmCase (V.fromList [
+            ( steps `_eq` _const 0, do
+                slmReturn b
+                pure ()
+              )
+          ]) (do
+            slmTailCall fibonacci (steps `_sub` _const 1) (b) (a `_add` b)
+          )
+        pure ()
+      )
+
+    pure ()
+
+closureTest :: SLProgram
+closureTest =
+  runSLMFuncsM $ do
+    let func1 = slmVirtualFunc (SLUserFunc "main" "func1") :: '[SLTInt, '[SLTInt, SLTInt] !--> SLTInt] --> SLTInt
+    let func2 = slmVirtualFunc (SLUserFunc "main" "func2") :: '[SLTInt, SLTInt] --> SLTInt
+
+    _ :: '[] --> SLTInt <- slmFunc SLFuncMain (do
+        slmReturn (SLEPushCall (SLClosureCall (_funcptr func1 >: _const 100 >: _funcptr func2 >: SLEStructNil)))
+        pure ()
+      )
+
+    slmSetRealFunc func1 (\x g -> slmFundef $ do
+        y <- slmNewVar (_const 200)
+        slmClsTailCall (g >: x >: _local y >: SLEStructNil)
+        pure ()
+      )
+
+    slmSetRealFunc func2 (\x y -> slmFundef $ do
+        slmReturn (x `_mul` y)
+        pure ()
+      )
+
     pure ()
