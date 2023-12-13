@@ -167,6 +167,37 @@ slReturnToMLC expr = do
       , MLILoad   MLCRegPC       MLCRegX                 -- ジャンプ
     ]
 
+pushCallToRegZSnippet :: Int -> [MLInst' MLCReg MLCVal]
+pushCallToRegZSnippet argsize = 
+  let jumplength = 9
+  in  [
+        -- リターンアドレス
+          MLIConst  MLCRegX         (MLCValConst 1)
+        , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+        , MLIConst  MLCRegY         (MLCValConst jumplength)
+        , MLIAdd    MLCRegY          MLCRegY        MLCRegPC             -- MLCRegY ← call処理の次の命令アドレス  jumplength: このつぎの命令から  
+        , MLIStore  MLCRegY          MLCRegStackPtr
+
+        -- 旧スタックポインタ
+        , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+        , MLIConst  MLCRegY         (MLCValConst (-argsize - 2))
+        , MLIAdd    MLCRegY          MLCRegStackPtr MLCRegY              -- MLCRegY ← 現スタックポインタ - 引数の個数 - 2 (= 返り値置き場のアドレス)
+        , MLIStore  MLCRegY          MLCRegStackPtr
+
+        -- 旧フレームポインタ
+        , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
+        , MLIStore  MLCRegFramePtr   MLCRegStackPtr
+
+        -- フレームポインタ書き換え
+        , MLICopy   MLCRegFramePtr   MLCRegStackPtr
+
+
+
+        -- ジャンプ
+        , MLICopy   MLCRegPC         MLCRegZ                            --jumplength: この命令までの命令数
+      ]
+
+
 
 slSolidCallToMLC ::  forall args ret. (KnownSizes args) => TypedSLFuncName args ret -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
 slSolidCallToMLC funcname args = do
@@ -174,80 +205,45 @@ slSolidCallToMLC funcname args = do
 
   let argsize = sleSizeOf args
 
-  let jumplength = 9
   stateWriteFromList [
-      -- リターンアドレス
-        MLIConst  MLCRegX         (MLCValConst 1)
-      , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-      , MLIConst  MLCRegY         (MLCValConst jumplength)
-      , MLIAdd    MLCRegY          MLCRegY        MLCRegPC             -- MLCRegY ← call処理の次の命令アドレス  jumplength: このつぎの命令から  
-      , MLIStore  MLCRegY          MLCRegStackPtr
-
-      -- 旧スタックポインタ
-      , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-      , MLIConst  MLCRegY         (MLCValConst (-argsize - 2))
-      , MLIAdd    MLCRegY          MLCRegStackPtr MLCRegY              -- MLCRegY ← 現スタックポインタ - 引数の個数 - 2 (= 返り値置き場のアドレス)
-      , MLIStore  MLCRegY          MLCRegStackPtr
-
-      -- 旧フレームポインタ
-      , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-      , MLIStore  MLCRegFramePtr   MLCRegStackPtr
-
-      -- フレームポインタ書き換え
-      , MLICopy   MLCRegFramePtr   MLCRegStackPtr
-
-
-
-      -- ジャンプ
-      , MLIConst  MLCRegPC        (MLCValJumpDestFunc (unTypedSLFuncName funcname))        --jumplength: この命令までの命令数
+      MLIConst MLCRegZ (MLCValJumpDestFunc (unTypedSLFuncName funcname))
     ]
+
+  stateWriteFromList (pushCallToRegZSnippet argsize)
 
 slPtrCallToMLC ::  forall args ret. (KnownSizes args) => SLRef ('SLTFuncPtr args ret) -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
 slPtrCallToMLC ref args = do
+  let argsize = sleSizeOf args
+
   slPushToMLC (slRefToPtr ref)
-  stateWriteFromList [
-        MLILoad   MLCRegZ          MLCRegStackPtr
-      , MLIConst  MLCRegX         (MLCValConst -1)
-      , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-    ]
-
-  slPushToMLC args
-
-  let argsize = sleSizeOf args
-
-  let jumplength = 9
-  stateWriteFromList [
-      -- リターンアドレス
-        MLIConst  MLCRegX         (MLCValConst 1)
-      , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-      , MLIConst  MLCRegY         (MLCValConst jumplength)
-      , MLIAdd    MLCRegY          MLCRegY        MLCRegPC             -- MLCRegX ← call処理の次の命令アドレス  jumplength: このつぎの命令から  
-      , MLIStore  MLCRegY          MLCRegStackPtr
-
-      -- 旧スタックポインタ
-      , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-      , MLIConst  MLCRegY         (MLCValConst (-argsize - 2))
-      , MLIAdd    MLCRegY          MLCRegStackPtr MLCRegY              -- MLCRegX ← 現スタックポインタ - 引数の個数 - 2 (= 返り値置き場のアドレス)
-      , MLIStore  MLCRegY          MLCRegStackPtr
-
-      -- 旧フレームポインタ
-      , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-      , MLIStore  MLCRegY          MLCRegStackPtr
-
-      -- フレームポインタ書き換え
-      , MLICopy   MLCRegFramePtr   MLCRegStackPtr
-
-
-
-      -- ジャンプ
-      , MLICopy   MLCRegPC         MLCRegZ                            --jumplength: この命令までの命令数
-    ]
-
-slSolidTailCallReturnToMLC :: forall args ret. (KnownSizes args) => TypedSLFuncName args ret -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
-slSolidTailCallReturnToMLC funcname args = do
-  let argsize = sleSizeOf args
   slPushToMLC args
   stateWriteFromList [
+        MLIConst  MLCRegX         (MLCValConst (negate argsize))
+      , MLIAdd    MLCRegZ          MLCRegStackPtr MLCRegX
+      , MLILoad   MLCRegZ          MLCRegStackPtr
+    ]
+
+  stateWriteFromList (pushCallToRegZSnippet argsize)
+
+
+slClosureCallToMLC ::  forall args ret. (KnownSize ('SLTStruct ('SLTFuncPtr args ret ': args))) =>  TypedSLExp ('SLTStruct ('SLTFuncPtr args ret ': args)) -> MonadMLCFunc ()
+slClosureCallToMLC cls = do
+  let argsize = sleSizeOf cls
+
+  slPushToMLC cls
+
+  stateWriteFromList [
+        MLIConst  MLCRegX         (MLCValConst (negate argsize))
+      , MLIAdd    MLCRegZ          MLCRegStackPtr MLCRegX
+      , MLILoad   MLCRegZ          MLCRegStackPtr
+    ]
+
+  stateWriteFromList (pushCallToRegZSnippet argsize)
+
+
+tailCallToRegWSnippet :: Int -> [MLInst' MLCReg MLCVal]
+tailCallToRegWSnippet argsize =
+    [
         MLIConst MLCRegY        (MLCValConst (-2))
       , MLIAdd   MLCRegY         MLCRegY        MLCRegFramePtr
       , MLIConst MLCRegX        (MLCValConst 1)
@@ -277,66 +273,59 @@ slSolidTailCallReturnToMLC funcname args = do
       , MLIAdd   MLCRegFramePtr  MLCRegStackPtr MLCRegZ  -- フレームポインタ書き換え
     ]
 
-  stateWriteFromList ( (L.replicate (argsize + 3) >>> join) [
+  <> L.intercalate [
+        MLIAdd   MLCRegY        MLCRegY        MLCRegX
+      , MLIAdd   MLCRegStackPtr MLCRegStackPtr MLCRegX
+      ] (L.replicate (argsize + 3) [
         MLILoad  MLCRegZ        MLCRegY
       , MLIStore MLCRegZ        MLCRegStackPtr
-      , MLIAdd   MLCRegY        MLCRegY        MLCRegX
-      , MLIAdd   MLCRegStackPtr MLCRegStackPtr MLCRegX
     ]) -- 引っ越し
 
-  stateWriteFromList [
-        MLIConst MLCRegPC (MLCValJumpDestFunc (unTypedSLFuncName funcname))
+  <> [
+        MLICopy MLCRegPC MLCRegW
     ]
+
+
+slSolidTailCallReturnToMLC :: forall args ret. (KnownSizes args) => TypedSLFuncName args ret -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
+slSolidTailCallReturnToMLC funcname args = do
+  slPushToMLC args
+
+  let argsize = sleSizeOf args
+
+  stateWriteFromList [
+      MLIConst MLCRegW (MLCValJumpDestFunc (unTypedSLFuncName funcname))
+    ]
+
+  stateWriteFromList (tailCallToRegWSnippet argsize)
 
 slPtrTailCallReturnToMLC :: forall args ret. (KnownSizes args) => SLRef ('SLTFuncPtr args ret) -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
 slPtrTailCallReturnToMLC ref args = do
-  slPushToMLC (slRefToPtr ref)
-  stateWriteFromList [
-        MLILoad   MLCRegW          MLCRegStackPtr
-      , MLIConst  MLCRegX         (MLCValConst -1)
-      , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-    ]
-
   let argsize = sleSizeOf args
+
+  slPushToMLC (slRefToPtr ref)
   slPushToMLC args
   stateWriteFromList [
-        MLIConst MLCRegY        (MLCValConst (-2))
-      , MLIAdd   MLCRegY         MLCRegY        MLCRegFramePtr
-      , MLIConst MLCRegX        (MLCValConst 1)
-      , MLIAdd   MLCRegStackPtr  MLCRegStackPtr MLCRegX
-      , MLILoad  MLCRegZ         MLCRegY
-      , MLIStore MLCRegZ         MLCRegStackPtr          -- リターンアドレスをスタックトップにコピー
-
-      , MLIAdd   MLCRegY         MLCRegY        MLCRegX
-      , MLIAdd   MLCRegStackPtr  MLCRegStackPtr MLCRegX
-      , MLILoad  MLCRegZ         MLCRegY
-      , MLIStore MLCRegZ         MLCRegStackPtr          -- 旧スタックポインタをスタックトップにコピー
-
-      , MLIAdd   MLCRegY         MLCRegY        MLCRegX
-      , MLIAdd   MLCRegStackPtr  MLCRegStackPtr MLCRegX
-      , MLILoad  MLCRegZ         MLCRegY
-      , MLIStore MLCRegZ         MLCRegStackPtr          -- 旧フレームポインタをスタックトップにコピー
-
-      , MLIConst MLCRegY        (MLCValConst (-3 - argsize))
-      , MLIAdd   MLCRegY         MLCRegY MLCRegStackPtr  -- 引っ越し元開始位置: ↑で評価した引数の一番下
-
-      , MLIConst MLCRegX        (MLCValConst (-1))
-      , MLIAdd   MLCRegX         MLCRegStackPtr MLCRegX
-      , MLILoad  MLCRegStackPtr  MLCRegX
-      , MLIConst MLCRegX        (MLCValConst 1)
-      , MLIAdd   MLCRegX         MLCRegStackPtr MLCRegX  -- 引っ越し先開始位置: スタックフレームの底
+        MLIConst  MLCRegX         (MLCValConst (negate argsize))
+      , MLIAdd    MLCRegW          MLCRegStackPtr MLCRegX
+      , MLILoad   MLCRegW          MLCRegStackPtr
     ]
 
-  stateWriteFromList ( (L.replicate (argsize + 3) >>> join) [
-        MLILoad  MLCRegZ        MLCRegY
-      , MLIStore MLCRegZ        MLCRegStackPtr
-      , MLIAdd   MLCRegZ        MLCRegZ        MLCRegX
-      , MLIAdd   MLCRegStackPtr MLCRegStackPtr MLCRegX
-    ]) -- 引っ越し
+  stateWriteFromList (tailCallToRegWSnippet argsize)
+
+
+slClosureTailCallReturnToMLC :: forall args ret. (KnownSize ('SLTStruct ('SLTFuncPtr args ret ': args))) => TypedSLExp ('SLTStruct ('SLTFuncPtr args ret ': args)) -> MonadMLCFunc ()
+slClosureTailCallReturnToMLC cls = do
+  let argsize = sleSizeOf cls - 1
+
+  slPushToMLC cls
 
   stateWriteFromList [
-        MLICopy MLCRegPC MLCRegW
+        MLIConst  MLCRegX         (MLCValConst (negate argsize))
+      , MLIAdd    MLCRegW          MLCRegStackPtr MLCRegX
+      , MLILoad   MLCRegW          MLCRegStackPtr
     ]
+
+  stateWriteFromList (tailCallToRegWSnippet argsize)
 
 
 slPushToMLC :: KnownSize t => TypedSLExp t -> MonadMLCFunc ()
@@ -392,6 +381,7 @@ slPushToMLC expr = do
       case call of
         SLSolidFuncCall fname args -> slSolidCallToMLC fname args
         SLFuncRefCall   fref  args -> slPtrCallToMLC   fref  args
+        SLClosureCall   closure    -> slClosureCallToMLC closure
 
     SLEPrim1 prim exp1       -> slPrim1ToMLC prim exp1
 
@@ -628,6 +618,7 @@ slSingleToMLC statement =
       case call of
         SLSolidFuncCall fname args -> slSolidTailCallReturnToMLC fname args
         SLFuncRefCall   fref  args -> slPtrTailCallReturnToMLC   fref  args
+        SLClosureCall   closure    -> slClosureTailCallReturnToMLC closure
 
 slMultiToMLC :: V.Vector SLBlock -> MonadMLCFunc ()
 slMultiToMLC blocks = do

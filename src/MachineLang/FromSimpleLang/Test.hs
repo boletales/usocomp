@@ -14,7 +14,7 @@ import Data.Vector as V
 import Data.Proxy
 import GHC.TypeNats
 import MachineLang.FromSimpleLang.Debugger
-
+import Data.Text.IO as TIO
 
 substTest :: SLProgram
 substTest =
@@ -156,4 +156,30 @@ complexTest =
         slmReturn (_local c2 `SLEStructGet` Proxy @1)
         pure ()
       )
+    pure ()
+
+
+tailRecTest :: SLProgram
+tailRecTest =
+  runSLMFuncsM $ do
+    let fibonacci = slmVirtualFunc (SLUserFunc "main" "fibonacci") :: '[SLTInt, SLTInt, SLTInt] --> SLTInt
+
+    _ :: '[] --> SLTInt <- slmFunc SLFuncMain (do
+        x <- slmNewVar $ _app fibonacci (_const 20) (_const 0) (_const 1)
+        slmReturn (_local x)
+        pure ()
+      )
+    
+    slmSetRealFunc fibonacci (\steps a b -> slmFundef $ do
+        slmCase (V.fromList [
+            ( steps `_eq` _const 0, do
+                slmReturn b
+                pure ()
+              )
+          ]) (do
+            slmTailCall fibonacci (steps `_sub` _const 1) (b) (a `_add` b)
+          )
+        pure ()
+      )
+
     pure ()

@@ -113,8 +113,9 @@ newtype SLAddr = SLAddr Int deriving (Show, Eq)
 newtype SLVal  = SLVal  Int deriving (Show, Eq)
 
 data SLCall (t :: SLType) where
-    SLSolidFuncCall :: (KnownSize ('SLTStruct ts)) => TypedSLFuncName ts t     -> TypedSLExp ('SLTStruct ts) -> SLCall t
-    SLFuncRefCall   :: (KnownSize ('SLTStruct ts)) => SLRef ('SLTFuncPtr ts t) -> TypedSLExp ('SLTStruct ts) -> SLCall t
+    SLSolidFuncCall :: (KnownSize ('SLTStruct ts)                      ) => TypedSLFuncName ts t     -> TypedSLExp ('SLTStruct ts) -> SLCall t
+    SLFuncRefCall   :: (KnownSize ('SLTStruct ts)                      ) => SLRef ('SLTFuncPtr ts t) -> TypedSLExp ('SLTStruct ts) -> SLCall t
+    SLClosureCall   :: (KnownSize ('SLTStruct ('SLTFuncPtr ts t ': ts))) => TypedSLExp ('SLTStruct ('SLTFuncPtr ts t ': ts))       -> SLCall t
 
 class SLCallable (args :: [SLType]) (ret :: SLType) (t :: Type) | t -> args ret where
   slCall :: t -> TypedSLExp ('SLTStruct args) -> SLCall ret
@@ -237,7 +238,6 @@ type SLProgram =
 sleSizeOf :: forall t. KnownSize t => TypedSLExp t -> Int
 sleSizeOf _ = (fromIntegral . natVal) (Proxy :: Proxy (SLTSizeOf t))
 
-
 slRefToPtr :: KnownSize t => SLRef t -> TypedSLExp (SLTPtr t)
 slRefToPtr ref =
   case ref of
@@ -261,6 +261,7 @@ prettyPrintSLCall call =
   case call of
     SLSolidFuncCall funcName args -> prettyPrintFuncName (unTypedSLFuncName funcName) <> prettyPrintSLExp args
     SLFuncRefCall   ref      args -> prettyPrintSLRef    ref                          <> prettyPrintSLExp args
+    SLClosureCall   closure       -> prettyPrintSLExp    closure
 
 prettyPrintSLExp :: forall t. TypedSLExp t -> Text
 prettyPrintSLExp expr =
