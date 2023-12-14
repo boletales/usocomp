@@ -34,6 +34,7 @@ library
       MachineLang.Machine
       MachineLang.Tools
       SimpleLang.Def
+      SimpleLang.FromFuncLang
       SimpleLang.Tools
       SimpleLang.Tools.Manual
       SimpleLang.Tools.Manual.Internal
