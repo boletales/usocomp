@@ -16,6 +16,7 @@ import Control.Category
 import Prelude hiding ((.), id)
 import Data.Map as M
 import Data.Foldable as F
+import qualified Data.List as L
 import Control.Monad
 
 type family FLTypeToSLType (t :: FLType) :: SLType where
@@ -39,6 +40,7 @@ type family MapFLTypeToSLType (ts :: [FLType]) :: [SLType] where
 -- 識別子初出位置へのパス
 data FLCPath =
       FLCPathTop
+    | FLCPathInTopDecl Text
     | FLCPathInLetDecl Text FLCPath
     | FLCPathInLetBody      FLCPath
     | FLCPathInAppR         FLCPath
@@ -46,17 +48,24 @@ data FLCPath =
     | FLCPathInLambda       FLCPath
     deriving (Eq, Show, Ord)
 
-flcPathDeeperThan :: FLCPath -> FLCPath -> Bool
-flcPathDeeperThan p1 p2 =
-    case (p1, p2) of
-        (FLCPathTop, _) -> False
-        (_, FLCPathTop) -> True
-        (FLCPathInLetDecl _ p1', FLCPathInLetDecl _ p2') -> flcPathDeeperThan p1' p2'
-        (FLCPathInLetBody p1', FLCPathInLetBody p2')     -> flcPathDeeperThan p1' p2'
-        (FLCPathInAppR p1', FLCPathInAppR p2')           -> flcPathDeeperThan p1' p2'
-        (FLCPathInAppL p1', FLCPathInAppL p2')           -> flcPathDeeperThan p1' p2'
-        (FLCPathInLambda p1', FLCPathInLambda p2')       -> flcPathDeeperThan p1' p2'
-        _ -> False
+flcPathRoots :: FLCPath -> [FLCPath]
+flcPathRoots path =
+    path :
+    case path of
+        FLCPathTop           -> []
+        FLCPathInTopDecl _   -> []
+        FLCPathInLetDecl _ p -> flcPathRoots p
+        FLCPathInLetBody   p -> flcPathRoots p
+        FLCPathInAppR      p -> flcPathRoots p
+        FLCPathInAppL      p -> flcPathRoots p
+        FLCPathInLambda    p -> flcPathRoots p
+
+-- 完全な包含関係にあるときのみTrue
+flcPathDeeperEq :: FLCPath -> FLCPath -> Bool
+flcPathDeeperEq p1 p2 =
+    let r1 = flcPathRoots p1
+        r2 = flcPathRoots p2
+    in  L.length r1 <= L.length r2 && L.elem p2 r1
 
 data FLCUniqueIdentifier = FLCUniqueIdentifier {
       flcuiPath :: FLCPath
@@ -72,7 +81,7 @@ flcRenameIdentifier :: FLProgram Text -> Either Text (FLProgram FLCUniqueIdentif
 flcRenameIdentifier program =
     let globalDict :: M.Map Text FLCUniqueIdentifier
         globalDict = (\(FLVarDecl (FLVar n) _) -> FLCUniqueIdentifier FLCPathTop n) <$> flpTopLevelVars program
-        
+
         go :: FLExp Text t -> M.Map Text FLCUniqueIdentifier -> FLCPath -> Either Text (FLExp FLCUniqueIdentifier t)
         go e dict path =
             case e of
