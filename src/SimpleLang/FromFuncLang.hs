@@ -80,7 +80,10 @@ flcPathDeeperEq p1 p2 =
 data FLCUniqueIdentifier = FLCUniqueIdentifier {
       flcuiPath :: FLCPath
     , flcuiName :: Text
-    } deriving (Eq, Show, Ord)
+    } deriving (Eq, Ord)
+
+instance Show FLCUniqueIdentifier where
+    show (FLCUniqueIdentifier _ name) = T.unpack name
 
 isTopLevelLambda :: FLCPath -> Bool
 isTopLevelLambda path =

@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       FuncLang.Def
+      FuncLang.Tools.Manual
       Internal.MyNat
       MachineLang.Def
       MachineLang.FromSimpleLang
@@ -35,6 +36,7 @@ library
       MachineLang.Tools
       SimpleLang.Def
       SimpleLang.FromFuncLang
+      SimpleLang.FromFuncLang.Test
       SimpleLang.Tools
       SimpleLang.Tools.Manual
       SimpleLang.Tools.Manual.Internal
