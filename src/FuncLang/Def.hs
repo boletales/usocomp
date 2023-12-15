@@ -1,11 +1,20 @@
 {-# LANGUAGE GADTs #-}
 
-module FuncLang.Def where
+module FuncLang.Def (
+      FLType(..)
+    , FLVar(..)
+    , UntypedFLVar(..)
+    , FLVarDecl(..)
+    , FLExp(..)
+    , FLProgram(..)
+    , flOverRideTypeCheck
+  ) where
 
 import Data.Vector as V
 import Data.Map as M
 import Data.Text as T
 import Data.Kind
+import Unsafe.Coerce (unsafeCoerce)
 
 data FLType =
       FLTInt
@@ -30,3 +39,7 @@ data FLExp (tag :: Type) (t :: FLType) where
 data FLProgram (tag :: Type) = FLProgram {
       flpTopLevelVars :: M.Map tag (FLVarDecl tag)
   }
+
+{-# WARNING flOverRideTypeCheck "This function is unsafe. It should be used only in the compiler." #-}
+flOverRideTypeCheck :: FLExp tag t -> FLExp tag u
+flOverRideTypeCheck = unsafeCoerce
