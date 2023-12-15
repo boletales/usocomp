@@ -10,16 +10,16 @@ import Control.Monad.Identity
 
 type MonadFLM = StateT (M.Map Text (FLVarDecl Text)) Identity
 
-flmLam :: Text -> (FLExp Text t -> FLExp Text u) -> FLExp Text ('FLTLambda t u)
+flmLam :: (SomeFLType u, SomeFLType t) => Text -> (FLExp Text t -> FLExp Text u) -> FLExp Text ('FLTLambda t u)
 flmLam t f = FLELambda (FLVar t) (f (FLEVar (FLVar t)))
 
-flmDecl :: Text -> FLExp Text t -> MonadFLM (FLExp Text t)
+flmDecl :: (SomeFLType t) =>Text -> FLExp Text t -> MonadFLM (FLExp Text t)
 flmDecl t e = do
     modify (M.insert t (FLVarDecl (FLVar t) e))
     pure (FLEVar (FLVar t))
 
 
-flmApp :: FLExp tag ('FLTLambda t1 t) -> FLExp tag t1 -> FLExp tag t
+flmApp :: (SomeFLType t1, SomeFLType t) => FLExp tag ('FLTLambda t1 t) -> FLExp tag t1 -> FLExp tag t
 flmApp = FLEApp
 
 runFLM :: MonadFLM () -> FLProgram Text

@@ -16,14 +16,10 @@ captureTest = runFLM $ do
               flmApp (flmApp (
                 flmLam "x1" (\x1 -> flmLam "x2" (\x2 -> flmApp ext1 ext2))
               ) ext1) ext2
-            )
-        )
-    )
+            )))
   pure ()
 
--- >>> test
--- "x" = (\"x" -> "x")
--- "y" = ((\"x" -> "x") (\"x" -> "x"))
+-- ProgressCancelledException
 -- "z" = (\"x" -> "x")
 
 -- >>> flcRenameAndLift test

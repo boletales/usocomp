@@ -65,9 +65,9 @@ instance Show FLCPath where
             FLCPathInLiftedLambda p t -> show p <> "!" <> T.unpack t
             FLCPathInLetDecl t p      -> show p <> ".$" <> T.unpack t
             FLCPathInLetBody   p      -> show p <> ".b"
-            FLCPathInAppR      p      -> show p <> ".r"
-            FLCPathInAppL      p      -> show p <> ".l"
-            FLCPathInLambda    p      -> show p <> ".f"
+            FLCPathInAppR      p      -> show p <> ".R"
+            FLCPathInAppL      p      -> show p <> ".L"
+            FLCPathInLambda    p      -> show p <> ".λ"
 
 flcPathRoots :: FLCPath -> [FLCPath]
 flcPathRoots path =
@@ -116,20 +116,20 @@ flcRenameAndLift program =
     let globalDict :: M.Map Text FLCUniqueIdentifier
         globalDict = (\(FLVarDecl (FLVar n) _) -> FLCUniqueIdentifier FLCPathTop n) <$> flpTopLevelVars program
 
-        
-        searchExternalVar :: FLExp Text t -> M.Map Text FLCUniqueIdentifier -> FLCPath -> Either Text [FLCUniqueIdentifier]
+
+        searchExternalVar :: FLExp Text t -> M.Map Text FLCUniqueIdentifier -> FLCPath -> Either Text [(FLCUniqueIdentifier, FLType)]
         searchExternalVar expr dict pathorig =
-          let search1 :: FLExp Text t -> M.Map Text FLCUniqueIdentifier -> FLCPath -> Either Text [FLCUniqueIdentifier]
+          let search1 :: FLExp Text t -> M.Map Text FLCUniqueIdentifier -> FLCPath -> Either Text [(FLCUniqueIdentifier, FLType)]
               search1 expr' dict' path' =
                   case expr' of
                       FLEValI _           -> pure []
                       FLEValB _           -> pure []
                       FLEVar (FLVar name) ->
                           case M.lookup name dict' of
-                              Just newName -> 
+                              Just newName ->
                                 if flcPathDeeperEq (flcuiPath newName) pathorig
                                 then pure []
-                                else pure [newName]
+                                else pure [(newName, flTypeOf expr')]
                               Nothing      -> throwError $ "Undefined variable: " <> name <> " at " <> T.pack (show path')
                       FLELambda (FLVar name) body ->
                           let newpath = FLCPathInLambda path'
@@ -144,19 +144,27 @@ flcRenameAndLift program =
                               newDecl = mapM (\(FLVarDecl (FLVar n) e) -> search1 e newDict (FLCPathInLetDecl n path')) vs
                               newBody = search1 body newDict (FLCPathInLetBody path')
                           in liftA2 (<>) (fmap join newDecl) newBody
+                      UnsafeFLECast t e -> search1 e dict' path'
             in search1 expr dict pathorig
 
-        captureExternalVar :: [FLCUniqueIdentifier] -> FLExp Text t -> FLExp Text t
+        captureExternalVar :: [(FLCUniqueIdentifier, FLType)] -> FLExp Text t -> FLExp Text t
         captureExternalVar vars expr =
           case vars of
               [] -> expr
-              v:vs -> flOverRideTypeCheck (FLELambda (FLVar (flcuiName v)) (captureExternalVar vs expr))
+              (v, t):vs -> 
+                let newexpr = FLELambda (FLVar (flcuiName v)) (captureExternalVar vs expr)
+                in  UnsafeFLECast (FLTLambda t (flTypeOf expr)) newexpr
+                
 
-        appCapturedVar :: [FLCUniqueIdentifier] -> FLExp FLCUniqueIdentifier t -> FLExp FLCUniqueIdentifier t
+        appCapturedVar :: [(FLCUniqueIdentifier, FLType)] -> FLExp FLCUniqueIdentifier t -> FLExp FLCUniqueIdentifier t
         appCapturedVar vars expr =
           case vars of
               []   -> expr
-              v:vs -> appCapturedVar vs (FLEApp (flOverRideTypeCheck expr) (FLEVar (FLVar v)))
+              (v, t):vs -> 
+                case flTypeOf expr of
+                    FLTLambda t1 t2 -> appCapturedVar vs (FLEApp (UnsafeFLECast (FLTLambda t1 t2) expr) (FLEVar (FLVar v)))
+                    _ -> error "impossible"
+                
 
         renameLift1 :: FLExp Text t -> M.Map Text FLCUniqueIdentifier -> FLCPath -> StateT [FLVarDecl FLCUniqueIdentifier] (Either Text) (FLExp FLCUniqueIdentifier t)
         renameLift1 e dict path =
@@ -174,7 +182,7 @@ flcRenameAndLift program =
                           newdict = M.insert name (FLCUniqueIdentifier newpath name) dict
                       in  FLELambda (FLVar (FLCUniqueIdentifier newpath name)) <$> renameLift1 body newdict newpath
                     else do
-                      let newname = FLCUniqueIdentifier (FLCPathTopLiftedFrom path) "lambda"
+                      let newname = FLCUniqueIdentifier (FLCPathTopLiftedFrom path) "anonymous"
                       let newpath = FLCPathInLambda path
                       let newdict = M.insert name (FLCUniqueIdentifier newpath name) dict
                       extvars <- lift $ searchExternalVar body newdict newpath
@@ -190,6 +198,7 @@ flcRenameAndLift program =
                         newDecl = mapM (\(FLVarDecl (FLVar n) expr) -> FLVarDecl (FLVar (FLCUniqueIdentifier path n)) <$> renameLift1 expr newDict (FLCPathInLetDecl n path)) vs
                         newBody = renameLift1 body newDict (FLCPathInLetBody path)
                     in FLELet <$> newDecl <*> newBody
+                UnsafeFLECast t e -> UnsafeFLECast t <$> renameLift1 e dict path
 
         result = flpTopLevelVars program &
               (
@@ -213,4 +222,13 @@ flcRenameAndLift program =
 
 -- 2
 flcComipleExp :: FLExp FLCUniqueIdentifier t -> TypedSLExp (FLTypeToSLType t)
-flcComipleExp = undefined
+flcComipleExp expr =
+  case expr of
+    FLEValI   i -> SLEConst (SLVal i)
+    FLEValB   b -> SLEConst (SLVal (if b then 1 else 0))
+    FLEVar (FLVar (FLCUniqueIdentifier path name)) -> undefined
+
+    --  SLEPushCall (SLClosureCall (SLFuncPtr (SLUserFunc path name) (FLTypeToSLType (flVarType (FLVar (FLCUniqueIdentifier path name)))) >: SLEStructNil))
+    --FLELambda :: forall tag t1 t2. FLVar tag t1 -> FLExp tag t2  -> FLExp tag ('FLTLambda t1 t2)
+    --FLEApp    :: forall tag t1 t2. FLExp tag ('FLTLambda t1 t2) -> FLExp tag t1 -> FLExp tag t2
+    --FLELet    :: forall tag t2   . [FLVarDecl tag] -> FLExp tag t2 -> FLExp tag t2
