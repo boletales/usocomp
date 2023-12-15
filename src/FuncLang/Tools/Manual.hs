@@ -16,7 +16,11 @@ flmLam t f = FLELambda (FLVar t) (f (FLEVar (FLVar t)))
 flmDecl :: Text -> FLExp Text t -> MonadFLM (FLExp Text t)
 flmDecl t e = do
     modify (M.insert t (FLVarDecl (FLVar t) e))
-    pure e
+    pure (FLEVar (FLVar t))
+
+
+flmApp :: FLExp tag ('FLTLambda t1 t) -> FLExp tag t1 -> FLExp tag t
+flmApp = FLEApp
 
 runFLM :: MonadFLM () -> FLProgram Text
 runFLM m = FLProgram (runIdentity (execStateT m M.empty))

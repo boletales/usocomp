@@ -54,7 +54,20 @@ data FLCPath =
     | FLCPathInAppR         FLCPath
     | FLCPathInAppL         FLCPath
     | FLCPathInLambda       FLCPath
-    deriving (Eq, Show, Ord)
+    deriving (Eq, Ord)
+
+instance Show FLCPath where
+    show path =
+        case path of
+            FLCPathTop                -> "top"
+            FLCPathInTopDecl t        -> T.unpack t
+            FLCPathTopLiftedFrom p    -> show p <> "!"
+            FLCPathInLiftedLambda p t -> show p <> "!" <> T.unpack t
+            FLCPathInLetDecl t p      -> show p <> ".$" <> T.unpack t
+            FLCPathInLetBody   p      -> show p <> ".b"
+            FLCPathInAppR      p      -> show p <> ".r"
+            FLCPathInAppL      p      -> show p <> ".l"
+            FLCPathInLambda    p      -> show p <> ".f"
 
 flcPathRoots :: FLCPath -> [FLCPath]
 flcPathRoots path =
@@ -83,13 +96,17 @@ data FLCUniqueIdentifier = FLCUniqueIdentifier {
     } deriving (Eq, Ord)
 
 instance Show FLCUniqueIdentifier where
-    show (FLCUniqueIdentifier _ name) = T.unpack name
+    show (FLCUniqueIdentifier path name) =
+        case path of
+            FLCPathTopLiftedFrom p -> show p <> "!" <> T.unpack name
+            _ -> T.unpack name
 
 isTopLevelLambda :: FLCPath -> Bool
 isTopLevelLambda path =
   case path of
       FLCPathInLambda p -> isTopLevelLambda p
       FLCPathInTopDecl _ -> True
+      FLCPathInLiftedLambda _ _ -> True
       _ -> False
 
 
@@ -101,7 +118,7 @@ flcRenameAndLift program =
 
         
         searchExternalVar :: FLExp Text t -> M.Map Text FLCUniqueIdentifier -> FLCPath -> Either Text [FLCUniqueIdentifier]
-        searchExternalVar expr dict path =
+        searchExternalVar expr dict pathorig =
           let search1 :: FLExp Text t -> M.Map Text FLCUniqueIdentifier -> FLCPath -> Either Text [FLCUniqueIdentifier]
               search1 expr' dict' path' =
                   case expr' of
@@ -110,7 +127,7 @@ flcRenameAndLift program =
                       FLEVar (FLVar name) ->
                           case M.lookup name dict' of
                               Just newName -> 
-                                if flcPathDeeperEq (flcuiPath newName) path'
+                                if flcPathDeeperEq (flcuiPath newName) pathorig
                                 then pure []
                                 else pure [newName]
                               Nothing      -> throwError $ "Undefined variable: " <> name <> " at " <> T.pack (show path')
@@ -127,7 +144,7 @@ flcRenameAndLift program =
                               newDecl = mapM (\(FLVarDecl (FLVar n) e) -> search1 e newDict (FLCPathInLetDecl n path')) vs
                               newBody = search1 body newDict (FLCPathInLetBody path')
                           in liftA2 (<>) (fmap join newDecl) newBody
-            in search1 expr dict path
+            in search1 expr dict pathorig
 
         captureExternalVar :: [FLCUniqueIdentifier] -> FLExp Text t -> FLExp Text t
         captureExternalVar vars expr =
@@ -158,7 +175,9 @@ flcRenameAndLift program =
                       in  FLELambda (FLVar (FLCUniqueIdentifier newpath name)) <$> renameLift1 body newdict newpath
                     else do
                       let newname = FLCUniqueIdentifier (FLCPathTopLiftedFrom path) "lambda"
-                      extvars <- lift $ searchExternalVar body dict path
+                      let newpath = FLCPathInLambda path
+                      let newdict = M.insert name (FLCUniqueIdentifier newpath name) dict
+                      extvars <- lift $ searchExternalVar body newdict newpath
                       newlambda <- renameLift1 (captureExternalVar extvars e) globalDict (FLCPathInLiftedLambda path name)
                       modify (FLVarDecl (FLVar newname) newlambda :)
                       pure $ appCapturedVar extvars (FLEVar (FLVar newname))
