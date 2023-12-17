@@ -22,6 +22,7 @@ import Control.Monad.State
 import Data.Function ((&))
 import Control.Monad.Except
 import Control.Applicative (Applicative(liftA2))
+import Data.Kind 
 
 type family FLTypeToSLType (t :: FLType) :: SLType where
     FLTypeToSLType 'FLTInt  = 'SLTInt
@@ -34,6 +35,23 @@ type family MapFLTypeToSLType (ts :: [FLType]) :: [SLType] where
     MapFLTypeToSLType (t:ts) = FLTypeToSLType t ': MapFLTypeToSLType ts
 
 
+-- 中間表現として、FLExpから式中のLambdaを抜いたFLCExpと、トップレベルの関数定義を表すFLCFunDeclを使うことにする（変数捕獲でがつらいので）
+data FLCExp (t :: FLType) where
+    FLCEValI       :: Int -> FLCExp 'FLTInt
+    FLCEValB       :: Bool -> FLCExp 'FLTBool
+    FLCEVar        :: FLCUniqueIdentifier -> FLType -> FLCExp t
+    FLCEApp        :: FLCExp ('FLTLambda t1 t2) -> FLCExp t1 -> FLCExp t2
+    FLCELet        :: [FLCVarDecl] -> FLCExp t2 -> FLCExp t2
+    FLCEUncapture  :: FLCUniqueIdentifier -> [(FLCUniqueIdentifier, FLType)] -> FLCExp t
+
+data FLCVarDecl where
+  FLCVarDecl :: FLCUniqueIdentifier -> FLType -> FLCExp t -> FLCVarDecl
+
+data FLCFuncDecl where
+  FLCFuncDecl :: FLCUniqueIdentifier -> [(FLCUniqueIdentifier, FLType)] -> FLCExp t -> FLCFuncDecl
+
+data FLCProgram where
+  FLCProgram :: M.Map FLCUniqueIdentifier FLCFuncDecl -> FLCProgram
 {-
 コンパイル手順：
 0. 識別子を一意なものに変換する
@@ -111,7 +129,7 @@ isTopLevelLambda path =
 
 
 -- 0+1
-flcRenameAndLift :: FLProgram Text -> Either Text (FLProgram FLCUniqueIdentifier)
+flcRenameAndLift :: FLProgram Text -> Either Text FLCProgram
 flcRenameAndLift program =
     let globalDict :: M.Map Text FLCUniqueIdentifier
         globalDict = (\(FLVarDecl (FLVar n) _) -> FLCUniqueIdentifier FLCPathTop n) <$> flpTopLevelVars program
@@ -144,17 +162,17 @@ flcRenameAndLift program =
                               newDecl = mapM (\(FLVarDecl (FLVar n) e) -> search1 e newDict (FLCPathInLetDecl n path')) vs
                               newBody = search1 body newDict (FLCPathInLetBody path')
                           in liftA2 (<>) (fmap join newDecl) newBody
-                      UnsafeFLECast t e -> search1 e dict' path'
             in search1 expr dict pathorig
 
-        captureExternalVar :: [(FLCUniqueIdentifier, FLType)] -> FLExp Text t -> FLExp Text t
+        {-
+        captureExternalVar :: [(FLCUniqueIdentifier, FLType)] -> FLExp Text t -> FLCFuncDecl
         captureExternalVar vars expr =
-          case vars of
-              [] -> expr
-              (v, t):vs -> 
-                let newexpr = FLELambda (FLVar (flcuiName v)) (captureExternalVar vs expr)
-                in  UnsafeFLECast (FLTLambda t (flTypeOf expr)) newexpr
-                
+          let go vs = 
+                case vs of
+                    [] -> []
+                    (v, t):vs' -> 
+                      FLCELambda (FLVar (flcuiName v)) (UnsafeFLECast (flTypeOf expr) $ captureExternalVar vs expr)
+        -}
 
         appCapturedVar :: [(FLCUniqueIdentifier, FLType)] -> FLExp FLCUniqueIdentifier t -> FLExp FLCUniqueIdentifier t
         appCapturedVar vars expr =
@@ -166,21 +184,21 @@ flcRenameAndLift program =
                     _ -> error "impossible"
                 
 
-        renameLift1 :: FLExp Text t -> M.Map Text FLCUniqueIdentifier -> FLCPath -> StateT [FLVarDecl FLCUniqueIdentifier] (Either Text) (FLExp FLCUniqueIdentifier t)
+        renameLift1 :: FLExp Text t -> M.Map Text FLCUniqueIdentifier -> FLCPath -> StateT [FLCFuncDecl] (Either Text) (FLCExp t)
         renameLift1 e dict path =
             case e of
-                FLEValI i           -> pure $ FLEValI i
-                FLEValB b           -> pure $ FLEValB b
+                FLEValI i           -> pure $ FLCEValI i
+                FLEValB b           -> pure $ FLCEValB b
                 FLEVar (FLVar name) ->
                     case M.lookup name dict of
-                        Just newName ->  pure $ FLEVar (FLVar newName)
+                        Just newName ->  pure $ FLCEVar newName (flTypeOf e)
                         Nothing -> throwError $ "Undefined variable: " <> name <> " at " <> T.pack (show path)
                 FLELambda (FLVar name) body ->
                     if isTopLevelLambda path
                     then
                       let newpath = FLCPathInLambda path
                           newdict = M.insert name (FLCUniqueIdentifier newpath name) dict
-                      in  FLELambda (FLVar (FLCUniqueIdentifier newpath name)) <$> renameLift1 body newdict newpath
+                      in  FLCELambda (FLVar (FLCUniqueIdentifier newpath name)) <$> renameLift1 body newdict newpath
                     else do
                       let newname = FLCUniqueIdentifier (FLCPathTopLiftedFrom path) "anonymous"
                       let newpath = FLCPathInLambda path
@@ -198,7 +216,6 @@ flcRenameAndLift program =
                         newDecl = mapM (\(FLVarDecl (FLVar n) expr) -> FLVarDecl (FLVar (FLCUniqueIdentifier path n)) <$> renameLift1 expr newDict (FLCPathInLetDecl n path)) vs
                         newBody = renameLift1 body newDict (FLCPathInLetBody path)
                     in FLELet <$> newDecl <*> newBody
-                UnsafeFLECast t e -> UnsafeFLECast t <$> renameLift1 e dict path
 
         result = flpTopLevelVars program &
               (

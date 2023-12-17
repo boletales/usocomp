@@ -66,12 +66,12 @@ flTypeOf e = case e of
   (FLELambda @_ @t1 @t2 (FLVar _) e) -> FLTLambda (flTypeOf e) (flTypeOf e)
   (FLEApp    @_ @t1 @t2 e1 _)        -> case flTypeOf e1 of FLTLambda _ t2' -> t2'; _ -> error "impossible"
   (FLELet    @_ @t1     _ e)         -> someFLType (Proxy :: Proxy t1)
-  (UnsafeFLECast t _)                -> t
+  --(UnsafeFLECast t _)                -> t
 
 prettyPrintFLVarDecl :: Show tag => FLVarDecl tag -> Text
 prettyPrintFLVarDecl (FLVarDecl v e) = T.pack (show v) <> " = " <> prettyPrintFLExp e
 
-{-# WARNING UnsafeFLECast "This function is unsafe. It should be used only in the compiler." #-}
+--{-# WARNING UnsafeFLECast "This function is unsafe. It should be used only in the compiler." #-}
 data FLExp (tag :: Type) (t :: FLType) where
   FLEValI   :: forall tag      . (                            ) => Int  -> FLExp tag 'FLTInt
   FLEValB   :: forall tag      . (                            ) => Bool -> FLExp tag 'FLTBool
@@ -79,7 +79,7 @@ data FLExp (tag :: Type) (t :: FLType) where
   FLELambda :: forall tag t1 t2. (SomeFLType t1, SomeFLType t2) => FLVar tag t1 -> FLExp tag t2  -> FLExp tag ('FLTLambda t1 t2)
   FLEApp    :: forall tag t1 t2. (SomeFLType t1, SomeFLType t2) => FLExp tag ('FLTLambda t1 t2) -> FLExp tag t1 -> FLExp tag t2
   FLELet    :: forall tag t1   . (SomeFLType t1               ) => [FLVarDecl tag] -> FLExp tag t1 -> FLExp tag t1
-  UnsafeFLECast :: forall tag t1 t2. FLType -> FLExp tag t1 -> FLExp tag t2
+  --UnsafeFLECast :: forall tag t1 t2. FLType -> FLExp tag t1 -> FLExp tag t2
 
 instance Show tag => Show (FLExp tag t) where
   show = T.unpack . prettyPrintFLExp
@@ -96,7 +96,7 @@ prettyPrintFLExp e =
       (FLELambda v e)  -> "(\\" <> tshow v <> " -> " <> prettyPrintFLExp e <> ")"
       (FLEApp e1 e2)   -> "(" <>   prettyPrintFLExp e1 <> " " <> prettyPrintFLExp e2 <> ")"
       (FLELet decls e) -> "(let " <> T.intercalate "; " (prettyPrintFLVarDecl <$> decls) <> " in " <> prettyPrintFLExp e <> ")"
-      (UnsafeFLECast t e) -> prettyPrintFLExp e --"(" <> prettyPrintFLExp e <> " :: " <> tshow t <> ")"
+      --(UnsafeFLECast t e) -> prettyPrintFLExp e --"(" <> prettyPrintFLExp e <> " :: " <> tshow t <> ")"
 data FLProgram (tag :: Type) = FLProgram {
       flpTopLevelVars :: M.Map tag (FLVarDecl tag)
   }
