@@ -124,7 +124,7 @@ _cls :: (KnownTypes ('SLTFuncPtr ts t ': ts), KnownType t) => TypedSLExp ('SLTSt
 _cls = TSLClosureCall >>> TSLEPushCall
 
 _funcptr :: forall a b. (a --> b) -> TypedSLExp ('SLTFuncPtr a b)
-_funcptr = tslfName >>> TSLEFuncPtr
+_funcptr = tslfSignature >>> TSLEFuncPtr
 
 slmFundef :: SLManualBlockM r () -> SLMNaryF '[] (SLManualBlockM r ())
 slmFundef = id

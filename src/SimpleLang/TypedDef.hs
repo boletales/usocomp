@@ -14,7 +14,7 @@ module SimpleLang.TypedDef (
   , TypedSLCall(..)
   , TypedSLBlock(..)
   , TypedSLFuncBlock(..)
-  , TypedSLFuncName(..)
+  , TypedSLFunc(..)
   , TypedSLCallable(..)
   , KnownType(..)
   , KnownTypes(..)
@@ -26,7 +26,25 @@ module SimpleLang.TypedDef (
   , unTypedSLCall
   , unTypedSLBlock
   , unTypedSLFuncBlock
-  , unTypedSLFuncName
+  , unTypedSLFunc
+
+  , SLAddr (..)
+  , SLVal (..)
+  , SLFuncSignature (..)
+  , SLFuncName (..)
+  , SLProgram
+  , SLType (..)
+  , sleTypeOf
+  , sleSizeOf
+  , sltSizeOf
+  , sleGetOffset
+  , slRefToPtr
+  , prettyPrintFuncName
+  , prettyPrintSLExp
+  , prettyPrintSLRef
+  , prettyPrintSLStatement
+  , prettyPrintSLBlock
+  , prettyPrintSLProgram
 ) where
 
 import SimpleLang.Def
@@ -86,22 +104,22 @@ instance (KnownType t) => KnownType ('SLTPtr t) where
     tslTypeVal _ = SLTPtr (tslTypeVal (Proxy :: Proxy t))
 
 instance (KnownType t, KnownTypes args) => KnownType ('SLTFuncPtr args t) where
-    tslTypeVal _ = SLTFuncPtr (tsleTypesVal (Proxy :: Proxy args)) (tslTypeVal (Proxy :: Proxy t))
+    tslTypeVal _ = SLTFuncPtr (tslTypesVal (Proxy :: Proxy args)) (tslTypeVal (Proxy :: Proxy t))
 
 instance (KnownTypes ts) => KnownType ('SLTStruct ts) where
-    tslTypeVal _ = SLTStruct (tsleTypesVal (Proxy :: Proxy ts))
+    tslTypeVal _ = SLTStruct (tslTypesVal (Proxy :: Proxy ts))
 
 instance (KnownTypes ts) => KnownType ('SLTUnion ts) where
-    tslTypeVal _ = SLTUnion (tsleTypesVal (Proxy :: Proxy ts))
+    tslTypeVal _ = SLTUnion (tslTypesVal (Proxy :: Proxy ts))
 
 class KnownTypes (ts :: [SLType]) where
-    tsleTypesVal :: Proxy ts -> [SLType]
+    tslTypesVal :: Proxy ts -> [SLType]
 
 instance KnownTypes '[] where
-    tsleTypesVal _ = []
+    tslTypesVal _ = []
 
 instance (KnownType t, KnownTypes ts) => KnownTypes (t:ts) where
-    tsleTypesVal _ = tslTypeVal (Proxy :: Proxy t) : tsleTypesVal (Proxy :: Proxy ts)
+    tslTypesVal _ = tslTypeVal (Proxy :: Proxy t) : tslTypesVal (Proxy :: Proxy ts)
 
 
 data TypedSLExp (t :: SLType) where
@@ -110,7 +128,7 @@ data TypedSLExp (t :: SLType) where
     TSLEArg        :: (KnownType t                ) => Int                                                 -> TypedSLExp t
     TSLEPtr        :: (KnownType t                ) => TypedSLRef t                                        -> TypedSLExp ('SLTPtr t)
     TSLEPushCall   :: (KnownType t                ) => TypedSLCall t                                       -> TypedSLExp t
-    TSLEFuncPtr    ::                                  TypedSLFuncName args ret                            -> TypedSLExp ('SLTFuncPtr args ret)
+    TSLEFuncPtr    ::                                  TypedSLFunc args ret                            -> TypedSLExp ('SLTFuncPtr args ret)
     TSLEPrim1      ::                                  SLPrim1 -> TypedSLExp 'SLTInt                       -> TypedSLExp 'SLTInt
     TSLEPrim2      ::                                  SLPrim2 -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt
     TSLEStructNil  ::                                                                                         TypedSLExp ('SLTStruct '[])
@@ -137,9 +155,9 @@ unTypedSLExp expr =
       TSLEConst val        -> SLEConst val
       TSLELocal i          -> SLELocal tval i
       TSLEArg i            -> SLEArg tval i
-      TSLEPtr @t' ref      -> SLEPtr (tslTypeVal (Proxy :: Proxy t')) (unTypedSLRef ref)
+      TSLEPtr ref          -> SLEPtr(unTypedSLRef ref)
       TSLEPushCall call    -> SLEPushCall (unTypedSLCall call)
-      TSLEFuncPtr name     -> SLEFuncPtr (unTypedSLFuncName name)
+      TSLEFuncPtr name     -> SLEFuncPtr (unTypedSLFunc name)
       TSLEPrim1 prim e     -> SLEPrim1 prim (unTypedSLExp e)
       TSLEPrim2 prim e1 e2 -> SLEPrim2 prim (unTypedSLExp e1) (unTypedSLExp e2)
       TSLEStructNil        -> SLEStructNil
@@ -159,7 +177,7 @@ unTypedSLRef ref =
 unTypedSLCall :: forall t. KnownType t => TypedSLCall t -> SLCall
 unTypedSLCall call =
   case call of
-    TSLSolidFuncCall name e -> SLSolidFuncCall (unTypedSLFuncName name) (unTypedSLExp e)
+    TSLSolidFuncCall name e -> SLSolidFuncCall (unTypedSLFunc name) (unTypedSLExp e)
     TSLFuncRefCall ref e    -> SLFuncRefCall (unTypedSLRef ref) (unTypedSLExp e)
     TSLClosureCall e        -> SLClosureCall (unTypedSLExp e)
 
@@ -170,7 +188,7 @@ data TypedSLStatement where
   TSLSTailCallReturn :: KnownType t => TypedSLCall t                -> TypedSLStatement
 
 data TypedSLCall (t :: SLType) where
-    TSLSolidFuncCall :: (KnownTypes ts                      ) => TypedSLFuncName ts t          -> TypedSLExp ('SLTStruct ts) -> TypedSLCall t
+    TSLSolidFuncCall :: (KnownTypes ts                      ) => TypedSLFunc ts t          -> TypedSLExp ('SLTStruct ts) -> TypedSLCall t
     TSLFuncRefCall   :: (KnownTypes ts                      ) => TypedSLRef ('SLTFuncPtr ts t) -> TypedSLExp ('SLTStruct ts) -> TypedSLCall t
     TSLClosureCall   :: (KnownTypes ('SLTFuncPtr ts t ': ts)) => TypedSLExp ('SLTStruct ('SLTFuncPtr ts t ': ts))            -> TypedSLCall t
 
@@ -179,9 +197,9 @@ class TypedSLCallable (args :: [SLType]) (ret :: SLType) (t :: Type) | t -> args
   tslCall :: t -> TypedSLExp ('SLTStruct args) -> TypedSLCall ret
 
 instance (KnownTypes args) => TypedSLCallable args ret (TypedSLFuncBlock args ret) where
-  tslCall = tslfName >>> TSLSolidFuncCall
+  tslCall = tslfSignature >>> TSLSolidFuncCall
 
-instance (KnownTypes args) => TypedSLCallable args ret (TypedSLFuncName args ret) where
+instance (KnownTypes args) => TypedSLCallable args ret (TypedSLFunc args ret) where
   tslCall = TSLSolidFuncCall
 
 instance (KnownTypes args) => TypedSLCallable args ret (TypedSLRef ('SLTFuncPtr args ret)) where
@@ -215,18 +233,18 @@ unTypedSLStatement s =
 
 data TypedSLFuncBlock (args :: [SLType]) (ret :: SLType) =
       TSLFuncBlock {
-          tslfName     :: TypedSLFuncName args ret
+          tslfSignature     :: TypedSLFunc args ret
         , tslfBlock    :: TypedSLBlock
       }
       deriving (Show)
 
 unTypedSLFuncBlock :: forall args ret. KnownTypes args => TypedSLFuncBlock args ret -> SLFuncBlock
-unTypedSLFuncBlock (TSLFuncBlock (TypedSLFuncName name) block) =
-  SLFuncBlock name ((tsleTypesVal >>> fmap sltSizeOf >>> Prelude.sum) (Proxy :: Proxy args)) (unTypedSLBlock block)
+unTypedSLFuncBlock (TSLFuncBlock (TypedSLFunc name) block) =
+  SLFuncBlock name (unTypedSLBlock block)
 
-newtype TypedSLFuncName (args :: [SLType]) (ret :: SLType) = TypedSLFuncName SLFuncName
+newtype TypedSLFunc (args :: [SLType]) (ret :: SLType) = TypedSLFunc SLFuncSignature
   deriving newtype Show
 
 
-unTypedSLFuncName :: TypedSLFuncName args ret -> SLFuncName
-unTypedSLFuncName (TypedSLFuncName name) = name
+unTypedSLFunc :: TypedSLFunc args ret -> SLFuncSignature
+unTypedSLFunc (TypedSLFunc sig) = sig

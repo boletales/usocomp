@@ -6,8 +6,8 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 
-{-
 module SimpleLang.FromFuncLang where
+{-
 
 import FuncLang.Def
 import SimpleLang.Def

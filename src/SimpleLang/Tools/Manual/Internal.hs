@@ -15,7 +15,6 @@ import Prelude hiding ((.), id)
 import Data.Proxy
 import Data.Kind
 import Data.Map qualified as M
-import GHC.TypeNats
 import SimpleLang.TypedDef
 
 newtype SLMVar (t :: SLType) = SLMVar Int deriving (Show, Eq, Ord)
@@ -48,7 +47,7 @@ clipslm m = do
   pure (TSLBMulti blocks)
 
 {-
-runslm :: Int -> SLFuncName -> SLManualBlockM ret () -> TypedSLFuncBlock args ret
+runslm :: Int -> SLFuncSignature -> SLManualBlockM ret () -> TypedSLFuncBlock args ret
 runslm args name m =
   let SLMState _ blocks = execState m (SLMState 0 V.empty)
   in SLFuncBlock name args (SLBMulti blocks)
@@ -69,10 +68,10 @@ instance forall args newarg. (SLMNAryC args , KnownType newarg, KnownTypes args)
   slmfuncToHsFunc       f arg       = slmfuncToHsFunc (f . TSLEStructCons arg)
   hsFuncToSLMFuncHelper wordscnt f  = (hsFuncToSLMFuncHelper @args)  (wordscnt + (tslTypeVal >>> sltSizeOf) (Proxy :: Proxy newarg)) (f (TSLEArg wordscnt :: TypedSLExp newarg))
 
-hsFuncToSLMFunc :: forall args ret. (SLMNAryC args) => SLFuncName -> SLMNaryF args (SLManualBlockM ret ()) -> TypedSLFuncBlock args ret
+hsFuncToSLMFunc :: forall args ret. (SLMNAryC args, KnownTypes args, KnownType ret) => SLFuncName -> SLMNaryF args (SLManualBlockM ret ()) -> TypedSLFuncBlock args ret
 hsFuncToSLMFunc name f =
   TSLFuncBlock {
-      tslfName     = TypedSLFuncName name :: TypedSLFuncName args ret
+      tslfSignature = TypedSLFunc (SLFuncSignature name (tslTypesVal (Proxy @args)) (tslTypeVal (Proxy @ret))) :: TypedSLFunc args ret
     , tslfBlock    =  (hsFuncToSLMFuncHelper @args @(SLManualBlockM ret ()) 0
                         >>> flip execState (SLMState 0 V.empty)
                         >>> slmBlocks
@@ -96,19 +95,19 @@ runSLMFuncsM :: SLMFuncsM () -> SLProgram
 runSLMFuncsM (SLMFuncsM m) = execState m M.empty
 
 --  ((natVal >>> fromIntegral) (Proxy :: Proxy n))
-slmFunc :: forall (args :: [SLType]) (ret :: SLType). (KnownTypes args, SLMNAryC args) => SLFuncName -> SLMNaryF args (SLManualBlockM ret ()) -> SLMFuncsM (TypedSLFuncBlock args ret)
+slmFunc :: forall (args :: [SLType]) (ret :: SLType). (KnownTypes args, KnownType ret, SLMNAryC args) => SLFuncName -> SLMNaryF args (SLManualBlockM ret ()) -> SLMFuncsM (TypedSLFuncBlock args ret)
 slmFunc name f = do
   let fblock = hsFuncToSLMFunc @args @ret name f
   S.modify (M.insert name (unTypedSLFuncBlock fblock))
   pure fblock
 
 
-slmVirtualFunc :: SLFuncName -> TypedSLFuncBlock args ret
+slmVirtualFunc :: forall args ret. (KnownType ret, KnownTypes args) => SLFuncName -> TypedSLFuncBlock args ret
 slmVirtualFunc name =
   TSLFuncBlock {
-      tslfName     = TypedSLFuncName name :: TypedSLFuncName args ret
-    , tslfBlock    = TSLBMulti V.empty
+      tslfSignature = TypedSLFunc (SLFuncSignature name (tslTypesVal (Proxy @args)) (tslTypeVal (Proxy @ret))) :: TypedSLFunc args ret
+    , tslfBlock     = TSLBMulti V.empty 
   }
 
-slmSetRealFunc :: forall (args :: [SLType]) (ret :: SLType). (KnownTypes args, SLMNAryC args) => TypedSLFuncBlock args ret -> SLMNaryF args (SLManualBlockM ret ()) ->  SLMFuncsM ()
-slmSetRealFunc v f = void $ slmFunc @args @ret (unTypedSLFuncName $ tslfName v) f
+slmSetRealFunc :: forall (args :: [SLType]) (ret :: SLType). (KnownTypes args, KnownType ret, SLMNAryC args) => TypedSLFuncBlock args ret -> SLMNaryF args (SLManualBlockM ret ()) ->  SLMFuncsM ()
+slmSetRealFunc v f = void $ slmFunc @args @ret (slfsName (unTypedSLFunc $ tslfSignature v)) f
