@@ -7,7 +7,7 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
-module SimpleLang.Typed where
+module SimpleLang.TypedDef where
 
 import SimpleLang.Def
 
@@ -59,25 +59,25 @@ type KnownSize t = KnownNat (SLTSizeOf t)
 type KnownSizes ts = KnownNat (SLTSizeOf ('SLTStruct ts))
 
 class KnownType (t :: SLType) where
-  tsleTypeOf :: Proxy t -> SLType
+  tslTypeVal :: Proxy t -> SLType
 
 instance KnownType 'SLTUnit where
-    tsleTypeOf _ = SLTUnit
+    tslTypeVal _ = SLTUnit
 
 instance KnownType 'SLTInt where
-    tsleTypeOf _ = SLTInt
+    tslTypeVal _ = SLTInt
 
 instance (KnownType t) => KnownType ('SLTPtr t) where
-    tsleTypeOf _ = SLTPtr (tsleTypeOf (Proxy :: Proxy t))
+    tslTypeVal _ = SLTPtr (tslTypeVal (Proxy :: Proxy t))
 
 instance (KnownType t, KnownTypes args) => KnownType ('SLTFuncPtr args t) where
-    tsleTypeOf _ = SLTFuncPtr (tsleTypesOf (Proxy :: Proxy args)) (tsleTypeOf (Proxy :: Proxy t))
+    tslTypeVal _ = SLTFuncPtr (tsleTypesOf (Proxy :: Proxy args)) (tslTypeVal (Proxy :: Proxy t))
 
 instance (KnownTypes ts) => KnownType ('SLTStruct ts) where
-    tsleTypeOf _ = SLTStruct (tsleTypesOf (Proxy :: Proxy ts))
+    tslTypeVal _ = SLTStruct (tsleTypesOf (Proxy :: Proxy ts))
 
 instance (KnownTypes ts) => KnownType ('SLTUnion ts) where
-    tsleTypeOf _ = SLTUnion (tsleTypesOf (Proxy :: Proxy ts))
+    tslTypeVal _ = SLTUnion (tsleTypesOf (Proxy :: Proxy ts))
 
 class KnownTypes (ts :: [SLType]) where
     tsleTypesOf :: Proxy ts -> [SLType]
@@ -86,7 +86,7 @@ instance KnownTypes '[] where
     tsleTypesOf _ = []
 
 instance (KnownType t, KnownTypes ts) => KnownTypes (t:ts) where
-    tsleTypesOf _ = tsleTypeOf (Proxy :: Proxy t) : tsleTypesOf (Proxy :: Proxy ts)
+    tsleTypesOf _ = tslTypeVal (Proxy :: Proxy t) : tsleTypesOf (Proxy :: Proxy ts)
 
 
 data TypedSLExp (t :: SLType) where
@@ -110,19 +110,19 @@ instance KnownType t => Show (TypedSLExp t) where
   show = show . unTypedSLExp
 
 data TypedSLRef (t :: SLType) where
-    TSLRefPtr   :: (KnownSize t) => TypedSLExp ('SLTPtr t) -> TypedSLRef t
-    TSLRefLocal :: (KnownSize t) => Int                    -> TypedSLRef t
+    TSLRefPtr   :: (KnownType t) => TypedSLExp ('SLTPtr t) -> TypedSLRef t
+    TSLRefLocal :: (KnownType t) => Int                    -> TypedSLRef t
 instance KnownType t => Show (TypedSLRef t) where
   show = show . unTypedSLRef
 
 unTypedSLExp :: forall t. KnownType t => TypedSLExp t -> SLExp
 unTypedSLExp expr =
-  let tval = tsleTypeOf (Proxy :: Proxy t)
+  let tval = tslTypeVal (Proxy :: Proxy t)
   in case expr of
       TSLEConst val        -> SLEConst val
       TSLELocal i          -> SLELocal tval i
       TSLEArg i            -> SLEArg tval i
-      TSLEPtr @t' ref      -> SLEPtr (tsleTypeOf (Proxy :: Proxy t')) (unTypedSLRef ref)
+      TSLEPtr @t' ref      -> SLEPtr (tslTypeVal (Proxy :: Proxy t')) (unTypedSLRef ref)
       TSLEPushCall call    -> SLEPushCall (unTypedSLCall call)
       TSLEFuncPtr name     -> SLEFuncPtr (unTypedSLFuncName name)
       TSLEPrim1 prim e     -> SLEPrim1 prim (unTypedSLExp e)
@@ -138,8 +138,8 @@ unTypedSLExp expr =
 unTypedSLRef :: forall t. KnownType t => TypedSLRef t -> SLRef
 unTypedSLRef ref =
   case ref of
-    TSLRefPtr @t' e   -> SLRefPtr (tsleTypeOf (Proxy :: Proxy t')) (unTypedSLExp e)
-    TSLRefLocal i     -> SLRefLocal (tsleTypeOf (Proxy :: Proxy t)) i
+    TSLRefPtr @t' e   -> SLRefPtr (tslTypeVal (Proxy :: Proxy t')) (unTypedSLExp e)
+    TSLRefLocal i     -> SLRefLocal (tslTypeVal (Proxy :: Proxy t)) i
 
 unTypedSLCall :: forall t. KnownType t => TypedSLCall t -> SLCall
 unTypedSLCall call =

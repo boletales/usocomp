@@ -30,6 +30,7 @@ module SimpleLang.Def (
     , TypedSLFuncName (..)
     , SLType (..)
     , sleSizeOf
+    , sltSizeOf
     , sleGetOffset
     , slRefToPtr
     , prettyPrintFuncName
