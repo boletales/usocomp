@@ -28,7 +28,7 @@ import Control.Monad.Except
 import GHC.TypeNats
 import Data.Proxy
 import Data.Text as T
---import Debug.Trace
+import Debug.Trace
 
 -- 接頭辞 MLC: MachineLang.FromSimpleLang の内部でのみ利用する型
 
@@ -628,6 +628,7 @@ slSingleToMLC statement =
     --SLSPrimPop      -> slPopToMLC
     SLSInitVar t expr -> do
       exprsize <- liftTypeError $ sleSizeOf expr
+      --trace ("SLSInitVar: " <> show t <> " " <> show exprsize <> " " <> show expr) $ pure ()
       slPushToMLC expr >> mlcInternalShiftVarCnt exprsize
     SLSSubst ref expr ->
       case ref of

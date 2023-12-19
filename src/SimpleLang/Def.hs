@@ -180,12 +180,12 @@ slCallTypeOf call =
       targs <- sleTypeOf args
       largs <- case targs of
                  SLTStruct ts -> pure ts
-                 other        -> Left $ "Error! (type check of SLang): arg#1 of SLFuncRefCall must be SLTStruct ts, not " <> (show >>> T.pack) other
+                 other        -> Left $ "Error! (type check of SLang): arg#1 of SLSolidFuncCall must be SLTStruct ts, not " <> (show >>> T.pack) other
       case tfunc of
         SLTFuncPtr args' ret
           | args' == largs -> pure ret
-          | otherwise      -> Left $ "Error! (type check of SLang): arg#0 of SLFuncRefCall must be SLTFuncPtr args ret, not " <> (show >>> T.pack) (SLTFuncPtr args' ret)
-        other              -> Left $ "Error! (type check of SLang): arg#0 of SLFuncRefCall must be SLTFuncPtr args ret, not " <> (show >>> T.pack) other
+          | otherwise      -> Left $ "Error! (type check of SLang): arg#1 of SLSolidFuncCall does not match! expected:" <> (show >>> T.pack) (args') <> " actual:" <> (show >>> T.pack) (SLTStruct largs)
+        other              -> Left $ "Error! (type check of SLang): arg#0 of SLSolidFuncCall must be SLTFuncPtr args ret, not " <> (show >>> T.pack) other
 
     SLFuncRefCall   ref      args -> do
       tfunc <- sleTypeOf (slRefToPtr ref)
@@ -196,7 +196,7 @@ slCallTypeOf call =
       case tfunc of
         SLTFuncPtr args' ret
           | args' == largs -> pure ret
-          | otherwise      -> Left $ "Error! (type check of SLang): arg#0 of SLFuncRefCall must be SLTFuncPtr args ret, not " <> (show >>> T.pack) (SLTFuncPtr args' ret)
+          | otherwise      -> Left $ "Error! (type check of SLang): arg#1 of SLFuncRefCall does not match! expected:" <> (show >>> T.pack) (args') <> " actual:" <> (show >>> T.pack) (SLTStruct largs)
         other              -> Left $ "Error! (type check of SLang): arg#0 of SLFuncRefCall must be SLTFuncPtr args ret, not " <> (show >>> T.pack) other
 
     SLClosureCall   closure       ->
@@ -234,8 +234,8 @@ sleTypeOf expr =
         err                             -> err
 
     SLEStructCons exp1 exp2 ->
-      case sleTypeOf exp1 of
-        Right (SLTStruct ts) -> ((: ts) >>> SLTStruct) <$> sleTypeOf exp2
+      case sleTypeOf exp2 of
+        Right (SLTStruct ts) -> ((: ts) >>> SLTStruct) <$> sleTypeOf exp1
         Right other          -> Left $ "Error! (type check of SLang): arg#1 of SLEStructCons must be SLTStruct ts, not " <> (show >>> T.pack) other
         err                  -> err
 
@@ -248,7 +248,7 @@ sleTypeOf expr =
     SLEStructGet exp1 i ->
       case sleTypeOf exp1 of
         Right (SLTStruct ts)
-          | 0 < i && i < L.length ts -> pure (ts !! i)
+          | 0 <= i && i < L.length ts -> pure (ts !! i)
           | otherwise                -> Left $ "Error! (type check of SLang): arg#1 SLEStructGet of must be in [0, " <> (show >>> T.pack) (L.length ts) <> "), not " <> (show >>> T.pack) i
         Right other -> Left $ "Error! (type check of SLang): arg#1 of SLEStructGet must be SLTStruct ts, not " <> (show >>> T.pack) other
         err         -> err
