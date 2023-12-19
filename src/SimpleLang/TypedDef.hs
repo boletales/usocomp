@@ -7,21 +7,38 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
-module SimpleLang.TypedDef where
+module SimpleLang.TypedDef (
+    TypedSLExp(..)
+  , TypedSLRef(..)
+  , TypedSLStatement(..)
+  , TypedSLCall(..)
+  , TypedSLBlock(..)
+  , TypedSLFuncBlock(..)
+  , TypedSLFuncName(..)
+  , TypedSLCallable(..)
+  , KnownType(..)
+  , KnownTypes(..)
+  , KnownOffset
+  , tsleGetOffset
+  , unTypedSLExp
+  , unTypedSLRef
+  , unTypedSLStatement
+  , unTypedSLCall
+  , unTypedSLBlock
+  , unTypedSLFuncBlock
+  , unTypedSLFuncName
+) where
 
 import SimpleLang.Def
 
 import Data.Vector as V
-import Data.Map as M
 import GHC.TypeNats
 import Data.Type.Bool
 import Data.Proxy
-import Data.Text as T
 import Data.Kind
 import Prelude hiding ((.), id, exp)
 import Control.Category
-import qualified Data.List as L
-
+import Data.Bifunctor
 
 type family NatMax (n :: Nat) (m :: Nat) :: Nat where
   NatMax n m = If (n <=? m) m n
@@ -55,8 +72,6 @@ type KnownOffset i ts = KnownNat (SLTStructIndexToOffset i ts)
 tsleGetOffset :: forall i ts. (KnownOffset i ts) => TypedSLExp ('SLTStruct ts) -> Proxy i -> Int
 tsleGetOffset _ _ = fromIntegral (natVal (Proxy :: Proxy (SLTStructIndexToOffset i ts)))
 
-type KnownSize t = KnownNat (SLTSizeOf t)
-type KnownSizes ts = KnownNat (SLTSizeOf ('SLTStruct ts))
 
 class KnownType (t :: SLType) where
   tslTypeVal :: Proxy t -> SLType
@@ -71,22 +86,22 @@ instance (KnownType t) => KnownType ('SLTPtr t) where
     tslTypeVal _ = SLTPtr (tslTypeVal (Proxy :: Proxy t))
 
 instance (KnownType t, KnownTypes args) => KnownType ('SLTFuncPtr args t) where
-    tslTypeVal _ = SLTFuncPtr (tsleTypesOf (Proxy :: Proxy args)) (tslTypeVal (Proxy :: Proxy t))
+    tslTypeVal _ = SLTFuncPtr (tsleTypesVal (Proxy :: Proxy args)) (tslTypeVal (Proxy :: Proxy t))
 
 instance (KnownTypes ts) => KnownType ('SLTStruct ts) where
-    tslTypeVal _ = SLTStruct (tsleTypesOf (Proxy :: Proxy ts))
+    tslTypeVal _ = SLTStruct (tsleTypesVal (Proxy :: Proxy ts))
 
 instance (KnownTypes ts) => KnownType ('SLTUnion ts) where
-    tslTypeVal _ = SLTUnion (tsleTypesOf (Proxy :: Proxy ts))
+    tslTypeVal _ = SLTUnion (tsleTypesVal (Proxy :: Proxy ts))
 
 class KnownTypes (ts :: [SLType]) where
-    tsleTypesOf :: Proxy ts -> [SLType]
+    tsleTypesVal :: Proxy ts -> [SLType]
 
 instance KnownTypes '[] where
-    tsleTypesOf _ = []
+    tsleTypesVal _ = []
 
 instance (KnownType t, KnownTypes ts) => KnownTypes (t:ts) where
-    tsleTypesOf _ = tslTypeVal (Proxy :: Proxy t) : tsleTypesOf (Proxy :: Proxy ts)
+    tsleTypesVal _ = tslTypeVal (Proxy :: Proxy t) : tsleTypesVal (Proxy :: Proxy ts)
 
 
 data TypedSLExp (t :: SLType) where
@@ -99,8 +114,8 @@ data TypedSLExp (t :: SLType) where
     TSLEPrim1      ::                                  SLPrim1 -> TypedSLExp 'SLTInt                       -> TypedSLExp 'SLTInt
     TSLEPrim2      ::                                  SLPrim2 -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt
     TSLEStructNil  ::                                                                                         TypedSLExp ('SLTStruct '[])
-    TSLEStructCons :: (KnownType t, KnownTypes ts ) => TypedSLExp t -> TypedSLExp ('SLTStruct ts)          -> TypedSLExp ('SLTStruct (t:ts)) 
-    TSLEUnion      :: (KnownType t, Member t ts   ) => TypedSLExp t                                        -> TypedSLExp ('SLTUnion     ts ) 
+    TSLEStructCons :: (KnownType t, KnownTypes ts ) => TypedSLExp t -> TypedSLExp ('SLTStruct ts)          -> TypedSLExp ('SLTStruct (t:ts))
+    TSLEUnion      :: (KnownType t, Member t ts   ) => TypedSLExp t                                        -> TypedSLExp ('SLTUnion     ts )
     TSLEDeRef      :: (KnownType t                ) => TypedSLExp ('SLTPtr t)                              -> TypedSLExp t
     TSLEPtrShift   :: (KnownType t                ) => TypedSLExp ('SLTPtr t) -> TypedSLExp 'SLTInt        -> TypedSLExp ('SLTPtr t)
     TSLEStructGet  :: (KnownType t, KnownTypes ts, StructAt i ts t, KnownNat i, KnownOffset i ts) => TypedSLExp ('SLTStruct ts) -> Proxy i -> TypedSLExp t
@@ -147,7 +162,7 @@ unTypedSLCall call =
     TSLSolidFuncCall name e -> SLSolidFuncCall (unTypedSLFuncName name) (unTypedSLExp e)
     TSLFuncRefCall ref e    -> SLFuncRefCall (unTypedSLRef ref) (unTypedSLExp e)
     TSLClosureCall e        -> SLClosureCall (unTypedSLExp e)
-  
+
 data TypedSLStatement where
   TSLSInitVar        :: KnownType t => Int -> TypedSLExp t          -> TypedSLStatement
   TSLSSubst          :: KnownType t => TypedSLRef t -> TypedSLExp t -> TypedSLStatement
@@ -172,7 +187,7 @@ instance (KnownTypes args) => TypedSLCallable args ret (TypedSLFuncName args ret
 instance (KnownTypes args) => TypedSLCallable args ret (TypedSLRef ('SLTFuncPtr args ret)) where
   tslCall = TSLFuncRefCall
 
-  
+
 data TypedSLBlock where
     TSLBSingle :: TypedSLStatement -> TypedSLBlock
     TSLBMulti  :: V.Vector TypedSLBlock -> TypedSLBlock
@@ -187,8 +202,8 @@ unTypedSLBlock b =
   case b of
     TSLBSingle s   -> SLBSingle (unTypedSLStatement s)
     TSLBMulti  s   -> SLBMulti (V.map unTypedSLBlock s)
-    TSLBCase   s d -> SLBCase (V.map (\(e, b) -> (unTypedSLExp e, unTypedSLBlock b)) s) (unTypedSLBlock d)
-    TSLBWhile  e b -> SLBWhile (unTypedSLExp e) (unTypedSLBlock b)
+    TSLBCase   s d -> SLBCase (V.map (bimap unTypedSLExp unTypedSLBlock) s) (unTypedSLBlock d)
+    TSLBWhile  e _ -> SLBWhile (unTypedSLExp e) (unTypedSLBlock b)
 
 unTypedSLStatement :: TypedSLStatement -> SLStatement
 unTypedSLStatement s =
@@ -205,6 +220,13 @@ data TypedSLFuncBlock (args :: [SLType]) (ret :: SLType) =
       }
       deriving (Show)
 
-unTypedSLFuncBlock :: forall args ret. (KnownNat (SLTSizeOf ('SLTStruct args))) => TypedSLFuncBlock args ret -> SLFuncBlock
+unTypedSLFuncBlock :: forall args ret. KnownTypes args => TypedSLFuncBlock args ret -> SLFuncBlock
 unTypedSLFuncBlock (TSLFuncBlock (TypedSLFuncName name) block) =
-  SLFuncBlock name ((fromIntegral . natVal) (Proxy :: Proxy (SLTSizeOf ('SLTStruct args)))) (unTypedSLBlock block)
+  SLFuncBlock name ((tsleTypesVal >>> fmap sltSizeOf >>> Prelude.sum) (Proxy :: Proxy args)) (unTypedSLBlock block)
+
+newtype TypedSLFuncName (args :: [SLType]) (ret :: SLType) = TypedSLFuncName SLFuncName
+  deriving newtype Show
+
+
+unTypedSLFuncName :: TypedSLFuncName args ret -> SLFuncName
+unTypedSLFuncName (TypedSLFuncName name) = name

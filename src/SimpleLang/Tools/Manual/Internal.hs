@@ -96,7 +96,7 @@ runSLMFuncsM :: SLMFuncsM () -> SLProgram
 runSLMFuncsM (SLMFuncsM m) = execState m M.empty
 
 --  ((natVal >>> fromIntegral) (Proxy :: Proxy n))
-slmFunc :: forall (args :: [SLType]) (ret :: SLType). (SLMNAryC args, KnownNat (SLTSizeOf ('SLTStruct args))) => SLFuncName -> SLMNaryF args (SLManualBlockM ret ()) -> SLMFuncsM (TypedSLFuncBlock args ret)
+slmFunc :: forall (args :: [SLType]) (ret :: SLType). (KnownTypes args, SLMNAryC args) => SLFuncName -> SLMNaryF args (SLManualBlockM ret ()) -> SLMFuncsM (TypedSLFuncBlock args ret)
 slmFunc name f = do
   let fblock = hsFuncToSLMFunc @args @ret name f
   S.modify (M.insert name (unTypedSLFuncBlock fblock))
@@ -110,5 +110,5 @@ slmVirtualFunc name =
     , tslfBlock    = TSLBMulti V.empty
   }
 
-slmSetRealFunc :: forall (args :: [SLType]) (ret :: SLType). (SLMNAryC args, KnownNat (SLTSizeOf ('SLTStruct args))) => TypedSLFuncBlock args ret -> SLMNaryF args (SLManualBlockM ret ()) ->  SLMFuncsM ()
+slmSetRealFunc :: forall (args :: [SLType]) (ret :: SLType). (KnownTypes args, SLMNAryC args) => TypedSLFuncBlock args ret -> SLMNaryF args (SLManualBlockM ret ()) ->  SLMFuncsM ()
 slmSetRealFunc v f = void $ slmFunc @args @ret (unTypedSLFuncName $ tslfName v) f

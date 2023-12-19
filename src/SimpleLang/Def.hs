@@ -27,7 +27,6 @@ module SimpleLang.Def (
     , SLBlock (..)
     , SLFuncBlock (..)
     , SLProgram
-    , TypedSLFuncName (..)
     , SLType (..)
     , sleSizeOf
     , sltSizeOf
@@ -39,7 +38,6 @@ module SimpleLang.Def (
     , prettyPrintSLStatement
     , prettyPrintSLBlock
     , prettyPrintSLProgram
-    , unTypedSLFuncName
   ) where
 
 import Data.Vector as V
@@ -150,13 +148,6 @@ data SLFuncBlock =
         , slfBlock    :: SLBlock
       }
       deriving (Show)
-
-newtype TypedSLFuncName (args :: [SLType]) (ret :: SLType) = TypedSLFuncName SLFuncName
-  deriving newtype Show
-
-
-unTypedSLFuncName :: TypedSLFuncName args ret -> SLFuncName
-unTypedSLFuncName (TypedSLFuncName name) = name
 
 data SLFuncName =
         SLFuncMain [SLType] SLType
