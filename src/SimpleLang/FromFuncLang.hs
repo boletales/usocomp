@@ -7,6 +7,7 @@
 {-# LANGUAGE AllowAmbiguousTypes #-}
 
 module SimpleLang.FromFuncLang where
+{-
 
 import FuncLang.Def
 import SimpleLang.Def
@@ -249,3 +250,4 @@ flcComipleExp expr =
     --FLELambda :: forall tag t1 t2. FLVar tag t1 -> FLExp tag t2  -> FLExp tag ('FLTLambda t1 t2)
     --FLEApp    :: forall tag t1 t2. FLExp tag ('FLTLambda t1 t2) -> FLExp tag t1 -> FLExp tag t2
     --FLELet    :: forall tag t2   . [FLVarDecl tag] -> FLExp tag t2 -> FLExp tag t2
+    -}

@@ -8,6 +8,8 @@ import SimpleLang.FromFuncLang
 import FuncLang.Def
 import FuncLang.Tools.Manual
 
+
+{-
 captureTest = runFLM $ do
   x <- flmDecl "x" (flmLam "x1" (\x1 -> flmLam "x2" (\x2 -> x1)))
   y <- flmDecl "y" (
@@ -26,3 +28,4 @@ captureTest = runFLM $ do
 -- Right x = (\x -> x)
 -- y = (\x -> x)
 -- z = (\x -> x)
+-}

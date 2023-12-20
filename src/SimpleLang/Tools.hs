@@ -22,7 +22,24 @@ data SLLocalPos =
       | SLLPWhileBody
       | SLLPWhileFooter
       | SLLPForceReturn
-      deriving (Show, Eq, Ord)
+      | SLLPExpr SLExp
+      deriving (Eq, Ord)
+
+instance Show SLLocalPos where
+  show = T.unpack . prettyPrintSLLocalPos
+
+prettyPrintSLLocalPos :: SLLocalPos -> Text
+prettyPrintSLLocalPos p =
+  case p of
+    SLLPMulti i -> "[" <> (pack . show) i <> "]"
+    SLLPCaseCond i -> ".whenCond_" <> (pack . show) i
+    SLLPCaseBody i -> ".whenBody_" <> (pack . show) i
+    SLLPCaseElseBody -> ".whenElseBody"
+    SLLPWhileCond -> ".whileCond"
+    SLLPWhileBody -> ".whileBody"
+    SLLPWhileFooter -> ".whileFooter"
+    SLLPForceReturn -> ".forceReturn"
+    SLLPExpr e -> ".expr " <> (pack . show) e
 
 data SLPos = SLPos {
     slpFuncName :: SLFuncName
@@ -39,4 +56,4 @@ popPos (SLPos f [])     = SLPos f []
 slPosAbbrText :: SLPos -> Text
 slPosAbbrText pos =
   let SLPos f xs = pos
-  in (pack . show) f <> "." <> intercalate "." (Prelude.map (pack . show) (Prelude.reverse xs))
+  in (pack . show) f <> intercalate "" (Prelude.map (pack . show) (Prelude.reverse xs))
