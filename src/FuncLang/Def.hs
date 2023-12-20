@@ -14,17 +14,26 @@ module FuncLang.Def (
 
 import Data.Map as M
 import Data.Kind
-import Unsafe.Coerce (unsafeCoerce)
 import Data.Text as T
 import Data.Proxy
-import Data.Text.Encoding (Decoding(Some))
 
 data FLType =
       FLTInt
     | FLTBool
     | FLTLambda FLType FLType
     | FLTTuple [FLType]
-    deriving (Show, Eq)
+    deriving (Eq)
+
+instance Show FLType where
+  show = T.unpack . prettyPrintFLType
+
+prettyPrintFLType :: FLType -> Text
+prettyPrintFLType t =
+  case t of
+    FLTInt -> "Int"
+    FLTBool -> "Bool"
+    FLTLambda t1 t2 -> "(" <> prettyPrintFLType t1 <> " -> " <> prettyPrintFLType t2 <> ")"
+    FLTTuple ts     -> "(" <> T.intercalate ", " (prettyPrintFLType <$> ts) <> ")"
 
 newtype FLVar (tag :: Type) (t :: FLType) = FLVar tag deriving (Eq)
 instance Show tag => Show (FLVar tag t) where
@@ -63,9 +72,9 @@ flTypeOf e = case e of
   (FLEValI _)                        -> FLTInt
   (FLEValB _)                        -> FLTBool
   (FLEVar    @_ @t1     (FLVar _))   -> someFLType (Proxy :: Proxy t1)
-  (FLELambda @_ @t1 @t2 (FLVar _) e) -> FLTLambda (flTypeOf e) (flTypeOf e)
-  (FLEApp    @_ @t1 @t2 e1 _)        -> case flTypeOf e1 of FLTLambda _ t2' -> t2'; _ -> error "impossible"
-  (FLELet    @_ @t1     _ e)         -> someFLType (Proxy :: Proxy t1)
+  (FLELambda @_ @t1 @t2 (FLVar _) _) -> FLTLambda (someFLType (Proxy @t1)) (someFLType (Proxy @t2))
+  (FLEApp    @_ @t1 @t2 _ _)        -> case someFLType (Proxy @t1) of FLTLambda a r | a == someFLType (Proxy @t2) -> r; _ -> error "impossible"
+  (FLELet    @_ @t1     _ _)         -> someFLType (Proxy :: Proxy t1)
   --(UnsafeFLECast t _)                -> t
 
 prettyPrintFLVarDecl :: Show tag => FLVarDecl tag -> Text
@@ -93,9 +102,9 @@ prettyPrintFLExp e =
       (FLEValI i)      -> tshow i
       (FLEValB b)      -> tshow b
       (FLEVar v)       -> tshow v
-      (FLELambda v e)  -> "(\\" <> tshow v <> " -> " <> prettyPrintFLExp e <> ")"
+      (FLELambda v b)  -> "(\\" <> tshow v <> " -> " <> prettyPrintFLExp b <> ")"
       (FLEApp e1 e2)   -> "(" <>   prettyPrintFLExp e1 <> " " <> prettyPrintFLExp e2 <> ")"
-      (FLELet decls e) -> "(let " <> T.intercalate "; " (prettyPrintFLVarDecl <$> decls) <> " in " <> prettyPrintFLExp e <> ")"
+      (FLELet decls b) -> "(let " <> T.intercalate "; " (prettyPrintFLVarDecl <$> decls) <> " in " <> prettyPrintFLExp b <> ")"
       --(UnsafeFLECast t e) -> prettyPrintFLExp e --"(" <> prettyPrintFLExp e <> " :: " <> tshow t <> ")"
 data FLProgram (tag :: Type) = FLProgram {
       flpTopLevelVars :: M.Map tag (FLVarDecl tag)

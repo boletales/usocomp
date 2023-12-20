@@ -25,10 +25,7 @@ import VectorBuilder.Builder as VB
 import VectorBuilder.Vector as VB
 import Data.Bitraversable (Bitraversable(bitraverse))
 import Control.Monad.Except
-import GHC.TypeNats
-import Data.Proxy
 import Data.Text as T
-import Debug.Trace
 
 -- 接頭辞 MLC: MachineLang.FromSimpleLang の内部でのみ利用する型
 

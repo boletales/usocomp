@@ -22,8 +22,9 @@ import Control.Monad
 import Control.Monad.State
 import Data.Function ((&))
 import Control.Monad.Except
-import Control.Applicative (Applicative(liftA2))
+import Control.Applicative
 import Data.Bifunctor
+import Data.Maybe
 
 type family FLTypeToSLType (t :: FLType) :: SLType where
     FLTypeToSLType 'FLTInt  = 'SLTInt
@@ -44,10 +45,17 @@ data FLCExp where
     FLCEApp        :: FLCExp -> FLCExp -> FLCExp
     FLCELet        :: [FLCVarDecl] -> FLCExp -> FLCExp
     --FLCEUncapture  :: FLCUniqueIdentifier -> [(FLCUniqueIdentifier, FLType)] -> FLCExp
+instance Show FLCExp where
+    show = T.unpack . prettyPrintFLCExp
 
 data FLCVarDecl = FLCVarDecl FLCUniqueIdentifier FLType FLCExp
 
-data FLCFuncDecl = FLCFuncDecl FLCUniqueIdentifier [(FLCUniqueIdentifier, FLType)] FLCExp
+data FLCFuncDecl = FLCFuncDecl {
+      flcfdName :: FLCUniqueIdentifier
+    , flcfdArgs :: [(FLCUniqueIdentifier, FLType)]
+    , flcfdRet  :: FLType
+    , flcfdBody :: FLCExp
+  }
 
 newtype FLCProgram = FLCProgram (M.Map FLCUniqueIdentifier FLCFuncDecl)
 
@@ -63,7 +71,7 @@ flceTypeOf expr =
       case t1 of
         FLTLambda t1' t2' -> if t1' == t2 then pure t2' else throwError "Error! (type check of FLang): missmatch type of argument"
         _ -> throwError "Error! (type check of FLang): not a function"
-    FLCELet vs body -> flceTypeOf body
+    FLCELet _ body -> flceTypeOf body
 
 {-
 コンパイル手順：
@@ -86,6 +94,19 @@ data FLCPath =
     | FLCPathInAppL         FLCPath
     | FLCPathInLambda       FLCPath
     deriving (Eq, Ord)
+
+getRootName :: FLCPath -> Maybe Text
+getRootName path =
+  case path of
+    FLCPathTop -> Nothing
+    FLCPathTopLiftedFrom p    -> getRootName p
+    FLCPathInTopDecl t        -> Just t
+    FLCPathInLiftedLambda p _ -> getRootName p
+    FLCPathInLetDecl _ p      -> getRootName p
+    FLCPathInLetBody p        -> getRootName p
+    FLCPathInAppR p           -> getRootName p
+    FLCPathInAppL p           -> getRootName p
+    FLCPathInLambda p         -> getRootName p
 
 instance Show FLCPath where
     show path =
@@ -124,7 +145,16 @@ flcPathDeeperEq p1 p2 =
 data FLCUniqueIdentifier = FLCUniqueIdentifier {
       flcuiPath :: FLCPath
     , flcuiName :: Text
-    } deriving (Eq, Ord)
+    } deriving (Eq)
+
+instance Ord FLCUniqueIdentifier where
+  compare (FLCUniqueIdentifier p1 n1) (FLCUniqueIdentifier p2 n2) =
+    let root1 = fromMaybe n1 (getRootName p1)
+        root2 = fromMaybe n2 (getRootName p2)
+    in  if root1 == root2
+        then compare p1 p2
+        else compare root1 root2
+
 
 instance Show FLCUniqueIdentifier where
     show (FLCUniqueIdentifier path name) =
@@ -140,6 +170,11 @@ isTopLevelLambda path =
       FLCPathInLiftedLambda _ _ -> True
       _ -> False
 
+data FLExpIgnoreType where
+  FLExpIgnoreType :: (FLExp Text x) -> FLExpIgnoreType
+
+ignoringType :: (forall t. FLExp Text t -> a) -> FLExpIgnoreType -> a
+ignoringType f (FLExpIgnoreType e) = f e
 
 -- 0+1
 flcRenameAndLift :: FLProgram Text -> Either Text FLCProgram
@@ -197,27 +232,30 @@ flcRenameAndLift program =
                     case M.lookup name dict of
                         Just newName ->  pure $ FLCEVar newName (flTypeOf e)
                         Nothing -> throwError $ "Undefined variable: " <> name <> " at " <> T.pack (show path)
-                FLELambda (FLVar arg) body -> do
+                FLELambda _ _ -> do
                   let newname = FLCUniqueIdentifier (FLCPathTopLiftedFrom path) "anonymous"
                   let newpath = FLCPathInLambda path
-                  argtype <-
-                    case flTypeOf e of
-                      FLTLambda t1 _ -> pure t1
-                      _ -> throwError "Error! (type check of FLang): not a function"
 
-                  let args = [(arg, argtype)]
+                  -- Lambdaをまとめる
+                  let (args, core) =
+                        let go :: FLExp Text t -> [(Text, FLType)] -> ([(Text, FLType)], FLExpIgnoreType)
+                            go expr' as =
+                              case expr' of
+                                FLELambda (FLVar arg') body' -> go body' ((arg', flTypeOf expr'):as)
+                                _ -> (as, FLExpIgnoreType expr')
+                        in go e []
 
-                  let argdict = M.fromList ((\(a, t) -> (a, FLCUniqueIdentifier newpath a)) <$> args)
-                  extvars <- lift $ searchExternalVar body (dict <> argdict) newpath
+                  let argdict = M.fromList ((\(a, _) -> (a, FLCUniqueIdentifier newpath a)) <$> args)
+                  extvars <- lift $ ignoringType (\c -> searchExternalVar c (dict <> argdict) newpath) core
 
                   let innerdict =
                            globalDict
                         <> M.fromList ((\(v,_) -> (flcuiName v, v)) <$> extvars)
                         <> argdict
 
-                  lambdabody <- renameLift1 body innerdict (FLCPathInLiftedLambda path arg)
-
-                  let newlambda = FLCFuncDecl newname (extvars <> (first (FLCUniqueIdentifier newpath) <$> args)) lambdabody
+                  lambdabody <- ignoringType (\c -> renameLift1 c innerdict (FLCPathInLiftedLambda path "anonymous")) core
+                  bodytype <- lift $ flceTypeOf lambdabody
+                  let newlambda = FLCFuncDecl newname (extvars <> (first (FLCUniqueIdentifier newpath) <$> args)) bodytype lambdabody
                   modify (newlambda :)
                   pure $ appCapturedVar extvars (FLCEVar newname (flTypeOf e))
 
@@ -237,12 +275,14 @@ flcRenameAndLift program =
                 M.toList >>>
                 fmap
                   (\(_, FLVarDecl (FLVar t) decl) ->
-                    (\(body, decls) -> FLCFuncDecl (FLCUniqueIdentifier FLCPathTop t) [] body : decls) <$> runStateT (renameLift1 decl globalDict (FLCPathInTopDecl t)) []
+                    (\(body, decls) ->
+                        (\r -> FLCFuncDecl (FLCUniqueIdentifier FLCPathTop t) [] r body : decls) <$> flceTypeOf body
+                        ) =<< runStateT (renameLift1 decl globalDict (FLCPathInTopDecl t)) []
                    ) >>>
                 sequence >>>
                 fmap (
                   join >>>
-                  fmap (\decl@(FLCFuncDecl t _ _) -> (t, decl)) >>>
+                  fmap (\decl@(FLCFuncDecl t _ _ _) -> (t, decl)) >>>
                   M.fromList >>>
                   FLCProgram >>>
                   id
@@ -285,11 +325,60 @@ prettyPrintFLCExp e =
       (FLCELet decls b) -> "(let " <> T.intercalate "; " (prettyPrintFLCVarDecl <$> decls) <> " in " <> prettyPrintFLCExp b <> ")"
 
 prettyPrintFLCFuncDecl :: FLCFuncDecl -> Text
-prettyPrintFLCFuncDecl (FLCFuncDecl name args body) =
+prettyPrintFLCFuncDecl (FLCFuncDecl name args _ body) =
   let tshow :: Show a => a -> Text
       tshow = T.pack . show
   in
-    tshow name <> "(" <> T.intercalate ", " ((fst >>> tshow) <$> args) <> ") = " <> prettyPrintFLCExp body
+    tshow name <> "(" <> T.intercalate ", " ((\(n, t) -> tshow n <> " :: " <> tshow t) <$> args) <> ") = " <> prettyPrintFLCExp body
 
 prettyPrintFLCProgram :: FLCProgram -> Text
 prettyPrintFLCProgram (FLCProgram decls) = T.intercalate "\n" (prettyPrintFLCFuncDecl <$> M.elems decls)
+
+data FLCIExp =
+        FLCIEFLCE FLCExp
+      | FLCIEcls  FLType FLCUniqueIdentifier [FLCIExp]
+  deriving (Show)
+
+flcieTypeOf :: FLCIExp -> Either Text FLType
+flcieTypeOf expr =
+  case expr of
+    FLCIEFLCE e -> flceTypeOf e
+    FLCIEcls t (FLCUniqueIdentifier _ _) args -> pure t
+
+interpretFLC :: FLCProgram -> Either Text FLCIExp
+interpretFLC (FLCProgram decls) =
+  let tshow :: Show a => a -> Text
+      tshow = T.pack . show
+      initialdict = M.mapWithKey (\k f -> FLCIEcls (L.foldr (snd >>> FLTLambda) (flcfdRet f) (flcfdArgs f)) k []) decls
+      eval dict expr =
+        case expr of
+          FLCIEFLCE flce ->
+            case flce of
+              FLCEValI _  -> pure expr
+              FLCEValB _  -> pure expr
+              FLCEVar v _ -> maybe (Left ("No variable named " <> tshow v)) pure (M.lookup v dict)
+              FLCEApp f x -> do
+                f' <- eval dict (FLCIEFLCE f)
+                x' <- eval dict (FLCIEFLCE x)
+                case f' of
+                  FLCIEcls t f args -> do
+                    let newargs = args <> [x']
+                    newt <- 
+                      case t of 
+                        FLTLambda t1 t2
+                          | t1 == flcieTypeOf x' -> pure t2
+                          | otherwise -> Left "Type missmatch"
+                        _ -> Left "Not a function"
+                    
+                  _ -> Left "Not a function"
+
+              FLCELet decls body -> do
+                newdict <- (\dgen -> dict <> M.fromList dgen) <$> forM decls (\(FLCVarDecl v _ e) -> do
+                    e' <- eval dict (FLCIEFLCE e)
+                    pure (v, e')
+                  )
+                eval newdict (FLCIEFLCE body)
+          FLCIEcls {} -> pure expr
+  in case M.lookup (FLCUniqueIdentifier FLCPathTop "main") initialdict of
+      Just cls -> eval initialdict cls
+      Nothing -> Left "No main function"
