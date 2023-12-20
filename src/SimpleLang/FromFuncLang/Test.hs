@@ -10,13 +10,14 @@ import FuncLang.Tools.Manual
 import Data.Text as T
 
 type FLExp' = FLExp Text
+type (->>) = FLTLambda
 
 captureTest = runFLM $ do
-  x <- flmDecl "x" (flmLam "x1" (\(x1 :: FLExp Text FLTInt) -> flmLam "x2" (\(x2 :: FLExp Text FLTInt) -> x1)))
-  z <- flmDecl "z" (flmLam "x1" (\(x1 :: FLExp Text (FLTLambda FLTInt FLTInt)) -> flmLam "x2" (\(x2 :: FLExp Text FLTInt) -> flmApp x1 x2)))
+  x <- flmDecl "x" (flmLam "x1" (\(x1 :: FLExp' FLTInt) -> flmLam "x2" (\(x2 :: FLExp' FLTInt) -> x1)))
+  z <- flmDecl "z" (flmLam "x1" (\(x1 :: FLExp' (FLTInt ->> FLTInt)) -> flmLam "x2" (\(x2 :: FLExp' FLTInt) -> flmApp x1 x2)))
   
   y <- flmDecl "y" (
-      flmLam "ext1" (\(ext1 :: FLExp Text (FLTLambda FLTInt FLTInt)) ->
+      flmLam "ext1" (\(ext1 ::  FLExp' (FLTInt ->> FLTInt)) ->
           flmLam "ext2" (\ext2 ->
               flmApp (flmApp (
                 flmLam "x1" (\x1 -> flmLam "x2" (\x2 -> flmApp ext1 ext2))

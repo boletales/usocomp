@@ -36,6 +36,7 @@ library
       MachineLang.Tools
       SimpleLang.Def
       SimpleLang.FromFuncLang
+      SimpleLang.FromFuncLang.Lib
       SimpleLang.FromFuncLang.Test
       SimpleLang.Tools
       SimpleLang.Tools.Manual

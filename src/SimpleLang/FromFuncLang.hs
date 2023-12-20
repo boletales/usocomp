@@ -336,20 +336,20 @@ prettyPrintFLCProgram (FLCProgram decls) = T.intercalate "\n" (prettyPrintFLCFun
 
 data FLCIExp =
         FLCIEFLCE FLCExp
-      | FLCIEcls  FLType FLCUniqueIdentifier [FLCIExp]
+      | FLCIEcls  [FLType] FLType FLCUniqueIdentifier [FLCIExp]
   deriving (Show)
 
 flcieTypeOf :: FLCIExp -> Either Text FLType
 flcieTypeOf expr =
   case expr of
     FLCIEFLCE e -> flceTypeOf e
-    FLCIEcls t (FLCUniqueIdentifier _ _) args -> pure t
+    FLCIEcls targs tresult (FLCUniqueIdentifier _ _) _ -> pure (L.foldr FLTLambda tresult targs)
 
 interpretFLC :: FLCProgram -> Either Text FLCIExp
 interpretFLC (FLCProgram decls) =
   let tshow :: Show a => a -> Text
       tshow = T.pack . show
-      initialdict = M.mapWithKey (\k f -> FLCIEcls (L.foldr (snd >>> FLTLambda) (flcfdRet f) (flcfdArgs f)) k []) decls
+      initialdict = M.mapWithKey (\k f -> FLCIEcls (snd <$> flcfdArgs f) (flcfdRet f) k []) decls
       eval dict expr =
         case expr of
           FLCIEFLCE flce ->
@@ -361,19 +361,16 @@ interpretFLC (FLCProgram decls) =
                 f' <- eval dict (FLCIEFLCE f)
                 x' <- eval dict (FLCIEFLCE x)
                 case f' of
-                  FLCIEcls t f args -> do
-                    let newargs = args <> [x']
-                    newt <- 
-                      case t of 
-                        FLTLambda t1 t2
-                          | t1 == flcieTypeOf x' -> pure t2
-                          | otherwise -> Left "Type missmatch"
-                        _ -> Left "Not a function"
-                    
+                  FLCIEcls ta tr funid args -> do
+                    case L.uncons ta of
+                      Just (t, ta')
+                        | Right t == flcieTypeOf x' -> pure (FLCIEcls ta' tr funid (args <> [x']))
+                        | otherwise -> Left "Type missmatch"
+                      Nothing -> Left "Too many arguments"
                   _ -> Left "Not a function"
 
-              FLCELet decls body -> do
-                newdict <- (\dgen -> dict <> M.fromList dgen) <$> forM decls (\(FLCVarDecl v _ e) -> do
+              FLCELet letdecls body -> do
+                newdict <- (\dgen -> dict <> M.fromList dgen) <$> forM letdecls (\(FLCVarDecl v _ e) -> do
                     e' <- eval dict (FLCIEFLCE e)
                     pure (v, e')
                   )
