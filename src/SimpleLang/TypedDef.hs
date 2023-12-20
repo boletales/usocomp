@@ -128,7 +128,7 @@ data TypedSLExp (t :: SLType) where
     TSLEArg        :: (KnownType t                ) => Int                                                 -> TypedSLExp t
     TSLEPtr        :: (KnownType t                ) => TypedSLRef t                                        -> TypedSLExp ('SLTPtr t)
     TSLEPushCall   :: (KnownType t                ) => TypedSLCall t                                       -> TypedSLExp t
-    TSLEFuncPtr    ::                                  TypedSLFunc args ret                            -> TypedSLExp ('SLTFuncPtr args ret)
+    TSLEFuncPtr    ::                                  TypedSLFunc args ret                                -> TypedSLExp ('SLTFuncPtr args ret)
     TSLEPrim1      ::                                  SLPrim1 -> TypedSLExp 'SLTInt                       -> TypedSLExp 'SLTInt
     TSLEPrim2      ::                                  SLPrim2 -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt
     TSLEStructNil  ::                                                                                         TypedSLExp ('SLTStruct '[])
@@ -136,8 +136,8 @@ data TypedSLExp (t :: SLType) where
     TSLEUnion      :: (KnownType t, Member t ts   ) => TypedSLExp t                                        -> TypedSLExp ('SLTUnion     ts )
     TSLEDeRef      :: (KnownType t                ) => TypedSLExp ('SLTPtr t)                              -> TypedSLExp t
     TSLEPtrShift   :: (KnownType t                ) => TypedSLExp ('SLTPtr t) -> TypedSLExp 'SLTInt        -> TypedSLExp ('SLTPtr t)
+    TSLECast       :: (KnownType t, KnownType u, SLTSizeOf t ~ SLTSizeOf u ) => TypedSLExp t               -> TypedSLExp u
     TSLEStructGet  :: (KnownType t, KnownTypes ts, StructAt i ts t, KnownNat i, KnownOffset i ts) => TypedSLExp ('SLTStruct ts) -> Proxy i -> TypedSLExp t
-    TSLECast       :: (KnownType t, KnownType u, SLTSizeOf t ~ SLTSizeOf u ) => TypedSLExp t -> TypedSLExp u
 
 instance KnownType t => Show (TypedSLExp t) where
   show = show . unTypedSLExp
@@ -165,7 +165,7 @@ unTypedSLExp expr =
       TSLEUnion e          -> SLEUnion tval (unTypedSLExp e)
       TSLEDeRef e          -> SLEDeRef (unTypedSLExp e)
       TSLEPtrShift e1 e2   -> SLEPtrShift (unTypedSLExp e1) (unTypedSLExp e2)
-      TSLEStructGet e i    -> SLEStructGet (unTypedSLExp e) (tsleGetOffset e i)
+      TSLEStructGet e i    -> SLEStructGet (unTypedSLExp e) ((fromIntegral . natVal) i)
       TSLECast e           -> SLECast tval (unTypedSLExp e)
 
 unTypedSLRef :: forall t. KnownType t => TypedSLRef t -> SLRef
@@ -221,7 +221,7 @@ unTypedSLBlock b =
     TSLBSingle s   -> SLBSingle (unTypedSLStatement s)
     TSLBMulti  s   -> SLBMulti (V.map unTypedSLBlock s)
     TSLBCase   s d -> SLBCase (V.map (bimap unTypedSLExp unTypedSLBlock) s) (unTypedSLBlock d)
-    TSLBWhile  e _ -> SLBWhile (unTypedSLExp e) (unTypedSLBlock b)
+    TSLBWhile  e b' -> SLBWhile (unTypedSLExp e) (unTypedSLBlock b')
 
 unTypedSLStatement :: TypedSLStatement -> SLStatement
 unTypedSLStatement s =

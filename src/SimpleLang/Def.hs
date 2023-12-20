@@ -65,21 +65,35 @@ data SLType =
     | SLTPtr SLType
     | SLTStruct [SLType]
     | SLTUnion  [SLType]
-    deriving (Show, Eq)
+    deriving (Eq, Ord)
 
-newtype SLAddr = SLAddr Int deriving (Show, Eq)
-newtype SLVal  = SLVal  Int deriving (Show, Eq)
+instance Show SLType where
+  show = T.unpack . prettyPrintSLType
+
+prettyPrintSLType :: SLType -> Text
+prettyPrintSLType t =
+  case t of
+    SLTUnit        -> "unit"
+    SLTInt         -> "int"
+    SLTFuncPtr args ret -> "(" <> T.intercalate ", " ((show >>> T.pack) <$> args) <> ") -> " <> (show >>> T.pack) ret
+    SLTPtr t'      -> "*" <> prettyPrintSLType t'
+    SLTStruct ts   -> "(" <> T.intercalate ", " (prettyPrintSLType <$> ts) <> ")"
+    SLTUnion  ts   -> "(" <> T.intercalate " | " (prettyPrintSLType <$> ts) <> ")"
+
+newtype SLAddr = SLAddr Int deriving (Show, Eq, Ord)
+newtype SLVal  = SLVal  Int deriving (Show, Eq, Ord)
 
 data SLCall =
     SLSolidFuncCall SLFuncSignature SLExp
   | SLFuncRefCall   SLRef      SLExp
   | SLClosureCall   SLExp
+  deriving (Eq, Ord)
 
 deriving instance Show SLCall
 
 data SLPrim1 =
         SLPrim1Inv
-      deriving (Show, Eq)
+      deriving (Show, Eq, Ord)
 
 data SLPrim2 =
         SLPrim2Add
@@ -92,7 +106,7 @@ data SLPrim2 =
       | SLPrim2Gt
       | SLPrim2Lt
       | SLPrim2Eq
-      deriving (Show, Eq)
+      deriving (Show, Eq, Ord)
 
 data SLExp =
       SLEConst      SLVal
@@ -110,6 +124,7 @@ data SLExp =
     | SLEPtrShift   SLExp  SLExp
     | SLEStructGet  SLExp  Int
     | SLECast       SLType SLExp
+  deriving (Eq, Ord)
 
 instance Show SLExp where
   show = T.unpack . prettyPrintSLExp
@@ -117,6 +132,7 @@ instance Show SLExp where
 data SLRef =
       SLRefPtr   SLType SLExp
     | SLRefLocal SLType Int
+  deriving (Eq, Ord)
 instance Show SLRef where
   show = T.unpack . prettyPrintSLRef
 
@@ -151,7 +167,7 @@ data SLFuncSignature = SLFuncSignature{
     , slfsArgs :: [SLType]
     , slfsRet  :: SLType
   }
-      deriving (Eq)
+      deriving (Eq, Ord)
 
 data SLFuncName =
         SLFuncMain
@@ -290,7 +306,7 @@ prettyPrintFuncName name =
 
 prettyPrintSLFuncSignature :: SLFuncSignature -> Text
 prettyPrintSLFuncSignature (SLFuncSignature name args ret) =
-  prettyPrintFuncName name <> "(" <> T.intercalate ", " ((show >>> T.pack) <$> args) <> ") -> " <> (show >>> T.pack) ret
+  prettyPrintFuncName name <> " :: " <> "(" <> T.intercalate ", " ((show >>> T.pack) <$> args) <> ") -> " <> (show >>> T.pack) ret
 
 prettyPrintSLRef :: SLRef -> Text
 prettyPrintSLRef ref =
@@ -301,7 +317,7 @@ prettyPrintSLRef ref =
 prettyPrintSLCall :: SLCall -> Text
 prettyPrintSLCall call =
   case call of
-    SLSolidFuncCall funcSig  args -> prettyPrintSLFuncSignature funcSig <> prettyPrintSLExp args
+    SLSolidFuncCall funcSig  args -> prettyPrintFuncName (slfsName funcSig) <> prettyPrintSLExp args
     SLFuncRefCall   ref      args -> prettyPrintSLRef    ref            <> prettyPrintSLExp args
     SLClosureCall   closure       -> prettyPrintSLExp    closure
 
@@ -374,7 +390,7 @@ prettyPrintSLExp expr =
 prettyPrintSLStatement :: SLStatement -> Text
 prettyPrintSLStatement stmt =
   case stmt of
-    SLSInitVar varid exp -> "var " <> "$L" <> pack (show varid) <> " = " <> prettyPrintSLExp exp
+    SLSInitVar varid exp -> either (\err -> "[" <> err <> "]") prettyPrintSLType (sleTypeOf exp) <> " $L" <> pack (show varid) <> " = " <> prettyPrintSLExp exp
     SLSSubst ref exp -> prettyPrintSLRef ref <> " = " <> prettyPrintSLExp exp
     SLSReturn exp          -> "return "   <> prettyPrintSLExp exp
     SLSTailCallReturn call -> "tailcall " <> prettyPrintSLCall call

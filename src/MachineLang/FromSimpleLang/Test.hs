@@ -26,11 +26,13 @@ substTest =
           l <- slmNewVar (_const 400)
           _reflocal k <<- _const 10000
 
-          slmReturn (_const 0)
+          slmReturn (_local i `_add` _local j `_add` _local k `_add` _local l)
           pure ()
         )
     
     pure ()
+-- >>> runMLCinST substTest
+-- "(96 ticks) successfully terminated. code:10700"
 
 ifTest :: SLProgram
 ifTest =
@@ -98,11 +100,13 @@ whileTest =
             pure ()
           )
 
-        slmReturn (_const 0)
+        slmReturn (_local i)
       )
 
     pure ()
 
+-- >>> runMLCinST whileTest
+-- "(549 ticks) successfully terminated. code:1024"
 
 smallTest :: SLProgram
 smallTest =
@@ -114,15 +118,21 @@ smallTest =
 
     pure ()
 
+-- >>> runMLCinST smallTest
+-- "(32 ticks) successfully terminated. code:12345"
+
 structTest :: SLProgram
 structTest =
   runSLMFuncsM $ do
     _ :: ('[] --> SLTInt) <- slmFunc SLFuncMain (slmFundef $ do
         str <- slmNewVar (_const 100 >: _const 200 >: _const 300 >: TSLEStructNil)
-        x :: SLMVar 'SLTInt <- slmNewVar (_local str `TSLEStructGet` Proxy @1)
+        x :: SLMVar 'SLTInt <- slmNewVar (_local str `TSLEStructGet` Proxy @2)
         slmReturn (_local x)
       )
     pure ()
+
+-- >>> runMLCinST structTest
+-- "(55 ticks) successfully terminated. code:300"
 
 structTest2 :: SLProgram
 structTest2 =
@@ -133,6 +143,9 @@ structTest2 =
         slmReturn (_local x)
       )
     pure ()
+
+-- >>> runMLCinST structTest2
+-- "(79 ticks) successfully terminated. code:2000"
 
 type SLTComplex = 'SLTStruct '[ 'SLTInt, 'SLTInt ]
 
@@ -146,7 +159,7 @@ complexTest =
         im2 <- slmNewVar (c2 `TSLEStructGet` Proxy @1)
         re3 <- slmNewVar ((_local re1 `_mul` _local re2) `_sub` (_local im1 `_mul` _local im2))
         im3 <- slmNewVar ((_local re1 `_mul` _local im2) `_add` (_local im1 `_mul` _local re2))
-        --slmReturn (SLEStructCons (_local re3) (SLEStructCons (_local im3) SLEStructNil))
+        slmReturn (_local re3 >: _local im3 >: TSLEStructNil)
         pure ()
       )
 
@@ -156,10 +169,12 @@ complexTest =
         d <- slmNewVar (_const 1111111)
         c3 <- slmNewVar (_app complexProd (_local c1) (_local c2))
         e <- slmNewVar (_const 2222222)
-        slmReturn (_local c2 `TSLEStructGet` Proxy @1)
+        slmReturn (_local c3 `TSLEStructGet` Proxy @1)
         pure ()
       )
     pure ()
+
+-- >>> runMLCinST complexTest
 
 
 tailRecTest :: SLProgram
@@ -186,6 +201,10 @@ tailRecTest =
       )
 
     pure ()
+
+-- >>> runMLCinST tailRecTest
+-- 
+
 
 closureTest :: SLProgram
 closureTest =

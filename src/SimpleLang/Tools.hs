@@ -22,6 +22,7 @@ data SLLocalPos =
       | SLLPWhileBody
       | SLLPWhileFooter
       | SLLPForceReturn
+      | SLLPExpr SLExp
       deriving (Show, Eq, Ord)
 
 data SLPos = SLPos {

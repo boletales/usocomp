@@ -334,7 +334,7 @@ slClosureTailCallReturnToMLC cls = do
 
 
 slPushToMLC :: SLExp -> MonadMLCFunc ()
-slPushToMLC expr = do
+slPushToMLC expr = inPos (SLLPExpr expr) $ do
   case expr of
     SLEConst (SLVal v) ->
       stateWriteFromList [
@@ -417,7 +417,7 @@ slPushToMLC expr = do
 
     SLEPtr ref ->
       case ref of
-        SLRefLocal t v ->
+        SLRefLocal _ v ->
           stateWriteFromList [
                 MLIConst  MLCRegX         (MLCValConst  1)
               , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
@@ -426,7 +426,7 @@ slPushToMLC expr = do
               , MLIStore  MLCRegX          MLCRegStackPtr
             ]
 
-        SLRefPtr t ptr ->
+        SLRefPtr _ ptr ->
           slPushToMLC ptr
 
     SLEPtrShift ptr shift -> do
@@ -434,10 +434,10 @@ slPushToMLC expr = do
       slPrim2ToMLC SLPrim2Add ptr (SLECast ptrtype shift)
 
     SLEStructGet str p -> do
-      strsize <- liftTypeError $ sleSizeOf str
-      slStructGetToMLC str strsize p
+      exprsize <- liftTypeError $ sleSizeOf expr
+      slStructGetToMLC str exprsize p
       
-    SLECast t expr' -> slPushToMLC expr'
+    SLECast _ expr' -> slPushToMLC expr'
 
 slStructGetToMLC :: SLExp -> Int -> Int -> MonadMLCFunc ()
 slStructGetToMLC expr returnsize p =
@@ -460,14 +460,14 @@ slStructGetRawToMLC expr returnsize offset =
         case expr' of
             --SLEStructGet expr''' (Proxy :: Proxy j) -> slegetRec (offset + sleSizeOf expr''') expr'''
 
-            SLELocal t v -> do
+            SLELocal _ v -> do
               stateWriteFromList [
                     MLIConst  MLCRegY         (MLCValConst (1 + v - 1))
                   , MLIAdd    MLCRegY          MLCRegY MLCRegFramePtr -- i番目のローカル変数は、フレームポインタ指し先 + i + 1 なので、その直前
                 ]
               copyStractValNextToRegYToStackTop offset'
             
-            SLEArg t a -> do
+            SLEArg _ a -> do
               stateWriteFromList [
                     MLIConst  MLCRegX         (MLCValConst (-1))
                   , MLIAdd    MLCRegX          MLCRegX MLCRegFramePtr -- MLCRegX ← 旧スタックポインタ置き場のアドレス
@@ -626,7 +626,7 @@ slSingleToMLC statement =
   case statement of
     --SLSPrimPush exp -> slPushToMLC exp
     --SLSPrimPop      -> slPopToMLC
-    SLSInitVar t expr -> do
+    SLSInitVar _ expr -> do
       exprsize <- liftTypeError $ sleSizeOf expr
       --trace ("SLSInitVar: " <> show t <> " " <> show exprsize <> " " <> show expr) $ pure ()
       slPushToMLC expr >> mlcInternalShiftVarCnt exprsize
@@ -752,7 +752,6 @@ compileSLFunc :: SLFuncBlock -> Either MLCError MLCFlagment
 compileSLFunc slfunc =
   execMonadMLCFunc (slBlockToMLC (slfBlock slfunc) >> inPos SLLPForceReturn (slReturnToMLC (SLEConst (SLVal 0)))) (SLPos (slfsName (slfSignature slfunc)) [])
 
-{- SLLPForceReturnのところで 'SLTInt を返してはいるが、値が返った先でのサイズは呼出直前のスタックポインタで決まっているため、問題ない -}
 
 
 interpretReg :: MLCReg -> MLReg
