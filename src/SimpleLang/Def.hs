@@ -427,6 +427,6 @@ prettyPrintSLProgram program =
     (\(name, SLFuncBlock sig block) ->
           ("\nfunction "
               <> prettyPrintFuncName name
-              <> "(" <> T.intercalate ", " ((\(t, i) -> "$A" <> pack (show i) <> " :: " <> pack (show t)) <$> L.zip (slfsArgs sig) [(0::Int)..]) <> ")")
+              <> "(" <> T.intercalate ", " ((\(t, i) -> pack (show t) <> " $A" <> pack (show i)) <$> L.zip (slfsArgs sig) [(0::Int)..]) <> ")" <> " -> " <> (show >>> T.pack) (slfsRet sig))
            : V.toList (prettyPrintSLBlock 0 block)
       ) =<< M.assocs program

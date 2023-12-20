@@ -103,6 +103,15 @@ inPos pos (MonadMLCFunc v) = MonadMLCFunc (do
     pure x
   )
 
+outPos :: MonadMLCFunc x -> MonadMLCFunc x
+outPos (MonadMLCFunc v) = MonadMLCFunc (do
+    oldpos <- gets mmlcfsLineInfo
+    S.modify (\s -> s {mmlcfsLineInfo = popPos (mmlcfsLineInfo s)})
+    x <- v
+    S.modify (\s -> s {mmlcfsLineInfo = oldpos})
+    pure x
+  )
+
 stateWriteFromList :: [MLCInst] -> MonadMLCFunc ()
 stateWriteFromList v2 = MonadMLCFunc (do
     lineinfo <- gets mmlcfsLineInfo
@@ -134,10 +143,10 @@ getFlagmentSize = VB.size
 {-
 getLength :: MonadMLCFunc Int
 getLength = MonadMLCFunc (gets (mmlcfsFlagment >>> VB.size))
+-}
 
 poshere :: MonadMLCFunc SLPos
 poshere = MonadMLCFunc (gets mmlcfsLineInfo)
--}
 
 slReturnToMLC :: SLExp -> MonadMLCFunc ()
 slReturnToMLC expr = do
@@ -396,7 +405,12 @@ slPushToMLC expr = inPos (SLLPExpr expr) $ do
 
 
     SLEStructNil       -> pure ()
-    SLEStructCons e es -> slPushToMLC e >> slPushToMLC es
+    SLEStructCons e es -> do
+      pos <- poshere
+      (case slpLocalPos pos of
+          _ : SLLPExpr (SLEStructCons _ _) : _ -> outPos
+          _ -> id
+        ) (slPushToMLC e >> slPushToMLC es)
 
     SLEUnion t inner -> do
       innersize <- liftTypeError $ sleSizeOf inner
