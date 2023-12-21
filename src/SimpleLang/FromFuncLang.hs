@@ -25,6 +25,7 @@ import Control.Monad.Except
 import Control.Applicative
 import Data.Bifunctor
 import Data.Maybe
+import Debug.Trace
 
 type family FLTypeToSLType (t :: FLType) :: SLType where
     FLTypeToSLType 'FLTInt  = 'SLTInt
@@ -45,10 +46,11 @@ data FLCExp where
     FLCEApp        :: FLCExp -> FLCExp -> FLCExp
     FLCELet        :: [FLCVarDecl] -> FLCExp -> FLCExp
     --FLCEUncapture  :: FLCUniqueIdentifier -> [(FLCUniqueIdentifier, FLType)] -> FLCExp
+    deriving Eq
 instance Show FLCExp where
     show = T.unpack . prettyPrintFLCExp
 
-data FLCVarDecl = FLCVarDecl FLCUniqueIdentifier FLType FLCExp
+data FLCVarDecl = FLCVarDecl FLCUniqueIdentifier FLType FLCExp deriving Eq
 
 data FLCFuncDecl = FLCFuncDecl {
       flcfdName :: FLCUniqueIdentifier
@@ -152,7 +154,7 @@ instance Ord FLCUniqueIdentifier where
     let root1 = fromMaybe n1 (getRootName p1)
         root2 = fromMaybe n2 (getRootName p2)
     in  if root1 == root2
-        then compare p1 p2
+        then compare n1 n2
         else compare root1 root2
 
 
@@ -237,13 +239,18 @@ flcRenameAndLift program =
                   let newpath = FLCPathInLambda path
 
                   -- Lambdaをまとめる
-                  let (args, core) =
-                        let go :: FLExp Text t -> [(Text, FLType)] -> ([(Text, FLType)], FLExpIgnoreType)
+                  (args, core) <-
+                        let go :: FLExp Text t -> [(Text, FLType)] -> Either Text ([(Text, FLType)], FLExpIgnoreType)
                             go expr' as =
                               case expr' of
-                                FLELambda (FLVar arg') body' -> go body' ((arg', flTypeOf expr'):as)
-                                _ -> (as, FLExpIgnoreType expr')
-                        in go e []
+                                FLELambda (FLVar arg') body' -> do
+                                  argtype <-
+                                    case flTypeOf expr' of
+                                      FLTLambda t1 _ -> pure t1
+                                      _ -> throwError "Error! (compiling FLang, squashing lambda): impossible!"
+                                  go body' ((arg', argtype):as)
+                                _ -> pure (L.reverse as, FLExpIgnoreType expr')
+                        in  lift $ go e []
 
                   let argdict = M.fromList ((\(a, _) -> (a, FLCUniqueIdentifier newpath a)) <$> args)
                   extvars <- lift $ ignoringType (\c -> searchExternalVar c (dict <> argdict) newpath) core
@@ -337,7 +344,7 @@ prettyPrintFLCProgram (FLCProgram decls) = T.intercalate "\n" (prettyPrintFLCFun
 data FLCIExp =
         FLCIEFLCE FLCExp
       | FLCIEcls  [FLType] FLType FLCUniqueIdentifier [FLCIExp]
-  deriving (Show)
+  deriving (Show, Eq)
 
 flcieTypeOf :: FLCIExp -> Either Text FLType
 flcieTypeOf expr =
@@ -350,6 +357,14 @@ interpretFLC (FLCProgram decls) =
   let tshow :: Show a => a -> Text
       tshow = T.pack . show
       initialdict = M.mapWithKey (\k f -> FLCIEcls (snd <$> flcfdArgs f) (flcfdRet f) k []) decls
+      
+      evalUntilStop dict expr = 
+        case eval dict expr of
+          Left _            -> pure expr
+          Right expr'
+            | expr == expr' -> pure expr
+            | otherwise     -> evalUntilStop dict expr'
+
       eval dict expr =
         case expr of
           FLCIEFLCE flce ->
@@ -358,24 +373,32 @@ interpretFLC (FLCProgram decls) =
               FLCEValB _  -> pure expr
               FLCEVar v _ -> maybe (Left ("No variable named " <> tshow v)) pure (M.lookup v dict)
               FLCEApp f x -> do
-                f' <- eval dict (FLCIEFLCE f)
-                x' <- eval dict (FLCIEFLCE x)
+                f' <- evalUntilStop dict (FLCIEFLCE f)
+                x' <- evalUntilStop dict (FLCIEFLCE x)
                 case f' of
                   FLCIEcls ta tr funid args -> do
                     case L.uncons ta of
                       Just (t, ta')
-                        | Right t == flcieTypeOf x' -> pure (FLCIEcls ta' tr funid (args <> [x']))
+                        | Right t == flcieTypeOf x' -> evalUntilStop dict (FLCIEcls ta' tr funid (args <> [x']))
                         | otherwise -> Left "Type missmatch"
                       Nothing -> Left "Too many arguments"
-                  _ -> Left "Not a function"
+                  _ -> Left $ "Not a function"
 
               FLCELet letdecls body -> do
                 newdict <- (\dgen -> dict <> M.fromList dgen) <$> forM letdecls (\(FLCVarDecl v _ e) -> do
-                    e' <- eval dict (FLCIEFLCE e)
+                    e' <- evalUntilStop dict (FLCIEFLCE e)
                     pure (v, e')
                   )
-                eval newdict (FLCIEFLCE body)
-          FLCIEcls {} -> pure expr
+                evalUntilStop newdict (FLCIEFLCE body)
+          FLCIEcls targs _ funid args ->
+            case targs of
+              _:_ -> pure expr
+              [] -> 
+                case M.lookup funid decls of
+                  Nothing -> Left $ "No function named" <> tshow funid
+                  Just f -> do
+                    let newdict = initialdict <> M.fromList (L.zip (fst <$> flcfdArgs f) args)
+                    evalUntilStop newdict (FLCIEFLCE (flcfdBody f))
   in case M.lookup (FLCUniqueIdentifier FLCPathTop "main") initialdict of
-      Just cls -> eval initialdict cls
+      Just cls -> evalUntilStop initialdict cls
       Nothing -> Left "No main function"

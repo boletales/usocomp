@@ -8,13 +8,18 @@ import SimpleLang.FromFuncLang
 import FuncLang.Def
 import FuncLang.Tools.Manual
 import Data.Text as T
+import Data.Text.IO as TIO
 
 type FLExp' = FLExp Text
 type (->>) = FLTLambda
 
+($$$) :: forall (t1 :: FLType) (t :: FLType) tag. (SomeFLType t1, SomeFLType t) => FLExp tag ('FLTLambda t1 t) -> FLExp tag t1 -> FLExp tag t
+($$$) = flmApp
+
 captureTest = runFLM $ do
-  x <- flmDecl "x" (flmLam "x1" (\(x1 :: FLExp' FLTInt) -> flmLam "x2" (\(x2 :: FLExp' FLTInt) -> x1)))
-  z <- flmDecl "z" (flmLam "x1" (\(x1 :: FLExp' (FLTInt ->> FLTInt)) -> flmLam "x2" (\(x2 :: FLExp' FLTInt) -> flmApp x1 x2)))
+  --x <- flmDecl "x" (flmLam "x1" (\(x1 :: FLExp' FLTInt) -> flmLam "x2" (\(x2 :: FLExp' FLTInt) -> x1)))
+  --z <- flmDecl "z" (flmLam "x1" (\(x1 :: FLExp' (FLTInt ->> FLTInt)) -> flmLam "x2" (\(x2 :: FLExp' FLTInt) -> flmApp x1 x2)))
+  {-
   
   y <- flmDecl "y" (
       flmLam "ext1" (\(ext1 ::  FLExp' (FLTInt ->> FLTInt)) ->
@@ -23,19 +28,20 @@ captureTest = runFLM $ do
                 flmLam "x1" (\x1 -> flmLam "x2" (\x2 -> flmApp ext1 ext2))
               ) ext1) ext2
             )))
+  -}
   
+  true <- flmDecl "true" (flmLam "x" (\(x :: FLExp' FLTInt) -> flmLam "y" (\(y :: FLExp' FLTInt) -> x)))
+  --false <- flmDecl "false" (flmLam "x" (\(x :: FLExp' FLTInt) -> flmLam "y" (\(y :: FLExp' FLTInt) -> y)))
+
+  main <- flmDecl "main" ((true $$$ (FLEValI 1)) $$$ (FLEValI 2))
+
   pure ()
 
--- >>> error $ T.unpack $ either id prettyPrintFLCProgram $ flcRenameAndLift captureTest
--- x() = x!anonymous
--- x!anonymous(x2 :: (Int -> Int), x1 :: (Int -> (Int -> Int))) = x1
--- y() = y!anonymous
--- y!anonymous(ext2 :: (Int -> Int), ext1 :: ((Int -> Int) -> (Int -> Int))) = ((((y!anonymous.L.L!anonymous ext1) ext2) ext1) ext2)
--- y!anonymous.L.L!anonymous(ext1 :: (Int -> Int), ext2 :: Int, x2 :: (Int -> Int), x1 :: ((Int -> Int) -> (Int -> Int))) = (ext1 ext2)
--- z() = z!anonymous
--- z!anonymous(x2 :: (Int -> Int), x1 :: ((Int -> Int) -> (Int -> Int))) = (x1 x2)
 
--- >>> flcRenameAndLift test
--- Right x = (\x -> x)
--- y = (\x -> x)
--- z = (\x -> x)
+-- >>> error $ T.unpack $ either id (T.pack . show) $ interpretFLC <$> flcRenameAndLift captureTest
+-- Right (FLCIEFLCE 2)
+
+-- >>> error $ T.unpack $ either id prettyPrintFLCProgram $ flcRenameAndLift captureTest
+-- main() = ((true 1) 2)
+-- true() = true!anonymous
+-- true!anonymous(x :: Int, y :: Int) = x

@@ -78,6 +78,11 @@ hsFuncToSLMFunc name f =
                         >>> TSLBMulti ) f
   }
 
+hsFuncToSLFuncBlock :: forall args ret. (SLMNAryC args, KnownTypes args, KnownType ret) => SLFuncName -> SLMNaryF args (SLManualBlockM ret ()) -> SLFuncBlock
+hsFuncToSLFuncBlock name f =
+  let b = hsFuncToSLMFunc @args @ret name f
+  in unTypedSLFuncBlock b
+
 _app :: forall args ret t. (TypedSLCallable args ret t, SLMNAryC args, KnownType ret) => t -> SLMNaryF args (TypedSLExp ret)
 _app callable = slmfuncToHsFunc (TSLEPushCall . tslCall callable) :: SLMNaryF args (TypedSLExp ret)
 

@@ -75,7 +75,7 @@ flTypeOf e = case e of
   (FLELambda @_ @t1 @t2 (FLVar _) _) -> FLTLambda (someFLType (Proxy @t1)) (someFLType (Proxy @t2))
   (FLEApp    @_ @t1 @t2 _ _)         -> case someFLType (Proxy @t1) of FLTLambda a r | a == someFLType (Proxy @t2) -> r; _ -> error "impossible"
   (FLELet    @_ @t1     _ _)         -> someFLType (Proxy @t1)
-  (FLEPrim   @_ @t1     _)           -> someFLType (Proxy @t1)
+  --(FLEPrim   @_ @t1     _)           -> someFLType (Proxy @t1)
   --(UnsafeFLECast t _)                -> t
 
 prettyPrintFLVarDecl :: Show tag => FLVarDecl tag -> Text
@@ -89,7 +89,7 @@ data FLExp (tag :: Type) (t :: FLType) where
   FLELambda :: forall tag t1 t2. (SomeFLType t1, SomeFLType t2) => FLVar tag t1 -> FLExp tag t2  -> FLExp tag ('FLTLambda t1 t2)
   FLEApp    :: forall tag t1 t2. (SomeFLType t1, SomeFLType t2) => FLExp tag ('FLTLambda t1 t2) -> FLExp tag t1 -> FLExp tag t2
   FLELet    :: forall tag t1   . (SomeFLType t1               ) => [FLVarDecl tag] -> FLExp tag t1 -> FLExp tag t1
-  FLEPrim   :: forall tag t    . (SomeFLType t                ) => Text -> FLExp tag t
+  --FLEPrim   :: forall tag t    . (SomeFLType t                ) => Text -> FLExp tag t
   --UnsafeFLECast :: forall tag t1 t2. FLType -> FLExp tag t1 -> FLExp tag t2
 
 instance Show tag => Show (FLExp tag t) where
@@ -107,7 +107,7 @@ prettyPrintFLExp e =
       (FLELambda v b)  -> "(\\" <> tshow v <> " -> " <> prettyPrintFLExp b <> ")"
       (FLEApp e1 e2)   -> "(" <>   prettyPrintFLExp e1 <> " " <> prettyPrintFLExp e2 <> ")"
       (FLELet decls b) -> "(let " <> T.intercalate "; " (prettyPrintFLVarDecl <$> decls) <> " in " <> prettyPrintFLExp b <> ")"
-      (FLEPrim p)      -> p
+      --(FLEPrim p)      -> p
       --(UnsafeFLECast t e) -> prettyPrintFLExp e --"(" <> prettyPrintFLExp e <> " :: " <> tshow t <> ")"
 data FLProgram (tag :: Type) = FLProgram {
       flpTopLevelVars :: M.Map tag (FLVarDecl tag)

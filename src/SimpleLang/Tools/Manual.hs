@@ -21,6 +21,7 @@ module SimpleLang.Tools.Manual (
   , slmClsTailCall
   , SLMFuncsM
   , runSLMFuncsM
+  , hsFuncToSLFuncBlock
   , _cls
   , _const
   , _local
