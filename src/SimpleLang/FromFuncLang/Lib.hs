@@ -1,7 +1,14 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module SimpleLang.FromFuncLang.Lib where
+module SimpleLang.FromFuncLang.Lib (
+    FLPrimAny(..)
+  , FLPrim(..)
+  , FLPrimII2I(..)
+  , libFLCSLFuncs
+  , libFLCSigMap
+  , libFLCClsMap
+) where
 
 import FuncLang.Def
 import SimpleLang.Def
@@ -13,10 +20,57 @@ import Prelude hiding ((.), id)
 
 type (->>) = FLTLambda
 
+data FLPrimAny where 
+  FLPrimAny :: FLPrim t a => a -> FLPrimAny
+
+
+libFLCSLFuncs :: [SLFuncBlock]
+libFLCSLFuncs = flptoSL <$> [
+    FLPAdd
+  , FLPSub
+  , FLPMul
+  , FLPEqI
+  , FLPNeqI
+  , FLPLtI
+  , FLPGtI
+  ]
+
+libFLCSLFuncSigs :: [SLFuncSignature]
+libFLCSLFuncSigs = slfSignature <$> libFLCSLFuncs
+
+libFLCFLNames :: [Text]
+libFLCFLNames = flpname <$> [
+    FLPAdd
+  , FLPSub
+  , FLPMul
+  , FLPEqI
+  , FLPNeqI
+  , FLPLtI
+  , FLPGtI
+  ]
+
+libFLCSigMap :: [(Text, SLFuncSignature)]
+libFLCSigMap = Prelude.zip libFLCFLNames libFLCSLFuncSigs
+
+libFLCClss :: [([FLType], FLType)]
+libFLCClss = flpclstype <$> [
+    FLPAdd
+  , FLPSub
+  , FLPMul
+  , FLPEqI
+  , FLPNeqI
+  , FLPLtI
+  , FLPGtI
+  ]
+
+libFLCClsMap :: [(Text, ([FLType], FLType))]
+libFLCClsMap = Prelude.zip libFLCFLNames libFLCClss
+
 class FLPrim t a | a -> t where
   flpname   :: a -> Text
   flPrim    :: a -> FLExp Text t
   flptoSL   :: a -> SLFuncBlock
+  flpclstype :: a -> ([FLType], FLType)
 
 data FLPrimII2I =
       FLPAdd

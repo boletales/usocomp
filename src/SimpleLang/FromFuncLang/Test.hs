@@ -5,6 +5,7 @@
 module SimpleLang.FromFuncLang.Test where
 
 import SimpleLang.FromFuncLang
+import SimpleLang.Def
 import FuncLang.Def
 import FuncLang.Tools.Manual
 import Data.Text as T
@@ -38,10 +39,31 @@ captureTest = runFLM $ do
   pure ()
 
 
--- >>> error $ T.unpack $ either id (T.pack . show) $ interpretFLC <$> flcRenameAndLift captureTest
--- Right (FLCIEFLCE 2)
+-- >>> error $ T.unpack $ either id (T.pack . show) $ flcRenameAndLift captureTest
+-- main() -> Int = ((true 1) 2)
+-- true!anonymous(x :: Int, y :: Int) -> Int = x
+-- true() -> (Int -> (Int -> Int)) = true!anonymous
 
 -- >>> error $ T.unpack $ either id prettyPrintFLCProgram $ flcRenameAndLift captureTest
 -- main() = ((true 1) 2)
 -- true() = true!anonymous
 -- true!anonymous(x :: Int, y :: Int) = x
+
+
+-- >>> error $ T.unpack $ either id prettyPrintSLProgram $ compileFLangToSLang captureTest
+-- function #main() -> int
+-- {
+--   tailcall (#generated/top_main)()
+-- }
+-- function #generated/top_main() -> int
+-- {
+--   tailcall (((#generated/top_true)(), 1)(), 2)()
+-- }
+-- function #generated/top_true() -> (int) -> (int) -> int
+-- {
+--   return (#generated/true!_anonymous)
+-- }
+-- function #generated/true!_anonymous(int $A0, int $A1) -> int
+-- {
+--   return $A0
+-- }

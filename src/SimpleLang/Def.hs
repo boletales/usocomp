@@ -34,6 +34,7 @@ module SimpleLang.Def (
     , sltSizeOf
     , sleGetOffset
     , slRefToPtr
+    , slStructConcat
     , prettyPrintFuncName
     , prettyPrintSLExp
     , prettyPrintSLRef
@@ -288,6 +289,28 @@ slRefToPtr ref =
     SLRefLocal t i -> SLELocal t i
     SLRefPtr   _ e -> e
 
+slStructConcat :: SLExp -> SLExp -> Either Text SLExp
+slStructConcat e1 e2 =
+  let isStruct :: SLType -> Bool
+      isStruct t = case t of
+        SLTStruct _ -> True
+        _ -> False
+      
+  in  do
+    t1 <- sleTypeOf e1
+    t2 <- sleTypeOf e2
+    if isStruct t1 && isStruct t2
+      then case (e1, e2) of
+            (SLEStructNil, _) -> pure e2
+            (_, SLEStructNil) -> pure e1
+            (SLEStructCons x xs, _) -> SLEStructCons x <$> slStructConcat xs e2
+            _ -> Left $ "slStructConcat: impossible (concatenating " <> (show >>> T.pack) e1 <> " and " <> (show >>> T.pack) e2 <> ")"
+
+      else Left $ "slStructConcat: both arguments must be struct (" <> (show >>> T.pack) e1 <> ", " <> (show >>> T.pack) e2 <> ")"
+
+-- >>> slStructConcat (SLEConst (SLVal 1) `SLEStructCons` (SLEConst (SLVal 2) `SLEStructCons` (SLEConst (SLVal 3) `SLEStructCons` SLEStructNil))) (SLEConst (SLVal 4) `SLEStructCons` (SLEConst (SLVal 5) `SLEStructCons` (SLEConst (SLVal 6) `SLEStructCons` SLEStructNil)))
+-- Right (1, 2, 3, 4, 5, 6)
+
 sleGetOffset :: SLExp -> Int -> Either Text Int
 sleGetOffset expr i =
   case sleTypeOf expr of
@@ -319,7 +342,7 @@ prettyPrintSLCall call =
   case call of
     SLSolidFuncCall funcSig  args -> prettyPrintFuncName (slfsName funcSig) <> prettyPrintSLExp args
     SLFuncRefCall   ref      args -> prettyPrintSLRef    ref            <> prettyPrintSLExp args
-    SLClosureCall   closure       -> prettyPrintSLExp    closure
+    SLClosureCall   closure       -> prettyPrintSLExp    closure <> "()"
 
 prettyPrintSLExp :: SLExp -> Text
 prettyPrintSLExp expr =
