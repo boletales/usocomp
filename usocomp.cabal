@@ -38,6 +38,8 @@ library
       SimpleLang.FromFuncLang
       SimpleLang.FromFuncLang.Lib
       SimpleLang.FromFuncLang.Test
+      SimpleLang.FromString
+      SimpleLang.StaticCheck
       SimpleLang.Tools
       SimpleLang.Tools.Manual
       SimpleLang.Tools.Manual.Internal
@@ -55,6 +57,7 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , megaparsec
     , mtl
     , primitive
     , text
@@ -77,6 +80,7 @@ executable usocomp-exe
   build-depends:
       base >=4.7 && <5
     , containers
+    , megaparsec
     , mtl
     , primitive
     , text
@@ -102,6 +106,7 @@ test-suite usocomp-test
       base >=4.7 && <5
     , containers
     , hspec
+    , megaparsec
     , mtl
     , primitive
     , text
