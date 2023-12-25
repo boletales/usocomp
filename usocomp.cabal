@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       FuncLang.Def
+      FuncLang.Tools.Manual
       Internal.MyNat
       MachineLang.Def
       MachineLang.FromSimpleLang
@@ -34,9 +35,13 @@ library
       MachineLang.Machine
       MachineLang.Tools
       SimpleLang.Def
+      SimpleLang.FromFuncLang
+      SimpleLang.FromFuncLang.Lib
+      SimpleLang.FromFuncLang.Test
       SimpleLang.Tools
       SimpleLang.Tools.Manual
       SimpleLang.Tools.Manual.Internal
+      SimpleLang.TypedDef
   other-modules:
       Paths_usocomp
   autogen-modules:
@@ -96,6 +101,7 @@ test-suite usocomp-test
   build-depends:
       base >=4.7 && <5
     , containers
+    , hspec
     , mtl
     , primitive
     , text

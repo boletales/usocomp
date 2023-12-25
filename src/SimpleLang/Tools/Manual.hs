@@ -1,4 +1,5 @@
 {-# LANGUAGE ExplicitNamespaces #-}
+{-# LANGUAGE MonoLocalBinds #-}
 
 {-|
   Module      : SimpleLang.Tools.Manual
@@ -20,6 +21,7 @@ module SimpleLang.Tools.Manual (
   , slmClsTailCall
   , SLMFuncsM
   , runSLMFuncsM
+  , hsFuncToSLFuncBlock
   , _cls
   , _const
   , _local
@@ -53,30 +55,30 @@ module SimpleLang.Tools.Manual (
 
 import SimpleLang.Tools.Manual.Internal
 import SimpleLang.Def
+import SimpleLang.TypedDef
 import Data.Vector as V
 import Control.Monad.State
 import Control.Category
 import Prelude hiding ((.), id, exp)
-import GHC.TypeNats
 import Data.Proxy
 
 type (-->) args ret = TypedSLFuncBlock args ret
 type (!-->) args ret = 'SLTFuncPtr args ret
 
-slmNewVar :: forall t r. (KnownNat (SLTSizeOf t)) => TypedSLExp t -> SLManualBlockM r (SLMVar t)
+slmNewVar :: forall t r. KnownType t => TypedSLExp t -> SLManualBlockM r (SLMVar t)
 slmNewVar exp = do
   SLMState cnt blocks <- get
   let newVarId = cnt
-  put (SLMState (cnt + (natVal >>> fromIntegral) (Proxy :: Proxy (SLTSizeOf t))) blocks)
-  slmStmt (SLSInitVar newVarId exp)
+  put (SLMState (cnt + (tslTypeVal >>> sltSizeOf) (Proxy :: Proxy t)) blocks)
+  slmStmt (TSLSInitVar newVarId exp)
   pure (SLMVar newVarId)
 
-slmStmt :: SLStatement -> SLManualBlockM r ()
+slmStmt :: TypedSLStatement -> SLManualBlockM r ()
 slmStmt stmt = do
   SLMState cnt blocks <- get
-  put (SLMState cnt (V.snoc blocks (SLBSingle stmt)))
+  put (SLMState cnt (V.snoc blocks (TSLBSingle stmt)))
 
-slmBlk :: SLBlock -> SLManualBlockM r ()
+slmBlk :: TypedSLBlock -> SLManualBlockM r ()
 slmBlk block = do
   SLMState cnt blocks <- get
   put (SLMState cnt (V.snoc blocks block))
@@ -84,7 +86,7 @@ slmBlk block = do
 slmWhile :: TypedSLExp 'SLTInt -> SLManualBlockM r () -> SLManualBlockM r ()
 slmWhile cond body = do
   block <- clipslm body
-  slmBlk (SLBWhile cond block)
+  slmBlk (TSLBWhile cond block)
 
 slmCase :: V.Vector (TypedSLExp 'SLTInt, SLManualBlockM r ()) -> SLManualBlockM r () -> SLManualBlockM r ()
 slmCase cases elsecase = do
@@ -93,89 +95,89 @@ slmCase cases elsecase = do
       pure (cond, block)
     ) cases
   elsecase' <- clipslm elsecase
-  slmBlk (SLBCase cases' elsecase')
+  slmBlk (TSLBCase cases' elsecase')
 
-slmReturn :: KnownSize r => TypedSLExp r -> SLManualBlockM r ()
-slmReturn expr = slmStmt (SLSReturn expr)
+slmReturn :: KnownType r => TypedSLExp r -> SLManualBlockM r ()
+slmReturn expr = slmStmt (TSLSReturn expr)
 
-slmClsTailCall :: forall args ret. (KnownSizes ('SLTFuncPtr args ret ': args), KnownSize ret) => TypedSLExp ('SLTStruct ('SLTFuncPtr args ret ': args)) -> SLManualBlockM ret ()
-slmClsTailCall cls = slmStmt (SLSTailCallReturn (SLClosureCall cls))
+slmClsTailCall :: forall args ret. (KnownTypes ('SLTFuncPtr args ret ': args), KnownType ret) => TypedSLExp ('SLTStruct ('SLTFuncPtr args ret ': args)) -> SLManualBlockM ret ()
+slmClsTailCall cls = slmStmt (TSLSTailCallReturn (TSLClosureCall cls))
 
 _const :: Int -> TypedSLExp 'SLTInt
-_const = SLVal >>> SLEConst
+_const = SLVal >>> TSLEConst
 
-_local :: KnownSize t =>SLMVar t -> TypedSLExp t
-_local = unSLMVar >>> SLELocal
+_local :: KnownType t =>SLMVar t -> TypedSLExp t
+_local = unSLMVar >>> TSLELocal
 
-_arg :: KnownSize t => SLMArg t -> TypedSLExp t
-_arg = unSLMArg >>> SLEArg
+_arg :: KnownType t => SLMArg t -> TypedSLExp t
+_arg = unSLMArg >>> TSLEArg
 
-_reflocal :: KnownSize t => SLMVar t -> SLRef t
-_reflocal = unSLMVar >>> SLRefLocal
+_reflocal :: KnownType t => SLMVar t -> TypedSLRef t
+_reflocal = unSLMVar >>> TSLRefLocal
 
-_ptr :: KnownSize t => SLRef t -> TypedSLExp ('SLTPtr t)
-_ptr = SLEPtr
+_ptr :: KnownType t => TypedSLRef t -> TypedSLExp ('SLTPtr t)
+_ptr = TSLEPtr
 
-_refptr :: KnownSize t => TypedSLExp ('SLTPtr t) -> SLRef t
-_refptr = SLRefPtr
+_refptr :: KnownType t => TypedSLExp ('SLTPtr t) -> TypedSLRef t
+_refptr = TSLRefPtr
 
-_cls :: (KnownSize ('SLTStruct ('SLTFuncPtr ts t ': ts)), KnownSize t) => TypedSLExp ('SLTStruct ('SLTFuncPtr ts t ': ts)) -> TypedSLExp t
-_cls = SLClosureCall >>> SLEPushCall
+_cls :: (KnownTypes ('SLTFuncPtr ts t ': ts), KnownType t) => TypedSLExp ('SLTStruct ('SLTFuncPtr ts t ': ts)) -> TypedSLExp t
+_cls = TSLClosureCall >>> TSLEPushCall
 
 _funcptr :: forall a b. (a --> b) -> TypedSLExp ('SLTFuncPtr a b)
-_funcptr = tslfName >>> SLEFuncPtr
+_funcptr = tslfSignature >>> TSLEFuncPtr
 
 slmFundef :: SLManualBlockM r () -> SLMNaryF '[] (SLManualBlockM r ())
 slmFundef = id
 
 infix 1 <<-
 
-(<<-) :: KnownSize t => SLRef t -> TypedSLExp t -> SLManualBlockM r ()
-(<<-) a b = slmStmt (SLSSubst a b)
+(<<-) :: KnownType t => TypedSLRef t -> TypedSLExp t -> SLManualBlockM r ()
+(<<-) a b = slmStmt (TSLSSubst a b)
 
 infixr 2 >:
 
-(>:) :: (KnownSize t, KnownSizes ts ) => TypedSLExp t -> TypedSLExp ('SLTStruct ts) -> TypedSLExp ('SLTStruct (t:ts))
-(>:) = SLEStructCons
+(>:) :: (KnownType t, KnownTypes ts ) => TypedSLExp t -> TypedSLExp ('SLTStruct ts) -> TypedSLExp ('SLTStruct (t:ts))
+(>:) = TSLEStructCons
 
 
 
-{- SLEPrim2のラッパ -}
+{- TSLEPrim2のラッパ -}
 
 type P2I = TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt
 type P1I = TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt
 
 _add  :: P2I
-_add = SLEPrim2 SLPrim2Add
+_add = TSLEPrim2 SLPrim2Add
 
 _sub  :: P2I
-_sub = SLEPrim2 SLPrim2Sub
+_sub = TSLEPrim2 SLPrim2Sub
 
 _mul :: P2I
-_mul = SLEPrim2 SLPrim2Mult
+_mul = TSLEPrim2 SLPrim2Mult
 
 _shift :: P2I
-_shift = SLEPrim2 SLPrim2Shift
+_shift = TSLEPrim2 SLPrim2Shift
 
 _and :: P2I
-_and = SLEPrim2 SLPrim2And
+_and = TSLEPrim2 SLPrim2And
 
 _or :: P2I
-_or = SLEPrim2 SLPrim2Or
+_or = TSLEPrim2 SLPrim2Or
 
 _xor :: P2I
-_xor = SLEPrim2 SLPrim2Xor
+_xor = TSLEPrim2 SLPrim2Xor
 
 _gt :: P2I
-_gt = SLEPrim2 SLPrim2Gt
+_gt = TSLEPrim2 SLPrim2Gt
 
 _lt :: P2I
-_lt = SLEPrim2 SLPrim2Lt
+_lt = TSLEPrim2 SLPrim2Lt
 
 _eq :: P2I
-_eq = SLEPrim2 SLPrim2Eq
+_eq = TSLEPrim2 SLPrim2Eq
 
-{- SLEPrim1のラッパ -}
+{- TSLEPrim1のラッパ -}
 
 _inv :: P1I
-_inv = SLEPrim1 SLPrim1Inv
+_inv = TSLEPrim1 SLPrim1Inv

@@ -17,47 +17,38 @@ Description : SimpleLangの定義
 module SimpleLang.Def (
       SLAddr (..)
     , SLVal (..)
+    , SLFuncSignature (..)
     , SLFuncName (..)
     , SLCall (..)
     , SLPrim1 (..)
     , SLPrim2 (..)
-    , TypedSLExp (..)
+    , SLExp (..)
     , SLRef (..)
     , SLStatement (..)
     , SLBlock (..)
     , SLFuncBlock (..)
-    , TypedSLFuncBlock (..)
     , SLProgram
-    , TypedSLFuncName (..)
     , SLType (..)
-    , SLTSizeOf
-    , SLCallable (..)
-    , KnownSize
-    , KnownSizes
-    , SLTStructIndexToOffset
-    , KnownOffset
+    , sleTypeOf
     , sleSizeOf
+    , sltSizeOf
     , sleGetOffset
     , slRefToPtr
+    , slStructConcat
     , prettyPrintFuncName
     , prettyPrintSLExp
     , prettyPrintSLRef
     , prettyPrintSLStatement
     , prettyPrintSLBlock
     , prettyPrintSLProgram
-    , unTypedSLFuncBlock
-    , unTypedSLFuncName
   ) where
 
 import Data.Vector as V
 import Data.Map as M
-import GHC.TypeNats
-import Data.Type.Bool
-import Data.Proxy
 import Data.Text as T
-import Data.Kind
 import Prelude hiding ((.), id, exp)
 import Control.Category
+import qualified Data.List as L
 
 -- 接頭辞 SL: SimpleLang に関連するものの型
 
@@ -75,68 +66,35 @@ data SLType =
     | SLTPtr SLType
     | SLTStruct [SLType]
     | SLTUnion  [SLType]
-    deriving (Show, Eq)
+    deriving (Eq, Ord)
 
-type family NatMax (n :: Nat) (m :: Nat) :: Nat where
-  NatMax n m = If (n <=? m) m n
+instance Show SLType where
+  show = T.unpack . prettyPrintSLType
 
-type family SLTSizeOf (t :: SLType) :: Nat where
-  SLTSizeOf SLTUnit               = 0
-  SLTSizeOf SLTInt                = 1
-  SLTSizeOf (SLTFuncPtr args ret) = 1
-  SLTSizeOf (SLTPtr t           ) = 1
-  SLTSizeOf (SLTStruct (t:ts)   ) = SLTSizeOf t + SLTSizeOf (SLTStruct ts)
-  SLTSizeOf (SLTStruct '[]      ) = 0
-  SLTSizeOf (SLTUnion  (t:ts)   ) = NatMax (SLTSizeOf t) (SLTSizeOf (SLTUnion ts))
-  SLTSizeOf (SLTUnion  '[]      ) = 0
+prettyPrintSLType :: SLType -> Text
+prettyPrintSLType t =
+  case t of
+    SLTUnit        -> "unit"
+    SLTInt         -> "int"
+    SLTFuncPtr args ret -> "(" <> T.intercalate ", " ((show >>> T.pack) <$> args) <> ") -> " <> (show >>> T.pack) ret
+    SLTPtr t'      -> "*" <> prettyPrintSLType t'
+    SLTStruct ts   -> "(" <> T.intercalate ", " (prettyPrintSLType <$> ts) <> ")"
+    SLTUnion  ts   -> "(" <> T.intercalate " | " (prettyPrintSLType <$> ts) <> ")"
 
-class Member (t :: SLType) (ts :: [SLType])
+newtype SLAddr = SLAddr Int deriving (Show, Eq, Ord)
+newtype SLVal  = SLVal  Int deriving (Show, Eq, Ord)
 
-instance {-# OVERLAPPING #-}  Member t (t:ts)
-instance {-# OVERLAPPABLE #-} Member t ts => Member t (t':ts)
+data SLCall =
+    SLSolidFuncCall SLFuncSignature SLExp
+  | SLFuncRefCall   SLRef      SLExp
+  | SLClosureCall   SLExp
+  deriving (Eq, Ord)
 
-class StructAt (i :: Nat) (ts :: [SLType]) (t :: SLType) | i ts -> t
-
-instance {-# OVERLAPPING #-}   StructAt 0 (t:ts) t
-instance {-# OVERLAPPABLE #-} (StructAt i ts t, j ~ i + 1) => StructAt j (t':ts) t'
-
-type family SLTStructIndexToOffset (i :: Nat) (ts :: [SLType]) :: Nat where
-  SLTStructIndexToOffset 0 (t:ts) = 0
-  SLTStructIndexToOffset i (t:ts) = SLTSizeOf t + SLTStructIndexToOffset (i - 1) ts
-
-type KnownOffset i ts = KnownNat (SLTStructIndexToOffset i ts)
-
-sleGetOffset :: forall i ts. (KnownOffset i ts) => TypedSLExp ('SLTStruct ts) -> Proxy i -> Int
-sleGetOffset _ _ = fromIntegral (natVal (Proxy :: Proxy (SLTStructIndexToOffset i ts)))
-
-newtype SLAddr = SLAddr Int deriving (Show, Eq)
-newtype SLVal  = SLVal  Int deriving (Show, Eq)
-
-data SLCall (t :: SLType) where
-    SLSolidFuncCall :: (KnownSize ('SLTStruct ts)                      ) => TypedSLFuncName ts t     -> TypedSLExp ('SLTStruct ts) -> SLCall t
-    SLFuncRefCall   :: (KnownSize ('SLTStruct ts)                      ) => SLRef ('SLTFuncPtr ts t) -> TypedSLExp ('SLTStruct ts) -> SLCall t
-    SLClosureCall   :: (KnownSize ('SLTStruct ('SLTFuncPtr ts t ': ts))) => TypedSLExp ('SLTStruct ('SLTFuncPtr ts t ': ts))       -> SLCall t
-
-class SLCallable (args :: [SLType]) (ret :: SLType) (t :: Type) | t -> args ret where
-  slCall :: t -> TypedSLExp ('SLTStruct args) -> SLCall ret
-
-instance (KnownSizes args) => SLCallable args ret (TypedSLFuncBlock args ret) where
-  slCall = tslfName >>> SLSolidFuncCall
-
-instance (KnownSizes args) => SLCallable args ret (TypedSLFuncName args ret) where
-  slCall = SLSolidFuncCall
-
-instance (KnownSizes args) => SLCallable args ret (SLRef ('SLTFuncPtr args ret)) where
-  slCall = SLFuncRefCall
-
-deriving instance Show (SLCall t)
-
-type KnownSize t = KnownNat (SLTSizeOf t)
-type KnownSizes ts = KnownNat (SLTSizeOf ('SLTStruct ts))
+deriving instance Show SLCall
 
 data SLPrim1 =
         SLPrim1Inv
-      deriving (Show, Eq)
+      deriving (Show, Eq, Ord)
 
 data SLPrim2 =
         SLPrim2Add
@@ -149,78 +107,68 @@ data SLPrim2 =
       | SLPrim2Gt
       | SLPrim2Lt
       | SLPrim2Eq
-      deriving (Show, Eq)
+      deriving (Show, Eq, Ord)
 
-data TypedSLExp (t :: SLType) where
-    SLEConst      ::                                  SLVal                                               -> TypedSLExp 'SLTInt
-    SLELocal      :: (KnownSize t                ) => Int                                                 -> TypedSLExp t
-    SLEArg        :: (KnownSize t                ) => Int                                                 -> TypedSLExp t
-    SLEPtr        :: (KnownSize t                ) => SLRef t                                             -> TypedSLExp ('SLTPtr t)
-    SLEPushCall   :: (KnownSize t                ) => SLCall t                                            -> TypedSLExp t
-    SLEFuncPtr    ::                                  TypedSLFuncName args ret                            -> TypedSLExp ('SLTFuncPtr args ret)
-    SLEPrim1      ::                                  SLPrim1 -> TypedSLExp 'SLTInt                       -> TypedSLExp 'SLTInt
-    SLEPrim2      ::                                  SLPrim2 -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt
-    SLEStructNil  ::                                                                                         TypedSLExp ('SLTStruct '[])
-    SLEStructCons :: (KnownSize t, KnownSizes ts ) => TypedSLExp t -> TypedSLExp ('SLTStruct ts)          -> TypedSLExp ('SLTStruct (t:ts)) 
-    SLEUnion      :: (KnownSize t, Member t ts   ) => TypedSLExp t                                        -> TypedSLExp ('SLTUnion     ts ) 
-    SLEDeRef      :: (KnownSize t                ) => TypedSLExp ('SLTPtr t)                              -> TypedSLExp t
-    SLEPtrShift   :: (KnownSize t                ) => TypedSLExp ('SLTPtr t) -> TypedSLExp 'SLTInt        -> TypedSLExp ('SLTPtr t)
-    SLEStructGet  :: (KnownSize t, KnownSizes ts, StructAt i ts t, KnownNat i, KnownOffset i ts) => TypedSLExp ('SLTStruct ts) -> Proxy i -> TypedSLExp t
-    SLECast       :: (KnownSize t, KnownSize u, SLTSizeOf t ~ SLTSizeOf u ) => TypedSLExp t -> TypedSLExp u
+data SLExp =
+      SLEConst      SLVal
+    | SLELocal      SLType Int
+    | SLEArg        SLType Int
+    | SLEPtr        SLRef
+    | SLEPushCall   SLCall
+    | SLEFuncPtr    SLFuncSignature
+    | SLEPrim1      SLPrim1 SLExp
+    | SLEPrim2      SLPrim2 SLExp SLExp
+    | SLEStructNil
+    | SLEStructCons SLExp  SLExp
+    | SLEUnion      SLType SLExp
+    | SLEDeRef      SLExp
+    | SLEPtrShift   SLExp  SLExp
+    | SLEStructGet  SLExp  Int
+    | SLECast       SLType SLExp
+  deriving (Eq, Ord)
 
-instance Show (TypedSLExp t) where
+instance Show SLExp where
   show = T.unpack . prettyPrintSLExp
 
-data SLRef (t :: SLType) where
-    SLRefPtr   :: (KnownSize t) => TypedSLExp ('SLTPtr t) -> SLRef t
-    SLRefLocal :: (KnownSize t) => Int                    -> SLRef t
-instance Show (SLRef t) where
+data SLRef =
+      SLRefPtr   SLType SLExp
+    | SLRefLocal SLType Int
+  deriving (Eq, Ord)
+instance Show SLRef where
   show = T.unpack . prettyPrintSLRef
 
-data SLStatement where
-  SLSInitVar        :: KnownSize t => Int -> TypedSLExp t     -> SLStatement
-  SLSSubst          :: KnownSize t => SLRef t -> TypedSLExp t -> SLStatement
-  SLSReturn         :: KnownSize t => TypedSLExp t            -> SLStatement
-  SLSTailCallReturn :: KnownSize t => SLCall t           -> SLStatement
+data SLStatement =
+    SLSInitVar        Int    SLExp
+  | SLSSubst          SLRef  SLExp
+  | SLSReturn         SLExp
+  | SLSTailCallReturn SLCall
 
 instance Show SLStatement where
   show = T.unpack . prettyPrintSLStatement
 
-data SLBlock where
-    SLBSingle :: SLStatement -> SLBlock
-    SLBMulti  :: V.Vector SLBlock -> SLBlock
-    SLBCase   :: V.Vector (TypedSLExp 'SLTInt, SLBlock) -> SLBlock -> SLBlock
-    SLBWhile  :: TypedSLExp 'SLTInt -> SLBlock -> SLBlock
+data SLBlock =
+      SLBSingle SLStatement
+    | SLBMulti  (V.Vector SLBlock)
+    | SLBCase   (V.Vector (SLExp, SLBlock)) SLBlock
+    | SLBWhile  SLExp SLBlock
 
 instance Show SLBlock where
   show = T.unpack . T.intercalate "\n" . V.toList . prettyPrintSLBlock 0
 
-data TypedSLFuncBlock (args :: [SLType]) (ret :: SLType) =
-      TSLFuncBlock {
-          tslfName     :: TypedSLFuncName args ret
-        , tslfBlock    :: SLBlock
-      }
-      deriving (Show)
-
-unTypedSLFuncBlock :: forall args ret. (KnownNat (SLTSizeOf ('SLTStruct args))) => TypedSLFuncBlock args ret -> SLFuncBlock
-unTypedSLFuncBlock (TSLFuncBlock (TypedSLFuncName name) block) =
-  SLFuncBlock name ((fromIntegral . natVal) (Proxy :: Proxy (SLTSizeOf ('SLTStruct args)))) block
-
 
 data SLFuncBlock =
       SLFuncBlock {
-          slfName     :: SLFuncName
-        , slfArgCount :: Int
-        , slfBlock    :: SLBlock
+          slfSignature :: SLFuncSignature
+        , slfBlock     :: SLBlock
       }
       deriving (Show)
 
-newtype TypedSLFuncName (args :: [SLType]) (ret :: SLType) = TypedSLFuncName SLFuncName
-  deriving newtype Show
-
-
-unTypedSLFuncName :: TypedSLFuncName args ret -> SLFuncName
-unTypedSLFuncName (TypedSLFuncName name) = name
+data SLFuncSignature = SLFuncSignature{
+      slfsName :: SLFuncName
+    , slfsArgs :: [SLType]
+    , slfsRet  :: SLType
+  }
+      deriving (Eq, Ord)
 
 data SLFuncName =
         SLFuncMain
@@ -230,19 +178,148 @@ data SLFuncName =
 instance Show SLFuncName where
   show = T.unpack . prettyPrintFuncName
 
-
+instance Show SLFuncSignature where
+  show = T.unpack . prettyPrintSLFuncSignature
 
 type SLProgram =
         M.Map SLFuncName SLFuncBlock
 
-sleSizeOf :: forall t. KnownSize t => TypedSLExp t -> Int
-sleSizeOf _ = (fromIntegral . natVal) (Proxy :: Proxy (SLTSizeOf t))
+slFuncTypeOf :: SLFuncSignature -> SLType
+slFuncTypeOf funcName =
+  case funcName of
+    SLFuncSignature _ args ret -> SLTFuncPtr args ret
 
-slRefToPtr :: KnownSize t => SLRef t -> TypedSLExp (SLTPtr t)
+slCallTypeOf :: SLCall -> Either Text SLType
+slCallTypeOf call =
+  case call of
+    SLSolidFuncCall funcName args -> do
+      let tfunc = slFuncTypeOf funcName
+      targs <- sleTypeOf args
+      largs <- case targs of
+                 SLTStruct ts -> pure ts
+                 other        -> Left $ "Error! (type check of SLang): arg#1 of SLSolidFuncCall must be SLTStruct ts, not " <> (show >>> T.pack) other
+      case tfunc of
+        SLTFuncPtr args' ret
+          | args' == largs -> pure ret
+          | otherwise      -> Left $ "Error! (type check of SLang): arg#1 of SLSolidFuncCall does not match! expected:" <> (show >>> T.pack) (args') <> " actual:" <> (show >>> T.pack) (SLTStruct largs)
+        other              -> Left $ "Error! (type check of SLang): arg#0 of SLSolidFuncCall must be SLTFuncPtr args ret, not " <> (show >>> T.pack) other
+
+    SLFuncRefCall   ref      args -> do
+      tfunc <- sleTypeOf (slRefToPtr ref)
+      targs <- sleTypeOf args
+      largs <- case targs of
+                 SLTStruct ts -> pure ts
+                 other        -> Left $ "Error! (type check of SLang): arg#1 of SLFuncRefCall must be SLTStruct ts, not " <> (show >>> T.pack) other
+      case tfunc of
+        SLTFuncPtr args' ret
+          | args' == largs -> pure ret
+          | otherwise      -> Left $ "Error! (type check of SLang): arg#1 of SLFuncRefCall does not match! expected:" <> (show >>> T.pack) (args') <> " actual:" <> (show >>> T.pack) (SLTStruct largs)
+        other              -> Left $ "Error! (type check of SLang): arg#0 of SLFuncRefCall must be SLTFuncPtr args ret, not " <> (show >>> T.pack) other
+
+    SLClosureCall   closure       ->
+      case sleTypeOf closure of
+        Right (SLTStruct (SLTFuncPtr args ret : args'))
+          | args == args' -> pure ret
+          | otherwise     -> Left $ "Error! (type check of SLang): arg#0 of SLClosureCall must be SLTStruct (SLTFuncPtr args ret : args), not " <> (show >>> T.pack) (SLTStruct (SLTFuncPtr args ret : args'))
+        Right other       -> Left $ "Error! (type check of SLang): arg#0 of SLClosureCall must be SLTStruct (SLTFuncPtr args ret : args), not " <> (show >>> T.pack) other
+        err               -> err
+
+sleTypeOf :: SLExp -> Either Text SLType
+sleTypeOf expr =
+  case expr of
+    SLEConst _          -> pure SLTInt
+    SLELocal t _        -> pure t
+    SLEArg t _          -> pure t
+    SLEPushCall call    -> slCallTypeOf call
+    SLEFuncPtr funcName -> pure (slFuncTypeOf funcName)
+    SLEPrim1 _ _        -> pure SLTInt
+    SLEPrim2 {}         -> pure SLTInt
+    SLEStructNil        -> pure (SLTStruct [])
+    SLEUnion t _        -> pure t
+    SLEPtrShift exp1 _  -> sleTypeOf exp1
+
+    SLEPtr p            ->
+      case p of
+        SLRefPtr t _   -> pure (SLTPtr t)
+        SLRefLocal t _ -> pure (SLTPtr t)
+
+    SLECast t exp1      ->
+      case sleTypeOf exp1 of
+        Right t'
+          | sltSizeOf t == sltSizeOf t' -> pure t
+          | otherwise                   -> Left $ "Error! (type check of SLang): arg#0 of SLECast must be the same size as arg#1, not " <> (show >>> T.pack) (sleSizeOf exp1) <> " and " <> (show >>> T.pack) (sltSizeOf t)
+        err                             -> err
+
+    SLEStructCons exp1 exp2 ->
+      case sleTypeOf exp2 of
+        Right (SLTStruct ts) -> ((: ts) >>> SLTStruct) <$> sleTypeOf exp1
+        Right other          -> Left $ "Error! (type check of SLang): arg#1 of SLEStructCons must be SLTStruct ts, not " <> (show >>> T.pack) other
+        err                  -> err
+
+    SLEDeRef exp1 ->
+      case sleTypeOf exp1 of
+        Right (SLTPtr t) -> pure t
+        Right other      -> Left $ "Error! (type check of SLang): arg#0 of SLEDeRef must be SLTPtr t, not " <> (show >>> T.pack) other
+        err              -> err
+
+    SLEStructGet exp1 i ->
+      case sleTypeOf exp1 of
+        Right (SLTStruct ts)
+          | 0 <= i && i < L.length ts -> pure (ts !! i)
+          | otherwise                -> Left $ "Error! (type check of SLang): arg#1 SLEStructGet of must be in [0, " <> (show >>> T.pack) (L.length ts) <> "), not " <> (show >>> T.pack) i
+        Right other -> Left $ "Error! (type check of SLang): arg#1 of SLEStructGet must be SLTStruct ts, not " <> (show >>> T.pack) other
+        err         -> err
+
+sltSizeOf :: SLType -> Int
+sltSizeOf t =
+  case t of
+    SLTUnit        -> 0
+    SLTInt         -> 1
+    SLTFuncPtr _ _ -> 1
+    SLTPtr _       -> 1
+    SLTStruct ts   -> L.sum     (sltSizeOf <$> ts)
+    SLTUnion  ts   -> L.maximum (sltSizeOf <$> ts)
+
+sleSizeOf :: SLExp -> Either Text Int
+sleSizeOf = sleTypeOf >>> fmap sltSizeOf
+
+slRefToPtr :: SLRef -> SLExp
 slRefToPtr ref =
   case ref of
-    SLRefLocal i -> SLELocal i
-    SLRefPtr   e -> e
+    SLRefLocal t i -> SLELocal t i
+    SLRefPtr   _ e -> e
+
+slStructConcat :: SLExp -> SLExp -> Either Text SLExp
+slStructConcat e1 e2 =
+  let isStruct :: SLType -> Bool
+      isStruct t = case t of
+        SLTStruct _ -> True
+        _ -> False
+      
+  in  do
+    t1 <- sleTypeOf e1
+    t2 <- sleTypeOf e2
+    if isStruct t1 && isStruct t2
+      then case (e1, e2) of
+            (SLEStructNil, _) -> pure e2
+            (_, SLEStructNil) -> pure e1
+            (SLEStructCons x xs, _) -> SLEStructCons x <$> slStructConcat xs e2
+            _ -> Left $ "slStructConcat: impossible (concatenating " <> (show >>> T.pack) e1 <> " and " <> (show >>> T.pack) e2 <> ")"
+
+      else Left $ "slStructConcat: both arguments must be struct (" <> (show >>> T.pack) e1 <> ", " <> (show >>> T.pack) e2 <> ")"
+
+-- >>> slStructConcat (SLEConst (SLVal 1) `SLEStructCons` (SLEConst (SLVal 2) `SLEStructCons` (SLEConst (SLVal 3) `SLEStructCons` SLEStructNil))) (SLEConst (SLVal 4) `SLEStructCons` (SLEConst (SLVal 5) `SLEStructCons` (SLEConst (SLVal 6) `SLEStructCons` SLEStructNil)))
+-- Right (1, 2, 3, 4, 5, 6)
+
+sleGetOffset :: SLExp -> Int -> Either Text Int
+sleGetOffset expr i =
+  case sleTypeOf expr of
+    Left err -> Left err
+    Right (SLTStruct ts) ->
+      if i < 0 || L.length ts <= i
+        then Left $ "Error! (type check of SLang): arg#1 of sleGetOffset must be in [0, " <> (show >>> T.pack) (L.length ts) <> "), not " <> (show >>> T.pack) i
+        else Right $ (fmap sltSizeOf >>> L.sum) (L.take i ts)
+    other -> Left $ "Error! (type check of SLang): arg#0 of sleGetOffset must be SLTStruct ts, not " <> (show >>> T.pack) other
 
 prettyPrintFuncName :: SLFuncName -> Text
 prettyPrintFuncName name =
@@ -250,59 +327,63 @@ prettyPrintFuncName name =
     SLFuncMain                       -> "#main"
     (SLUserFunc moduleName funcName) -> "#" <> moduleName <> "/" <> funcName
 
-prettyPrintSLRef :: forall t. SLRef t -> Text
+prettyPrintSLFuncSignature :: SLFuncSignature -> Text
+prettyPrintSLFuncSignature (SLFuncSignature name args ret) =
+  prettyPrintFuncName name <> " :: " <> "(" <> T.intercalate ", " ((show >>> T.pack) <$> args) <> ") -> " <> (show >>> T.pack) ret
+
+prettyPrintSLRef :: SLRef -> Text
 prettyPrintSLRef ref =
   case ref of
-    SLRefPtr expr -> "*" <> prettyPrintSLExp expr
-    SLRefLocal x -> "$L" <> pack (show x)
+    SLRefPtr _ expr -> "*" <> prettyPrintSLExp expr
+    SLRefLocal _ x -> "$L" <> pack (show x)
 
-prettyPrintSLCall :: forall t. SLCall t -> Text
+prettyPrintSLCall :: SLCall -> Text
 prettyPrintSLCall call =
   case call of
-    SLSolidFuncCall funcName args -> prettyPrintFuncName (unTypedSLFuncName funcName) <> prettyPrintSLExp args
-    SLFuncRefCall   ref      args -> prettyPrintSLRef    ref                          <> prettyPrintSLExp args
-    SLClosureCall   closure       -> prettyPrintSLExp    closure
+    SLSolidFuncCall funcSig  args -> prettyPrintFuncName (slfsName funcSig) <> prettyPrintSLExp args
+    SLFuncRefCall   ref      args -> prettyPrintSLRef    ref            <> prettyPrintSLExp args
+    SLClosureCall   closure       -> prettyPrintSLExp    closure <> "()"
 
-prettyPrintSLExp :: forall t. TypedSLExp t -> Text
+prettyPrintSLExp :: SLExp -> Text
 prettyPrintSLExp expr =
   case expr of
     SLEConst (SLVal x) -> pack (show x)
 
-    SLELocal x -> "$L" <> pack (show x)
+    SLELocal _ x -> "$L" <> pack (show x)
 
-    SLEArg x -> "$A" <> pack (show x)
-    
+    SLEArg _ x -> "$A" <> pack (show x)
+
     SLEPtr expr' -> "*" <> prettyPrintSLRef expr'
 
     SLEPushCall call -> prettyPrintSLCall call
-    
-    SLEFuncPtr funcName -> prettyPrintFuncName (unTypedSLFuncName funcName)
+
+    SLEFuncPtr funcSig -> prettyPrintFuncName (slfsName funcSig)
 
     SLEPrim1 prim exp1 ->
       let expText = prettyPrintSLExp exp1
           opText = case prim of
                       SLPrim1Inv   -> "!"
       in  opText <> expText
-    
+
     SLEPrim2 prim exp1 exp2 ->
       let exp1Text = prettyPrintSLExp exp1
           exp2Text = prettyPrintSLExp exp2
           opText = case prim of
-                      SLPrim2Add   -> "+" 
-                      SLPrim2Sub   -> "-" 
-                      SLPrim2Mult  -> "*" 
+                      SLPrim2Add   -> "+"
+                      SLPrim2Sub   -> "-"
+                      SLPrim2Mult  -> "*"
                       SLPrim2Shift -> "<<"
-                      SLPrim2And   -> "&" 
-                      SLPrim2Or    -> "|" 
-                      SLPrim2Xor   -> "^" 
-                      SLPrim2Gt    -> ">" 
-                      SLPrim2Lt    -> "<" 
+                      SLPrim2And   -> "&"
+                      SLPrim2Or    -> "|"
+                      SLPrim2Xor   -> "^"
+                      SLPrim2Gt    -> ">"
+                      SLPrim2Lt    -> "<"
                       SLPrim2Eq    -> "=="
       in "(" <> exp1Text <> " " <> opText <> " " <> exp2Text <> ")"
-    
+
     SLEStructNil -> "()"
     SLEStructCons e1 e2 ->
-      let go :: forall ts. TypedSLExp ('SLTStruct ts) -> Text
+      let go :: SLExp -> Text
           go exp =
             case exp of
               SLEStructNil -> ")"
@@ -315,8 +396,8 @@ prettyPrintSLExp expr =
                 in  exp1Text <> ", " <> exp2Text
               otherexp -> ", " <> prettyPrintSLExp otherexp <> ") [ERROR! this should not happen]"
       in "(" <> go (SLEStructCons e1 e2)
-    
-    SLEUnion exp -> prettyPrintSLExp exp
+
+    SLEUnion _ exp -> prettyPrintSLExp exp
 
     SLEDeRef exp -> "*" <> prettyPrintSLExp exp
 
@@ -325,14 +406,14 @@ prettyPrintSLExp expr =
           exp2Text = prettyPrintSLExp exp2
       in "(" <> exp1Text <> " + " <> exp2Text <> ")"
 
-    SLEStructGet exp p -> prettyPrintSLExp exp <> "." <> pack (show (natVal p))
+    SLEStructGet exp p -> prettyPrintSLExp exp <> "." <> pack (show p)
 
-    SLECast exp -> prettyPrintSLExp exp
+    SLECast _ exp -> prettyPrintSLExp exp
 
 prettyPrintSLStatement :: SLStatement -> Text
 prettyPrintSLStatement stmt =
   case stmt of
-    SLSInitVar varid exp -> "var " <> "$L" <> pack (show varid) <> " = " <> prettyPrintSLExp exp
+    SLSInitVar varid exp -> either (\err -> "[" <> err <> "]") prettyPrintSLType (sleTypeOf exp) <> " $L" <> pack (show varid) <> " = " <> prettyPrintSLExp exp
     SLSSubst ref exp -> prettyPrintSLRef ref <> " = " <> prettyPrintSLExp exp
     SLSReturn exp          -> "return "   <> prettyPrintSLExp exp
     SLSTailCallReturn call -> "tailcall " <> prettyPrintSLCall call
@@ -347,7 +428,7 @@ prettyPrintSLBlock indent block =
             V.singleton (indentText <> "{")
         <>  (prettyPrintSLBlock (indent + 1) =<< blocks)
         <>  V.singleton (indentText <> "}")
-      
+
       SLBCase cases elseBlock ->
             ((\(exp, body) ->
                 V.singleton (indentText <> "when " <> prettyPrintSLExp exp ) <>
@@ -357,7 +438,7 @@ prettyPrintSLBlock indent block =
                 prettyPrintSLBlock indent elseBlock
               )
         <>      V.singleton ""
-      
+
       SLBWhile cond body ->
           V.singleton (indentText <> "while " <> prettyPrintSLExp cond)
         <> prettyPrintSLBlock indent body
@@ -365,10 +446,10 @@ prettyPrintSLBlock indent block =
 
 prettyPrintSLProgram :: SLProgram -> Text
 prettyPrintSLProgram program =
-  T.intercalate "\n" $ 
-    (\(name, SLFuncBlock _ args block) -> 
-          ("\nfunction " 
+  T.intercalate "\n" $
+    (\(name, SLFuncBlock sig block) ->
+          ("\nfunction "
               <> prettyPrintFuncName name
-              <> "(" <> T.intercalate ", " ((\i -> "$A" <> pack (show i)) <$> [0 .. args]) <> ")")
+              <> "(" <> T.intercalate ", " ((\(t, i) -> pack (show t) <> " $A" <> pack (show i)) <$> L.zip (slfsArgs sig) [(0::Int)..]) <> ")" <> " -> " <> (show >>> T.pack) (slfsRet sig))
            : V.toList (prettyPrintSLBlock 0 block)
       ) =<< M.assocs program

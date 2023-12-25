@@ -25,9 +25,7 @@ import VectorBuilder.Builder as VB
 import VectorBuilder.Vector as VB
 import Data.Bitraversable (Bitraversable(bitraverse))
 import Control.Monad.Except
-import GHC.TypeNats
-import Data.Proxy
---import Debug.Trace
+import Data.Text as T
 
 -- 接頭辞 MLC: MachineLang.FromSimpleLang の内部でのみ利用する型
 
@@ -102,6 +100,15 @@ inPos pos (MonadMLCFunc v) = MonadMLCFunc (do
     pure x
   )
 
+outPos :: MonadMLCFunc x -> MonadMLCFunc x
+outPos (MonadMLCFunc v) = MonadMLCFunc (do
+    oldpos <- gets mmlcfsLineInfo
+    S.modify (\s -> s {mmlcfsLineInfo = popPos (mmlcfsLineInfo s)})
+    x <- v
+    S.modify (\s -> s {mmlcfsLineInfo = oldpos})
+    pure x
+  )
+
 stateWriteFromList :: [MLCInst] -> MonadMLCFunc ()
 stateWriteFromList v2 = MonadMLCFunc (do
     lineinfo <- gets mmlcfsLineInfo
@@ -133,12 +140,12 @@ getFlagmentSize = VB.size
 {-
 getLength :: MonadMLCFunc Int
 getLength = MonadMLCFunc (gets (mmlcfsFlagment >>> VB.size))
+-}
 
 poshere :: MonadMLCFunc SLPos
 poshere = MonadMLCFunc (gets mmlcfsLineInfo)
--}
 
-slReturnToMLC :: KnownSize t => TypedSLExp t -> MonadMLCFunc ()
+slReturnToMLC :: SLExp -> MonadMLCFunc ()
 slReturnToMLC expr = do
   slPushToMLC expr
   stateWriteFromList [
@@ -147,7 +154,8 @@ slReturnToMLC expr = do
       , MLILoad   MLCRegZ        MLCRegZ                 -- MLCRegZ ← 旧スタックポインタの中身(返り値アドレス)
     ]
 
-  Control.Monad.forM_ [0 .. (sleSizeOf expr - 1)] (\_ ->
+  exprsize <- liftTypeError $ sleSizeOf expr
+  Control.Monad.forM_ [0 .. (exprsize - 1)] (\_ ->
     stateWriteFromList [
         MLILoad   MLCRegY        MLCRegStackPtr          -- MLCRegY ← 返り値の中身
       , MLIStore  MLCRegY        MLCRegZ                 -- 返り値を入れる
@@ -199,21 +207,21 @@ pushCallToRegZSnippet argsize =
 
 
 
-slSolidCallToMLC ::  forall args ret. (KnownSizes args) => TypedSLFuncName args ret -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
-slSolidCallToMLC funcname args = do
+slSolidCallToMLC :: SLFuncSignature -> SLExp -> MonadMLCFunc ()
+slSolidCallToMLC funcsig args = do
   slPushToMLC args
 
-  let argsize = sleSizeOf args
+  argsize <- liftTypeError $ sleSizeOf args
 
   stateWriteFromList [
-      MLIConst MLCRegZ (MLCValJumpDestFunc (unTypedSLFuncName funcname))
+      MLIConst MLCRegZ (MLCValJumpDestFunc (slfsName funcsig))
     ]
 
   stateWriteFromList (pushCallToRegZSnippet argsize)
 
-slPtrCallToMLC ::  forall args ret. (KnownSizes args) => SLRef ('SLTFuncPtr args ret) -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
+slPtrCallToMLC :: SLRef -> SLExp -> MonadMLCFunc ()
 slPtrCallToMLC ref args = do
-  let argsize = sleSizeOf args
+  argsize <- liftTypeError $ sleSizeOf args
 
   slPushToMLC (slRefToPtr ref)
   slPushToMLC args
@@ -226,9 +234,10 @@ slPtrCallToMLC ref args = do
   stateWriteFromList (pushCallToRegZSnippet argsize)
 
 
-slClosureCallToMLC ::  forall args ret. (KnownSize ('SLTStruct ('SLTFuncPtr args ret ': args))) =>  TypedSLExp ('SLTStruct ('SLTFuncPtr args ret ': args)) -> MonadMLCFunc ()
+slClosureCallToMLC :: SLExp -> MonadMLCFunc ()
 slClosureCallToMLC cls = do
-  let argsize = sleSizeOf cls - 1
+  clssize <- liftTypeError $ sleSizeOf cls
+  let argsize = clssize - 1
 
   slPushToMLC cls
 
@@ -286,21 +295,21 @@ tailCallToRegWSnippet argsize =
     ]
 
 
-slSolidTailCallReturnToMLC :: forall args ret. (KnownSizes args) => TypedSLFuncName args ret -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
-slSolidTailCallReturnToMLC funcname args = do
+slSolidTailCallReturnToMLC :: SLFuncSignature -> SLExp -> MonadMLCFunc ()
+slSolidTailCallReturnToMLC funcsig args = do
   slPushToMLC args
 
-  let argsize = sleSizeOf args
+  argsize <- liftTypeError $ sleSizeOf args
 
   stateWriteFromList [
-      MLIConst MLCRegW (MLCValJumpDestFunc (unTypedSLFuncName funcname))
+      MLIConst MLCRegW (MLCValJumpDestFunc (slfsName funcsig))
     ]
 
   stateWriteFromList (tailCallToRegWSnippet argsize)
 
-slPtrTailCallReturnToMLC :: forall args ret. (KnownSizes args) => SLRef ('SLTFuncPtr args ret) -> TypedSLExp ('SLTStruct args) -> MonadMLCFunc ()
+slPtrTailCallReturnToMLC :: SLRef -> SLExp -> MonadMLCFunc ()
 slPtrTailCallReturnToMLC ref args = do
-  let argsize = sleSizeOf args
+  argsize <- liftTypeError $ sleSizeOf args
 
   slPushToMLC (slRefToPtr ref)
   slPushToMLC args
@@ -313,9 +322,11 @@ slPtrTailCallReturnToMLC ref args = do
   stateWriteFromList (tailCallToRegWSnippet argsize)
 
 
-slClosureTailCallReturnToMLC :: forall args ret. (KnownSize ('SLTStruct ('SLTFuncPtr args ret ': args))) => TypedSLExp ('SLTStruct ('SLTFuncPtr args ret ': args)) -> MonadMLCFunc ()
+slClosureTailCallReturnToMLC :: SLExp -> MonadMLCFunc ()
 slClosureTailCallReturnToMLC cls = do
-  let argsize = sleSizeOf cls - 1
+  clssize <- liftTypeError $ sleSizeOf cls
+  let argsize = clssize - 1
+
 
   slPushToMLC cls
 
@@ -328,8 +339,8 @@ slClosureTailCallReturnToMLC cls = do
   stateWriteFromList (tailCallToRegWSnippet argsize)
 
 
-slPushToMLC :: KnownSize t => TypedSLExp t -> MonadMLCFunc ()
-slPushToMLC expr = do
+slPushToMLC :: SLExp -> MonadMLCFunc ()
+slPushToMLC expr = inPos (SLLPExpr expr) $ do
   case expr of
     SLEConst (SLVal v) ->
       stateWriteFromList [
@@ -339,16 +350,16 @@ slPushToMLC expr = do
           , MLIStore  MLCRegY          MLCRegStackPtr
         ]
 
-    SLEFuncPtr fname ->
+    SLEFuncPtr fsig ->
       stateWriteFromList [
             MLIConst  MLCRegX         (MLCValConst 1)
           , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
-          , MLIConst  MLCRegY         (MLCValJumpDestFunc (unTypedSLFuncName fname))
+          , MLIConst  MLCRegY         (MLCValJumpDestFunc (slfsName fsig))
           , MLIStore  MLCRegY          MLCRegStackPtr
         ]
 
-    SLELocal v ->
-      Control.Monad.forM_ [0 .. (sleSizeOf expr - 1)] (\i ->
+    SLELocal t v ->
+      Control.Monad.forM_ [0 .. (sltSizeOf t - 1)] (\i ->
           stateWriteFromList [
                 MLIConst  MLCRegX         (MLCValConst  1)
               , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
@@ -359,8 +370,8 @@ slPushToMLC expr = do
             ]
         )
 
-    SLEArg a ->
-      Control.Monad.forM_ [0 .. (sleSizeOf expr - 1)] (\i ->
+    SLEArg t a ->
+      Control.Monad.forM_ [0 .. (sltSizeOf t - 1)] (\i ->
           stateWriteFromList [
                 MLIConst  MLCRegX         (MLCValConst 1)
               , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
@@ -375,8 +386,9 @@ slPushToMLC expr = do
         )
 
     SLEPushCall call -> do
+      exprsize <- liftTypeError $ sleSizeOf expr
       stateWriteFromList [
-            MLIConst  MLCRegX         (MLCValConst (sleSizeOf expr))
+            MLIConst  MLCRegX         (MLCValConst exprsize)
           , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
         ] -- 返り値のためにスタックを高くしておく
       case call of
@@ -390,12 +402,18 @@ slPushToMLC expr = do
 
 
     SLEStructNil       -> pure ()
-    SLEStructCons e es -> slPushToMLC e >> slPushToMLC es
+    SLEStructCons e es -> do
+      pos <- poshere
+      (case slpLocalPos pos of
+          _ : SLLPExpr (SLEStructCons _ _) : _ -> outPos
+          _ -> id
+        ) (slPushToMLC e >> slPushToMLC es)
 
-    SLEUnion     expr' -> do
-      slPushToMLC expr'
+    SLEUnion t inner -> do
+      innersize <- liftTypeError $ sleSizeOf inner
+      slPushToMLC inner
       stateWriteFromList [
-            MLIConst  MLCRegX         (MLCValConst (sleSizeOf expr - sleSizeOf expr'))
+            MLIConst  MLCRegX         (MLCValConst (sltSizeOf t - innersize))
           , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
         ]
 
@@ -410,7 +428,7 @@ slPushToMLC expr = do
 
     SLEPtr ref ->
       case ref of
-        SLRefLocal v ->
+        SLRefLocal _ v ->
           stateWriteFromList [
                 MLIConst  MLCRegX         (MLCValConst  1)
               , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
@@ -419,41 +437,48 @@ slPushToMLC expr = do
               , MLIStore  MLCRegX          MLCRegStackPtr
             ]
 
-        SLRefPtr ptr ->
+        SLRefPtr _ ptr ->
           slPushToMLC ptr
 
-    SLEPtrShift ptr shift -> slPrim2ToMLC SLPrim2Add ptr (SLECast shift)
+    SLEPtrShift ptr shift -> do
+      ptrtype <- liftTypeError $ sleTypeOf ptr
+      slPrim2ToMLC SLPrim2Add ptr (SLECast ptrtype shift)
 
-    SLEStructGet expr' p -> slStructGetToMLC expr' (sleSizeOf expr) p
+    SLEStructGet str p -> do
+      exprsize <- liftTypeError $ sleSizeOf expr
+      slStructGetToMLC str exprsize p
       
-    SLECast expr' -> slPushToMLC expr'
+    SLECast _ expr' -> slPushToMLC expr'
 
-slStructGetToMLC :: forall ts (i :: Nat). (KnownSizes ts, KnownOffset i ts) => TypedSLExp ('SLTStruct ts) -> Int -> Proxy i -> MonadMLCFunc ()
+slStructGetToMLC :: SLExp -> Int -> Int -> MonadMLCFunc ()
 slStructGetToMLC expr returnsize p =
-  let recHelper :: forall ts' i'. (KnownSizes ts') => Int -> TypedSLExp ('SLTStruct ts') -> Proxy i' -> MonadMLCFunc ()
+  let recHelper :: Int -> SLExp -> Int -> MonadMLCFunc ()
       recHelper offset expr' _ =
         case expr' of
-            SLEStructGet expr'' p' ->
-              recHelper (offset + sleGetOffset expr'' p') expr'' p'
+            SLEStructGet expr'' p' -> do
+              newoffset <- liftTypeError $ sleGetOffset expr'' p'
+              recHelper (offset + newoffset) expr'' p'
 
             _ -> slStructGetRawToMLC expr' returnsize offset
-  in recHelper (sleGetOffset expr p) expr p
+  in do
+    initialOffset <- liftTypeError $ sleGetOffset expr p
+    recHelper initialOffset expr p
 
 
-slStructGetRawToMLC :: (KnownSizes ts) => TypedSLExp ('SLTStruct ts) -> Int -> Int -> MonadMLCFunc ()
+slStructGetRawToMLC :: SLExp -> Int -> Int -> MonadMLCFunc ()
 slStructGetRawToMLC expr returnsize offset =
   let slegetRec expr' offset' = do
         case expr' of
             --SLEStructGet expr''' (Proxy :: Proxy j) -> slegetRec (offset + sleSizeOf expr''') expr'''
 
-            SLELocal v -> do
+            SLELocal _ v -> do
               stateWriteFromList [
                     MLIConst  MLCRegY         (MLCValConst (1 + v - 1))
                   , MLIAdd    MLCRegY          MLCRegY MLCRegFramePtr -- i番目のローカル変数は、フレームポインタ指し先 + i + 1 なので、その直前
                 ]
               copyStractValNextToRegYToStackTop offset'
             
-            SLEArg a -> do
+            SLEArg _ a -> do
               stateWriteFromList [
                     MLIConst  MLCRegX         (MLCValConst (-1))
                   , MLIAdd    MLCRegX          MLCRegX MLCRegFramePtr -- MLCRegX ← 旧スタックポインタ置き場のアドレス
@@ -465,9 +490,10 @@ slStructGetRawToMLC expr returnsize offset =
               
             _ -> do
               slPushToMLC expr'
+              exprsize' <- liftTypeError $ sleSizeOf expr'
 
               stateWriteFromList [
-                    MLIConst  MLCRegX         (MLCValConst (negate (sleSizeOf expr')))
+                    MLIConst  MLCRegX         (MLCValConst (negate exprsize'))
                   , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
                   , MLIAdd    MLCRegY          MLCRegStackPtr MLCRegX
                 ]
@@ -492,7 +518,7 @@ slStructGetRawToMLC expr returnsize offset =
           )
   in slegetRec expr offset
 
-slPrim1ToMLC :: (SLTSizeOf t ~ 1) => SLPrim1 -> TypedSLExp t ->MonadMLCFunc ()
+slPrim1ToMLC :: SLPrim1 -> SLExp ->MonadMLCFunc ()
 slPrim1ToMLC prim exp1 =
   let prim1helper inst = do
         stateWriteFromList [
@@ -504,7 +530,7 @@ slPrim1ToMLC prim exp1 =
   in case prim of
       SLPrim1Inv   -> slPushToMLC exp1 >> prim1helper MLIInv
 
-slPrim2ToMLC :: (SLTSizeOf t ~ 1) => SLPrim2 -> TypedSLExp t -> TypedSLExp t -> MonadMLCFunc ()
+slPrim2ToMLC :: SLPrim2 -> SLExp -> SLExp -> MonadMLCFunc ()
 slPrim2ToMLC prim exp1 exp2 =
   let prim2helper inst = do
         stateWriteFromList [
@@ -560,10 +586,11 @@ slPopnToMLC n = do
     ]
 
 
-slSubstVarToMLC :: forall t. (KnownSize t) => Int -> TypedSLExp t -> MonadMLCFunc ()
+slSubstVarToMLC :: Int -> SLExp -> MonadMLCFunc ()
 slSubstVarToMLC var expr = do
   slPushToMLC expr
-  Control.Monad.forM_ (L.reverse [0..(sleSizeOf expr - 1)]) (\i ->
+  exprsize <- liftTypeError $ sleSizeOf expr
+  Control.Monad.forM_ (L.reverse [0..(exprsize - 1)]) (\i ->
       stateWriteFromList [
             MLILoad   MLCRegY          MLCRegStackPtr
           , MLIConst  MLCRegX         (MLCValConst (-1))
@@ -574,7 +601,7 @@ slSubstVarToMLC var expr = do
         ]
     )
 
-slSubstPtrToMLC :: forall t. (KnownSize t) => TypedSLExp ('SLTPtr t) -> TypedSLExp t -> MonadMLCFunc ()
+slSubstPtrToMLC :: SLExp -> SLExp -> MonadMLCFunc ()
 slSubstPtrToMLC ptr expr = do
   slPushToMLC expr -- -> RegY
   slPushToMLC ptr  -- -> RegZ
@@ -583,7 +610,8 @@ slSubstPtrToMLC ptr expr = do
       , MLIConst  MLCRegX         (MLCValConst (-1))
       , MLIAdd    MLCRegStackPtr   MLCRegStackPtr MLCRegX
     ]
-  Control.Monad.forM_ (L.reverse [0..(sleSizeOf expr - 1)]) (\i ->
+  exprsize <- liftTypeError $ sleSizeOf expr
+  Control.Monad.forM_ (L.reverse [0..(exprsize - 1)]) (\i ->
     stateWriteFromList [
               MLILoad   MLCRegY          MLCRegStackPtr
             , MLIConst  MLCRegX         (MLCValConst (-1))
@@ -609,11 +637,14 @@ slSingleToMLC statement =
   case statement of
     --SLSPrimPush exp -> slPushToMLC exp
     --SLSPrimPop      -> slPopToMLC
-    SLSInitVar _ expr -> slPushToMLC expr >> mlcInternalShiftVarCnt (sleSizeOf expr)
+    SLSInitVar _ expr -> do
+      exprsize <- liftTypeError $ sleSizeOf expr
+      --trace ("SLSInitVar: " <> show t <> " " <> show exprsize <> " " <> show expr) $ pure ()
+      slPushToMLC expr >> mlcInternalShiftVarCnt exprsize
     SLSSubst ref expr ->
       case ref of
-        SLRefPtr   ptr -> slSubstPtrToMLC ptr expr
-        SLRefLocal var -> slSubstVarToMLC var expr
+        SLRefPtr   _ ptr -> slSubstPtrToMLC ptr expr
+        SLRefLocal _ var -> slSubstVarToMLC var expr
     SLSReturn expr  -> slReturnToMLC expr
     SLSTailCallReturn call ->
       case call of
@@ -630,7 +661,7 @@ slMultiToMLC blocks = do
       )
 
 
-slWhileToMLC :: TypedSLExp 'SLTInt -> SLBlock -> MonadMLCFunc ()
+slWhileToMLC :: SLExp -> SLBlock -> MonadMLCFunc ()
 slWhileToMLC cond block = do
   body <- clipBlockFlagment $ mlcVarScope $ inPos SLLPWhileBody $ slBlockToMLC block
   let bodysize = getFlagmentSize body
@@ -658,7 +689,7 @@ slWhileToMLC cond block = do
 
   stateWriteFromFlagment header >> stateWriteFromFlagment body >> stateWriteFromFlagment footer
 
-slCaseToMLC :: V.Vector (TypedSLExp 'SLTInt, SLBlock) -> SLBlock -> MonadMLCFunc ()
+slCaseToMLC :: V.Vector (SLExp, SLBlock) -> SLBlock -> MonadMLCFunc ()
 slCaseToMLC cases defaultBlock = do
   elseflagment <- clipBlockFlagment $ mlcVarScope $ inPos SLLPCaseElseBody (slBlockToMLC defaultBlock)
   stateWriteFromFlagment =<< V.ifoldM (\code i (cond, block)-> do
@@ -719,13 +750,19 @@ data MLCError =
         MLCENoMain
       | MLCNoSuchFunc SLFuncName SLPos
       | MLCCannotSubstToArg SLPos
+      | MLCTypeError Text SLPos
       deriving stock (Show, Eq)
+
+throwTypeError :: Text -> MonadMLCFunc a
+throwTypeError msg = MonadMLCFunc (S.gets mmlcfsLineInfo) >>= \pos -> MonadMLCFunc (throwError (MLCTypeError msg pos))
+
+liftTypeError :: Either Text a -> MonadMLCFunc a
+liftTypeError = either throwTypeError pure
 
 compileSLFunc :: SLFuncBlock -> Either MLCError MLCFlagment
 compileSLFunc slfunc =
-  execMonadMLCFunc (slBlockToMLC (slfBlock slfunc) >> inPos SLLPForceReturn (slReturnToMLC (SLEConst (SLVal 0)))) (SLPos (slfName slfunc) [])
+  execMonadMLCFunc (slBlockToMLC (slfBlock slfunc) >> inPos SLLPForceReturn (slReturnToMLC (SLEConst (SLVal 0)))) (SLPos (slfsName (slfSignature slfunc)) [])
 
-{- SLLPForceReturnのところで 'SLTInt を返してはいるが、値が返った先でのサイズは呼出直前のスタックポインタで決まっているため、問題ない -}
 
 
 interpretReg :: MLCReg -> MLReg
@@ -750,7 +787,7 @@ compileSLProgram program =
       initcode <- execMonadMLCFunc initializer (SLPos SLFuncMain [])
       (mlccode, mlcfuncmap) <- Control.Monad.foldM (\(code, funcmap) slfunc -> do
               code' <- compileSLFunc slfunc
-              pure (code <> code' , M.insert (slfName slfunc) (VB.size code) funcmap)
+              pure (code <> code' , M.insert (slfsName (slfSignature slfunc)) (VB.size code) funcmap)
             ) (initcode, M.empty) (fmain : (M.toList >>> fmap snd) (M.delete SLFuncMain program))
 
       V.mapM (\(inst :: MLCInst, pos) ->
@@ -758,7 +795,7 @@ compileSLProgram program =
             bitraverse (pure <<< interpretReg) (\case
                   MLCValConst v            -> pure $ MLVal v
                   MLCValJumpDestLocal v    -> pure $ MLVal v
-                  MLCValJumpDestFunc fname -> maybe (Left (MLCNoSuchFunc fname pos)) (MLVal >>> Right) (M.lookup fname mlcfuncmap)
+                  MLCValJumpDestFunc fname -> maybe (Left (MLCNoSuchFunc fname   pos)) (MLVal >>> Right) (M.lookup fname mlcfuncmap)
                   MLCValJumpDestEnd        -> pure $ MLVal (VB.size mlccode)
                 ) inst
             ) (VB.build (mlccode <> VB.singleton (MLINop, SLPos SLFuncMain [])))
