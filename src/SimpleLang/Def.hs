@@ -29,6 +29,7 @@ module SimpleLang.Def (
     , SLFuncBlock (..)
     , SLProgram
     , SLType (..)
+    , SLTypeError (..)
     , sleTypeOf
     , sleSizeOf
     , sltSizeOf
@@ -41,6 +42,7 @@ module SimpleLang.Def (
     , prettyPrintSLStatement
     , prettyPrintSLBlock
     , prettyPrintSLProgram
+    , prettyPrintSLTypeError
   ) where
 
 import Data.Vector as V
@@ -184,12 +186,69 @@ instance Show SLFuncSignature where
 type SLProgram =
         M.Map SLFuncName SLFuncBlock
 
+data SLTypeError =
+    SLTESolidFuncCall1ArgMustBeStruct SLCall
+  | SLTESolidFuncCall1ArgMismatch     SLCall SLType SLType
+  | SLTEFuncRefCall0NotFuncPtr        SLCall SLType
+  | SLTEFuncRefCall1ArgMustBeStruct   SLCall
+  | SLTEFuncRefCall1ArgMismatch       SLCall SLType SLType
+  | SLTEClosureCall0MustBeStruct      SLCall
+  | SLTEClosureCall0TypeMismatch      SLCall SLType SLType
+  | SLTECast1SizeMismatch             SLType SLType
+  | SLTEDeRef0MustBePtr               SLExp
+  | SLTEPtrShift0MustBePtr            SLExp
+  | SLTEPtrShift1MustBeInt            SLExp
+  | SLTEStructGet0MustBeStruct        SLExp
+  | SLTEStructGet1OutOfRange          SLExp Int
+  | SLTEStructCons0MustBeStruct       SLExp
+  | SLTEStructCons1MustBeStruct       SLExp
+  | SLTEgetOffset1OutOfRange          SLExp Int
+
+instance Show SLTypeError where
+  show = T.unpack . prettyPrintSLTypeError
+
+prettyPrintSLTypeError :: SLTypeError -> Text
+prettyPrintSLTypeError err =
+  case err of
+    SLTESolidFuncCall1ArgMustBeStruct call ->
+      "Error! (type check of SLang): arg#1 of SLSolidFuncCall must be SLTStruct ts, not " <> (show >>> T.pack) call
+    SLTESolidFuncCall1ArgMismatch call expected actual ->
+      "Error! (type check of SLang): arg#1 of SLSolidFuncCall does not match! expected:" <> (show >>> T.pack) expected <> " actual:" <> (show >>> T.pack) actual <> " in " <> (show >>> T.pack) call
+    SLTEFuncRefCall0NotFuncPtr call actual ->
+      "Error! (type check of SLang): arg#0 of SLFuncRefCall must be SLTFuncPtr args ret, not " <> (show >>> T.pack) actual <> " in " <> (show >>> T.pack) call
+    SLTEFuncRefCall1ArgMustBeStruct call ->
+      "Error! (type check of SLang): arg#1 of SLFuncRefCall must be SLTStruct ts, not " <> (show >>> T.pack) call
+    SLTEFuncRefCall1ArgMismatch call expected actual ->
+      "Error! (type check of SLang): arg#1 of SLFuncRefCall does not match! expected:" <> (show >>> T.pack) expected <> " actual:" <> (show >>> T.pack) actual <> " in " <> (show >>> T.pack) call
+    SLTEClosureCall0MustBeStruct call ->
+      "Error! (type check of SLang): arg#0 of SLClosureCall must be SLTStruct (SLTFuncPtr args ret : args), not " <> (show >>> T.pack) call
+    SLTEClosureCall0TypeMismatch call expected actual ->
+      "Error! (type check of SLang): arg#0 of SLClosureCall does not match! expected:" <> (show >>> T.pack) expected <> " actual:" <> (show >>> T.pack) actual <> " in " <> (show >>> T.pack) call
+    SLTECast1SizeMismatch expected actual ->
+      "Error! (type check of SLang): arg#1 of SLECast must be the same size as arg#0, not " <> (show >>> T.pack) expected <> " and " <> (show >>> T.pack) actual
+    SLTEDeRef0MustBePtr exp ->
+      "Error! (type check of SLang): arg#0 of SLEDeRef must be SLTPtr t, not " <> (show >>> T.pack) exp
+    SLTEPtrShift0MustBePtr exp ->
+      "Error! (type check of SLang): arg#0 of SLEPtrShift must be SLTPtr t, not " <> (show >>> T.pack) exp
+    SLTEPtrShift1MustBeInt exp ->
+      "Error! (type check of SLang): arg#1 of SLEPtrShift must be SLTInt, not " <> (show >>> T.pack) exp
+    SLTEStructGet0MustBeStruct exp ->
+      "Error! (type check of SLang): arg#0 of SLEStructGet must be SLTStruct ts, not " <> (show >>> T.pack) exp
+    SLTEStructGet1OutOfRange exp i ->
+      "Error! (type check of SLang): arg#1 SLEStructGet of must be in [0, " <> (show >>> T.pack) i <> "), not " <> (show >>> T.pack) exp
+    SLTEStructCons0MustBeStruct exp ->
+      "Error! (type check of SLang): arg#0 of SLEStructCons must be SLTStruct ts, not " <> (show >>> T.pack) exp
+    SLTEStructCons1MustBeStruct exp ->
+      "Error! (type check of SLang): arg#1 of SLEStructCons must be SLTStruct ts, not " <> (show >>> T.pack) exp
+    SLTEgetOffset1OutOfRange exp i -> 
+      "Error! (type check of SLang): arg#1 of sleGetOffset must be in [0, " <> (show >>> T.pack) i <> "), not " <> (show >>> T.pack) exp
+
 slFuncTypeOf :: SLFuncSignature -> SLType
 slFuncTypeOf funcName =
   case funcName of
     SLFuncSignature _ args ret -> SLTFuncPtr args ret
 
-slCallTypeOf :: SLCall -> Either Text SLType
+slCallTypeOf :: SLCall -> Either SLTypeError SLType
 slCallTypeOf call =
   case call of
     SLSolidFuncCall funcName args -> do
@@ -197,34 +256,34 @@ slCallTypeOf call =
       targs <- sleTypeOf args
       largs <- case targs of
                  SLTStruct ts -> pure ts
-                 other        -> Left $ "Error! (type check of SLang): arg#1 of SLSolidFuncCall must be SLTStruct ts, not " <> (show >>> T.pack) other
+                 other        -> Left $ SLTESolidFuncCall1ArgMustBeStruct call
       case tfunc of
         SLTFuncPtr args' ret
           | args' == largs -> pure ret
-          | otherwise      -> Left $ "Error! (type check of SLang): arg#1 of SLSolidFuncCall does not match! expected:" <> (show >>> T.pack) (args') <> " actual:" <> (show >>> T.pack) (SLTStruct largs)
-        other              -> Left $ "Error! (type check of SLang): arg#0 of SLSolidFuncCall must be SLTFuncPtr args ret, not " <> (show >>> T.pack) other
-
+          | otherwise      -> Left $ SLTESolidFuncCall1ArgMismatch call (SLTStruct args') (SLTStruct largs)
+        other              -> Left $ SLTESolidFuncCall1ArgMismatch call (SLTStruct []) other
+    
     SLFuncRefCall   ref      args -> do
       tfunc <- sleTypeOf (slRefToPtr ref)
       targs <- sleTypeOf args
       largs <- case targs of
                  SLTStruct ts -> pure ts
-                 other        -> Left $ "Error! (type check of SLang): arg#1 of SLFuncRefCall must be SLTStruct ts, not " <> (show >>> T.pack) other
+                 other        -> Left $ SLTEFuncRefCall1ArgMustBeStruct call
       case tfunc of
         SLTFuncPtr args' ret
           | args' == largs -> pure ret
-          | otherwise      -> Left $ "Error! (type check of SLang): arg#1 of SLFuncRefCall does not match! expected:" <> (show >>> T.pack) (args') <> " actual:" <> (show >>> T.pack) (SLTStruct largs)
-        other              -> Left $ "Error! (type check of SLang): arg#0 of SLFuncRefCall must be SLTFuncPtr args ret, not " <> (show >>> T.pack) other
+          | otherwise      -> Left $ SLTEFuncRefCall1ArgMismatch call (SLTStruct args') (SLTStruct largs)
+        other              -> Left $ SLTEFuncRefCall0NotFuncPtr call other
 
     SLClosureCall   closure       ->
       case sleTypeOf closure of
         Right (SLTStruct (SLTFuncPtr args ret : args'))
           | args == args' -> pure ret
-          | otherwise     -> Left $ "Error! (type check of SLang): arg#0 of SLClosureCall must be SLTStruct (SLTFuncPtr args ret : args), not " <> (show >>> T.pack) (SLTStruct (SLTFuncPtr args ret : args'))
-        Right other       -> Left $ "Error! (type check of SLang): arg#0 of SLClosureCall must be SLTStruct (SLTFuncPtr args ret : args), not " <> (show >>> T.pack) other
+          | otherwise     -> Left $ SLTEClosureCall0TypeMismatch call (SLTStruct args) (SLTStruct args')
+        Right other       -> Left $ SLTEClosureCall0MustBeStruct call
         err               -> err
 
-sleTypeOf :: SLExp -> Either Text SLType
+sleTypeOf :: SLExp -> Either SLTypeError SLType
 sleTypeOf expr =
   case expr of
     SLEConst _          -> pure SLTInt
@@ -247,27 +306,27 @@ sleTypeOf expr =
       case sleTypeOf exp1 of
         Right t'
           | sltSizeOf t == sltSizeOf t' -> pure t
-          | otherwise                   -> Left $ "Error! (type check of SLang): arg#0 of SLECast must be the same size as arg#1, not " <> (show >>> T.pack) (sleSizeOf exp1) <> " and " <> (show >>> T.pack) (sltSizeOf t)
+          | otherwise                   -> Left $ SLTECast1SizeMismatch t t'
         err                             -> err
 
     SLEStructCons exp1 exp2 ->
       case sleTypeOf exp2 of
         Right (SLTStruct ts) -> ((: ts) >>> SLTStruct) <$> sleTypeOf exp1
-        Right other          -> Left $ "Error! (type check of SLang): arg#1 of SLEStructCons must be SLTStruct ts, not " <> (show >>> T.pack) other
+        Right other          -> Left $ SLTEStructCons1MustBeStruct exp2
         err                  -> err
 
     SLEDeRef exp1 ->
       case sleTypeOf exp1 of
         Right (SLTPtr t) -> pure t
-        Right other      -> Left $ "Error! (type check of SLang): arg#0 of SLEDeRef must be SLTPtr t, not " <> (show >>> T.pack) other
+        Right other      -> Left $ SLTEDeRef0MustBePtr exp1
         err              -> err
 
     SLEStructGet exp1 i ->
       case sleTypeOf exp1 of
         Right (SLTStruct ts)
           | 0 <= i && i < L.length ts -> pure (ts !! i)
-          | otherwise                -> Left $ "Error! (type check of SLang): arg#1 SLEStructGet of must be in [0, " <> (show >>> T.pack) (L.length ts) <> "), not " <> (show >>> T.pack) i
-        Right other -> Left $ "Error! (type check of SLang): arg#1 of SLEStructGet must be SLTStruct ts, not " <> (show >>> T.pack) other
+          | otherwise                -> Left $ SLTEStructGet1OutOfRange exp1 i
+        Right other -> Left $ SLTEStructGet0MustBeStruct exp1
         err         -> err
 
 sltSizeOf :: SLType -> Int
@@ -280,7 +339,7 @@ sltSizeOf t =
     SLTStruct ts   -> L.sum     (sltSizeOf <$> ts)
     SLTUnion  ts   -> L.maximum (sltSizeOf <$> ts)
 
-sleSizeOf :: SLExp -> Either Text Int
+sleSizeOf :: SLExp -> Either SLTypeError Int
 sleSizeOf = sleTypeOf >>> fmap sltSizeOf
 
 slRefToPtr :: SLRef -> SLExp
@@ -289,37 +348,36 @@ slRefToPtr ref =
     SLRefLocal t i -> SLELocal t i
     SLRefPtr   _ e -> e
 
-slStructConcat :: SLExp -> SLExp -> Either Text SLExp
+slStructConcat :: SLExp -> SLExp -> Either SLTypeError SLExp
 slStructConcat e1 e2 =
-  let isStruct :: SLType -> Bool
-      isStruct t = case t of
-        SLTStruct _ -> True
+  let isStruct :: SLExp -> Bool
+      isStruct e = case e of
+        SLEStructNil -> True
+        SLEStructCons _ _ -> True
         _ -> False
       
   in  do
-    t1 <- sleTypeOf e1
-    t2 <- sleTypeOf e2
-    if isStruct t1 && isStruct t2
+    if isStruct e1 && isStruct e2
       then case (e1, e2) of
             (SLEStructNil, _) -> pure e2
             (_, SLEStructNil) -> pure e1
             (SLEStructCons x xs, _) -> SLEStructCons x <$> slStructConcat xs e2
-            _ -> Left $ "slStructConcat: impossible (concatenating " <> (show >>> T.pack) e1 <> " and " <> (show >>> T.pack) e2 <> ")"
+            _ -> Left $ SLTEStructCons0MustBeStruct e1
 
-      else Left $ "slStructConcat: both arguments must be struct (" <> (show >>> T.pack) e1 <> ", " <> (show >>> T.pack) e2 <> ")"
+      else Left $ SLTEStructCons0MustBeStruct e1
 
 -- >>> slStructConcat (SLEConst (SLVal 1) `SLEStructCons` (SLEConst (SLVal 2) `SLEStructCons` (SLEConst (SLVal 3) `SLEStructCons` SLEStructNil))) (SLEConst (SLVal 4) `SLEStructCons` (SLEConst (SLVal 5) `SLEStructCons` (SLEConst (SLVal 6) `SLEStructCons` SLEStructNil)))
 -- Right (1, 2, 3, 4, 5, 6)
 
-sleGetOffset :: SLExp -> Int -> Either Text Int
+sleGetOffset :: SLExp -> Int -> Either SLTypeError Int
 sleGetOffset expr i =
   case sleTypeOf expr of
     Left err -> Left err
     Right (SLTStruct ts) ->
       if i < 0 || L.length ts <= i
-        then Left $ "Error! (type check of SLang): arg#1 of sleGetOffset must be in [0, " <> (show >>> T.pack) (L.length ts) <> "), not " <> (show >>> T.pack) i
+        then Left $ SLTEgetOffset1OutOfRange expr i
         else Right $ (fmap sltSizeOf >>> L.sum) (L.take i ts)
-    other -> Left $ "Error! (type check of SLang): arg#0 of sleGetOffset must be SLTStruct ts, not " <> (show >>> T.pack) other
+    other -> Left $ SLTEgetOffset1OutOfRange expr i
 
 prettyPrintFuncName :: SLFuncName -> Text
 prettyPrintFuncName name =
@@ -413,7 +471,7 @@ prettyPrintSLExp expr =
 prettyPrintSLStatement :: SLStatement -> Text
 prettyPrintSLStatement stmt =
   case stmt of
-    SLSInitVar varid exp -> either (\err -> "[" <> err <> "]") prettyPrintSLType (sleTypeOf exp) <> " $L" <> pack (show varid) <> " = " <> prettyPrintSLExp exp
+    SLSInitVar varid exp -> either (\err -> "[" <> prettyPrintSLTypeError err <> "]") prettyPrintSLType (sleTypeOf exp) <> " $L" <> pack (show varid) <> " = " <> prettyPrintSLExp exp
     SLSSubst ref exp -> prettyPrintSLRef ref <> " = " <> prettyPrintSLExp exp
     SLSReturn exp          -> "return "   <> prettyPrintSLExp exp
     SLSTailCallReturn call -> "tailcall " <> prettyPrintSLCall call

@@ -480,7 +480,7 @@ flcCompileProgram program =
 
       remainingArgs :: SLExp -> Either Text [SLType]
       remainingArgs expr = do
-        t <- sleTypeOf expr
+        t <- first prettyPrintSLTypeError $ sleTypeOf expr
         case t of
           SLTStruct (SLTFuncPtr args _ : given) ->
             foldM (\acc g -> do
@@ -492,7 +492,7 @@ flcCompileProgram program =
 
       tryEval :: SLExp -> Either Text SLExp
       tryEval expr = do
-        t <- sleTypeOf expr
+        t <- first prettyPrintSLTypeError $ sleTypeOf expr
         case t of
           SLTStruct (SLTFuncPtr args ret : given) -> do
             rema <- remainingArgs expr
@@ -503,7 +503,7 @@ flcCompileProgram program =
 
       fptrToClosure :: SLExp -> Either Text SLExp
       fptrToClosure expr = do
-        t <- sleTypeOf expr
+        t <- first prettyPrintSLTypeError $ sleTypeOf expr
         case t of
           SLTFuncPtr _ _ -> pure (expr `SLEStructCons` SLEStructNil)
           _ -> pure expr

@@ -753,10 +753,10 @@ data MLCError =
       | MLCTypeError Text SLPos
       deriving stock (Show, Eq)
 
-throwTypeError :: Text -> MonadMLCFunc a
-throwTypeError msg = MonadMLCFunc (S.gets mmlcfsLineInfo) >>= \pos -> MonadMLCFunc (throwError (MLCTypeError msg pos))
+throwTypeError :: SLTypeError -> MonadMLCFunc a
+throwTypeError msg = MonadMLCFunc (S.gets mmlcfsLineInfo) >>= \pos -> MonadMLCFunc (throwError (MLCTypeError (prettyPrintSLTypeError msg) pos))
 
-liftTypeError :: Either Text a -> MonadMLCFunc a
+liftTypeError :: Either SLTypeError a -> MonadMLCFunc a
 liftTypeError = either throwTypeError pure
 
 compileSLFunc :: SLFuncBlock -> Either MLCError MLCFlagment
