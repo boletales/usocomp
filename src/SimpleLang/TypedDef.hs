@@ -39,7 +39,7 @@ module SimpleLang.TypedDef (
   , sltSizeOf
   , sleGetOffset
   , slRefToPtr
-  , prettyPrintFuncName
+  , prettyPrintSLFuncName
   , prettyPrintSLExp
   , prettyPrintSLRef
   , prettyPrintSLStatement
