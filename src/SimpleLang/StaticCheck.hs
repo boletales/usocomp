@@ -5,6 +5,7 @@ module SimpleLang.StaticCheck (
   , slscCheck
   , slscegetPos
   , slsceMessage
+  , prettyPrintSLSCError
 ) where
 
 import SimpleLang.Def
@@ -46,6 +47,9 @@ data SLSCError =
   | SLSCWrongTypeForCond SLType SLPos
   | SLSCWrongLocalArgAddr Text SLPos
 
+instance Show SLSCError where
+  show err = T.unpack $ slsceMessage err <> " at " <> prettyPrintSLPos (slscegetPos err)
+
 slscegetPos :: SLSCError -> SLPos
 slscegetPos e = case e of
   SLSCTypeError _ pos -> pos
@@ -83,6 +87,12 @@ slsceMessage err = case err of
   SLSCArgumentMismatch name t1 t2 _ -> "Wrong argument type: " <> name <> " expected " <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
   SLSCWrongTypeForCond t _ -> "Wrong type for condition: expected " <> prettyPrintSLType SLTInt <> " but got " <> prettyPrintSLType t
   SLSCWrongLocalArgAddr name _ -> "Wrong local argument address: " <> name
+
+prettyPrintSLSCError :: SLSCError -> Text
+prettyPrintSLSCError err =
+  let pos = slscegetPos err
+      msg = slsceMessage err
+  in prettyPrintSLPos pos <> ": " <> msg
 
 data SLSCState = SLSCState {
       slscsVars  :: Map Int SLType
@@ -202,9 +212,8 @@ checkStmt stmt = case stmt of
     t <- checkExpr exp
     vars <- gets slscsVars
     scnt <- gets stackCount
-    let i' = scnt + sltSizeOf t
-    when (i /= i') $ throwSLSCError $ SLSCWrongLocalArgAddr (prettyPrintSLStatement stmt)
-    S.modify (\s -> s {slscsVars = M.insert i t vars, stackCount = i'})
+    when (i /= scnt) $ throwSLSCError $ SLSCWrongLocalArgAddr (prettyPrintSLStatement stmt)
+    S.modify (\s -> s {slscsVars = M.insert i t vars, stackCount = scnt + sltSizeOf t})
 
 checkExpr :: SLExp -> MonadSLSC SLType
 checkExpr exp = inPos (SLLPExpr exp) $ case exp of

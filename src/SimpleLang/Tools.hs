@@ -7,6 +7,7 @@ module SimpleLang.Tools (
   , pushPos
   , popPos
   , slPosAbbrText
+  , prettyPrintSLPos
   ) where
 
 import SimpleLang.Def
@@ -45,6 +46,11 @@ data SLPos = SLPos {
     slpFuncName :: SLFuncName
   , slpLocalPos :: [SLLocalPos]
  } deriving (Show, Eq, Ord)
+
+prettyPrintSLPos :: SLPos -> Text
+prettyPrintSLPos pos =
+  let SLPos f xs = pos
+  in prettyPrintSLFuncName f <> intercalate "" (Prelude.map prettyPrintSLLocalPos (Prelude.reverse xs))
 
 pushPos :: SLLocalPos -> SLPos -> SLPos
 pushPos x (SLPos f xs) = SLPos f (x:xs)
