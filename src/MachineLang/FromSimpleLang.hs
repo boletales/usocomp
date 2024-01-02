@@ -449,7 +449,7 @@ slPushToMLC expr = inPos (SLLPExpr expr) $ do
         ]
 
 
-    SLEDeRef ptr -> do
+    SLEIndirection ptr -> do
       slPushToMLC ptr
       stateWriteFromList [
             MLILoad   MLCRegX          MLCRegStackPtr
@@ -457,7 +457,7 @@ slPushToMLC expr = inPos (SLLPExpr expr) $ do
           , MLIStore  MLCRegX          MLCRegStackPtr
         ] -- expr'の評価先を再利用
 
-    SLEPtr ref ->
+    SLEAddrOf ref ->
       case ref of
         SLRefLocal _ vname -> do
           v <- getVarAddr vname

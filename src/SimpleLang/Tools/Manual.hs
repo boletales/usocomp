@@ -117,7 +117,7 @@ _reflocal :: KnownType t => SLMVar t -> TypedSLRef t
 _reflocal = unSLMVar >>> TSLRefLocal
 
 _ptr :: KnownType t => TypedSLRef t -> TypedSLExp ('SLTPtr t)
-_ptr = TSLEPtr
+_ptr = TSLEAddrOf
 
 _refptr :: KnownType t => TypedSLExp ('SLTPtr t) -> TypedSLRef t
 _refptr = TSLRefPtr

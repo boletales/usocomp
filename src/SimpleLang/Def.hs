@@ -4,7 +4,6 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
@@ -64,9 +63,9 @@ import qualified Data.List as L
   包含関係にないスコープ間では変数の番号が一意ではありません。
 -}
 
+-- | SimpleLangの型
 data SLType =
-      SLTUnit
-    | SLTInt
+      SLTInt
     | SLTFuncPtr [SLType] SLType
     | SLTPtr SLType
     | SLTStruct [SLType]
@@ -79,12 +78,11 @@ instance Show SLType where
 prettyPrintSLType :: SLType -> Text
 prettyPrintSLType t =
   case t of
-    SLTUnit        -> "unit"
     SLTInt         -> "int"
     SLTFuncPtr args ret -> "(" <> T.intercalate ", " ((show >>> T.pack) <$> args) <> ") -> " <> (show >>> T.pack) ret
     SLTPtr t'      -> "*" <> prettyPrintSLType t'
     SLTStruct ts   -> "(" <> T.intercalate ", " (prettyPrintSLType <$> ts) <> ")"
-    SLTUnion  ts   -> "(" <> T.intercalate " | " (prettyPrintSLType <$> ts) <> ")"
+    SLTUnion  ts   -> "[" <> T.intercalate " | " (prettyPrintSLType <$> ts) <> "]"
 
 newtype SLAddr = SLAddr Int deriving (Show, Eq, Ord)
 newtype SLVal  = SLVal  Int deriving (Show, Eq, Ord)
@@ -118,7 +116,7 @@ data SLExp =
       SLEConst      SLVal
     | SLELocal      SLType Text
     | SLEArg        SLType Text
-    | SLEPtr        SLRef
+    | SLEAddrOf        SLRef
     | SLEPushCall   SLCall
     | SLEFuncPtr    SLFuncSignature
     | SLEPrim1      SLPrim1 SLExp
@@ -126,7 +124,7 @@ data SLExp =
     | SLEStructNil
     | SLEStructCons SLExp  SLExp
     | SLEUnion      SLType SLExp
-    | SLEDeRef      SLExp
+    | SLEIndirection      SLExp
     | SLEPtrShift   SLExp  SLExp
     | SLEStructGet  SLExp  Int
     | SLECast       SLType SLExp
@@ -231,7 +229,7 @@ prettyPrintSLTypeError err =
     SLTECast1SizeMismatch expected actual ->
       "Error! (type check of SLang): arg#1 of SLECast must be the same size as arg#0, not " <> (show >>> T.pack) expected <> " and " <> (show >>> T.pack) actual
     SLTEDeRef0MustBePtr exp ->
-      "Error! (type check of SLang): arg#0 of SLEDeRef must be SLTPtr t, not " <> (show >>> T.pack) exp
+      "Error! (type check of SLang): arg#0 of SLEIndirection must be SLTPtr t, not " <> (show >>> T.pack) exp
     SLTEPtrShift0MustBePtr exp ->
       "Error! (type check of SLang): arg#0 of SLEPtrShift must be SLTPtr t, not " <> (show >>> T.pack) exp
     SLTEPtrShift1MustBeInt exp ->
@@ -301,7 +299,7 @@ sleTypeOf expr =
     SLEUnion t _        -> pure t
     SLEPtrShift exp1 _  -> sleTypeOf exp1
 
-    SLEPtr p            ->
+    SLEAddrOf p            ->
       case p of
         SLRefPtr t _   -> pure (SLTPtr t)
         SLRefLocal t _ -> pure (SLTPtr t)
@@ -319,7 +317,7 @@ sleTypeOf expr =
         Right _              -> Left $ SLTEStructCons1MustBeStruct exp2
         err                  -> err
 
-    SLEDeRef exp1 ->
+    SLEIndirection exp1 ->
       case sleTypeOf exp1 of
         Right (SLTPtr t) -> pure t
         Right _ -> Left $ SLTEDeRef0MustBePtr exp1
@@ -336,7 +334,6 @@ sleTypeOf expr =
 sltSizeOf :: SLType -> Int
 sltSizeOf t =
   case t of
-    SLTUnit        -> 0
     SLTInt         -> 1
     SLTFuncPtr _ _ -> 1
     SLTPtr _       -> 1
@@ -386,8 +383,8 @@ sleGetOffset expr i =
 prettyPrintSLFuncName :: SLFuncName -> Text
 prettyPrintSLFuncName name =
   case name of
-    SLFuncMain                       -> "#main"
-    (SLUserFunc moduleName funcName) -> "#" <> moduleName <> "/" <> funcName
+    SLFuncMain                       -> "main"
+    (SLUserFunc moduleName funcName) -> "" <> moduleName <> "." <> funcName
 
 prettyPrintSLFuncSignature :: SLFuncSignature -> Text
 prettyPrintSLFuncSignature (SLFuncSignature name args ret) =
@@ -397,29 +394,29 @@ prettyPrintSLRef :: SLRef -> Text
 prettyPrintSLRef ref =
   case ref of
     SLRefPtr _ expr -> "*" <> prettyPrintSLExp expr
-    SLRefLocal _ x -> "$L" <> pack (show x)
+    SLRefLocal _ x -> "$" <> x
 
 prettyPrintSLCall :: SLCall -> Text
 prettyPrintSLCall call =
   case call of
     SLSolidFuncCall funcSig  args -> prettyPrintSLFuncName (slfsName funcSig) <> prettyPrintSLExp args
-    SLFuncRefCall   ref      args -> prettyPrintSLRef    ref            <> prettyPrintSLExp args
-    SLClosureCall   closure       -> prettyPrintSLExp    closure <> "()"
+    SLFuncRefCall   ref      args -> "@" <> prettyPrintSLRef    ref            <> prettyPrintSLExp args
+    SLClosureCall   closure       -> "@@" <> prettyPrintSLExp    closure
 
 prettyPrintSLExp :: SLExp -> Text
 prettyPrintSLExp expr =
   case expr of
     SLEConst (SLVal x) -> pack (show x)
 
-    SLELocal _ x -> "$L" <> pack (show x)
+    SLELocal _ x -> "$" <> x
 
-    SLEArg _ x -> "$A" <> pack (show x)
+    SLEArg _ x   -> "$" <> x
 
-    SLEPtr expr' -> "*" <> prettyPrintSLRef expr'
+    SLEAddrOf expr' -> "&" <> prettyPrintSLRef expr'
 
     SLEPushCall call -> prettyPrintSLCall call
 
-    SLEFuncPtr funcSig -> prettyPrintSLFuncName (slfsName funcSig)
+    SLEFuncPtr funcSig ->  "&" <> prettyPrintSLFuncName (slfsName funcSig)
 
     SLEPrim1 prim exp1 ->
       let expText = prettyPrintSLExp exp1
@@ -459,23 +456,23 @@ prettyPrintSLExp expr =
               otherexp -> ", " <> prettyPrintSLExp otherexp <> ") [ERROR! this should not happen]"
       in "(" <> go (SLEStructCons e1 e2)
 
-    SLEUnion _ exp -> prettyPrintSLExp exp
+    SLEUnion t exp -> "%" <> prettyPrintSLType t <> prettyPrintSLExp exp
 
-    SLEDeRef exp -> "*" <> prettyPrintSLExp exp
+    SLEIndirection exp -> "*" <> prettyPrintSLExp exp
 
     SLEPtrShift exp1 exp2 ->
       let exp1Text = prettyPrintSLExp exp1
           exp2Text = prettyPrintSLExp exp2
-      in "(" <> exp1Text <> " + " <> exp2Text <> ")"
+      in "(" <> exp1Text <> " @+ " <> exp2Text <> ")"
 
     SLEStructGet exp p -> prettyPrintSLExp exp <> "." <> pack (show p)
 
-    SLECast _ exp -> prettyPrintSLExp exp
+    SLECast t exp -> "(" <> prettyPrintSLType t <> ") " <> prettyPrintSLExp exp
 
 prettyPrintSLStatement :: SLStatement -> Text
 prettyPrintSLStatement stmt =
   case stmt of
-    SLSInitVar varid exp -> either (\err -> "[" <> prettyPrintSLTypeError err <> "]") prettyPrintSLType (sleTypeOf exp) <> " $L" <> pack (show varid) <> " = " <> prettyPrintSLExp exp
+    SLSInitVar varid exp -> either (\err -> "[" <> prettyPrintSLTypeError err <> "]") prettyPrintSLType (sleTypeOf exp) <> " $" <> varid <> " = " <> prettyPrintSLExp exp
     SLSSubst ref exp -> prettyPrintSLRef ref <> " = " <> prettyPrintSLExp exp
     SLSReturn exp          -> "return "   <> prettyPrintSLExp exp
     SLSTailCallReturn call -> "tailcall " <> prettyPrintSLCall call
@@ -512,6 +509,6 @@ prettyPrintSLProgram program =
     (\(name, SLFuncBlock sig args block) ->
           ("\nfunction "
               <> prettyPrintSLFuncName name
-              <> "(" <> T.intercalate ", " ((\(t, i) -> pack (show t) <> " $A" <> i) <$> L.zip (slfsArgs sig) args) <> ")" <> " -> " <> (show >>> T.pack) (slfsRet sig))
+              <> "(" <> T.intercalate ", " ((\(t, i) -> pack (show t) <> " $" <> i) <$> L.zip (slfsArgs sig) args) <> ")" <> " -> " <> (show >>> T.pack) (slfsRet sig))
            : V.toList (prettyPrintSLBlock 0 block)
       ) =<< M.assocs program

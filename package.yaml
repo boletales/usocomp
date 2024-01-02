@@ -28,6 +28,7 @@ dependencies:
 - text
 - primitive
 - megaparsec
+- parser-combinators
 
 default-extensions:
 - StrictData

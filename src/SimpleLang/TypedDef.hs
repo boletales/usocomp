@@ -2,7 +2,6 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
@@ -63,7 +62,6 @@ type family NatMax (n :: Nat) (m :: Nat) :: Nat where
   NatMax n m = If (n <=? m) m n
 
 type family SLTSizeOf (t :: SLType) :: Nat where
-  SLTSizeOf SLTUnit               = 0
   SLTSizeOf SLTInt                = 1
   SLTSizeOf (SLTFuncPtr args ret) = 1
   SLTSizeOf (SLTPtr t           ) = 1
@@ -95,9 +93,6 @@ tsleGetOffset _ _ = fromIntegral (natVal (Proxy :: Proxy (SLTStructIndexToOffset
 class KnownType (t :: SLType) where
   tslTypeVal :: Proxy t -> SLType
 
-instance KnownType 'SLTUnit where
-    tslTypeVal _ = SLTUnit
-
 instance KnownType 'SLTInt where
     tslTypeVal _ = SLTInt
 
@@ -127,7 +122,7 @@ data TypedSLExp (t :: SLType) where
     TSLEConst      ::                                  SLVal                                               -> TypedSLExp 'SLTInt
     TSLELocal      :: (KnownType t                ) => Text                                                -> TypedSLExp t
     TSLEArg        :: (KnownType t                ) => Text                                                -> TypedSLExp t
-    TSLEPtr        :: (KnownType t                ) => TypedSLRef t                                        -> TypedSLExp ('SLTPtr t)
+    TSLEAddrOf        :: (KnownType t                ) => TypedSLRef t                                        -> TypedSLExp ('SLTPtr t)
     TSLEPushCall   :: (KnownType t                ) => TypedSLCall t                                       -> TypedSLExp t
     TSLEFuncPtr    ::                                  TypedSLFunc args ret                                -> TypedSLExp ('SLTFuncPtr args ret)
     TSLEPrim1      ::                                  SLPrim1 -> TypedSLExp 'SLTInt                       -> TypedSLExp 'SLTInt
@@ -135,7 +130,7 @@ data TypedSLExp (t :: SLType) where
     TSLEStructNil  ::                                                                                         TypedSLExp ('SLTStruct '[])
     TSLEStructCons :: (KnownType t, KnownTypes ts ) => TypedSLExp t -> TypedSLExp ('SLTStruct ts)          -> TypedSLExp ('SLTStruct (t:ts))
     TSLEUnion      :: (KnownType t, Member t ts   ) => TypedSLExp t                                        -> TypedSLExp ('SLTUnion     ts )
-    TSLEDeRef      :: (KnownType t                ) => TypedSLExp ('SLTPtr t)                              -> TypedSLExp t
+    TSLEIndirection      :: (KnownType t                ) => TypedSLExp ('SLTPtr t)                              -> TypedSLExp t
     TSLEPtrShift   :: (KnownType t                ) => TypedSLExp ('SLTPtr t) -> TypedSLExp 'SLTInt        -> TypedSLExp ('SLTPtr t)
     TSLECast       :: (KnownType t, KnownType u, SLTSizeOf t ~ SLTSizeOf u ) => TypedSLExp t               -> TypedSLExp u
     TSLEStructGet  :: (KnownType t, KnownTypes ts, StructAt i ts t, KnownNat i, KnownOffset i ts) => TypedSLExp ('SLTStruct ts) -> Proxy i -> TypedSLExp t
@@ -156,7 +151,7 @@ unTypedSLExp expr =
       TSLEConst val        -> SLEConst val
       TSLELocal i          -> SLELocal tval i
       TSLEArg i            -> SLEArg tval i
-      TSLEPtr ref          -> SLEPtr(unTypedSLRef ref)
+      TSLEAddrOf ref          -> SLEAddrOf(unTypedSLRef ref)
       TSLEPushCall call    -> SLEPushCall (unTypedSLCall call)
       TSLEFuncPtr name     -> SLEFuncPtr (unTypedSLFunc name)
       TSLEPrim1 prim e     -> SLEPrim1 prim (unTypedSLExp e)
@@ -164,7 +159,7 @@ unTypedSLExp expr =
       TSLEStructNil        -> SLEStructNil
       TSLEStructCons e es  -> SLEStructCons (unTypedSLExp e) (unTypedSLExp es)
       TSLEUnion e          -> SLEUnion tval (unTypedSLExp e)
-      TSLEDeRef e          -> SLEDeRef (unTypedSLExp e)
+      TSLEIndirection e          -> SLEIndirection (unTypedSLExp e)
       TSLEPtrShift e1 e2   -> SLEPtrShift (unTypedSLExp e1) (unTypedSLExp e2)
       TSLEStructGet e i    -> SLEStructGet (unTypedSLExp e) ((fromIntegral . natVal) i)
       TSLECast e           -> SLECast tval (unTypedSLExp e)

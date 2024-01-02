@@ -188,6 +188,7 @@ structTest :: SLProgram
 structTest =
   runSLMFuncsM $ do
     _ :: ('[] --> SLTInt) <- slmFunc SLFuncMain (slmFundef $ do
+        y <- slmNewVar (_const 100)
         str <- slmNewVar (_const 100 >: _const 200 >: _const 300 >: TSLEStructNil)
         x :: SLMVar 'SLTInt <- slmNewVar (_local str `TSLEStructGet` Proxy @2)
         slmReturn (_local x)
@@ -301,7 +302,7 @@ tailRecTest =
                 pure ()
               )
           ]) (do
-            slmTailCall fibonacci (steps `_sub` _const 1) (b) (a `_add` b)
+            slmTailCall fibonacci (steps `_sub` _const 1) b (a `_add` b)
           )
         pure ()
       )

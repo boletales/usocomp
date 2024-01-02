@@ -16,6 +16,9 @@ import MachineLang.FromSimpleLang.Debugger
 import Data.Text.IO as TIO
 import Data.Text as T
 import MachineLang.FromSimpleLang.Test
+import SimpleLang.FromString
+import SimpleLang.Def
+
 import Test.Hspec
 import Control.Monad
 import Data.Bifunctor
@@ -25,7 +28,7 @@ main = hspec spec
 
 spec :: Spec
 spec = do
-  describe "Tests for FromSimpleLang" (
+  describe "Tests for MachineLang.FromSimpleLang" (
       forM_ mlctTests $ \test -> do
         specify (unpack $ mlctName test) $ do
           let program = mlctTest test
@@ -34,4 +37,12 @@ spec = do
           case result of
             Left err -> expectationFailure $ unpack err
             Right _  -> pure ()
+    )
+  
+  describe "Tests for SimpleLang.FromString" (
+      forM_ mlctTests $ \test -> do
+        specify (unpack $ mlctName test) $
+          let printed = prettyPrintSLProgram (mlctTest test)
+              reprinted = either id prettyPrintSLProgram $ textToSLProgram printed
+          in  reprinted `shouldBe` printed 
     )

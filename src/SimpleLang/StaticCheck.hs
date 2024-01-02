@@ -235,7 +235,7 @@ checkExpr exp = inPos (SLLPExpr exp) $ case exp of
   SLEPushCall call -> checkCall call
 
   SLEConst _ -> pure SLTInt
-  SLEPtr ref -> SLTPtr <$> checkRef ref
+  SLEAddrOf ref -> SLTPtr <$> checkRef ref
   SLEFuncPtr sig -> do
     funcs <- gets slscsFuncs
     case M.lookup (slfsName sig) funcs of
@@ -273,7 +273,7 @@ checkExpr exp = inPos (SLLPExpr exp) $ case exp of
         | otherwise -> throwSLSCError $ SLSCWrongUnionType (prettyPrintSLExp exp) t t'
       _ -> throwSLSCError $ SLSCUnionMustBeUnion exp
   
-  SLEDeRef e       -> do
+  SLEIndirection e       -> do
     t <- checkExpr e
     case t of
       SLTPtr t' -> pure t'
