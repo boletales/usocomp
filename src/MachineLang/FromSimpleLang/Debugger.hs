@@ -9,6 +9,7 @@ module MachineLang.FromSimpleLang.Debugger (
   , runMLC
   , mlcResultText
   , runMLCinST
+  , runMLCinST'
 ) where
 
 
@@ -214,6 +215,28 @@ runMLCinST program =
               Left e  -> end e
               Right _ -> mainloop m
         in mainloop machine) :: forall s. ST s Text)
+
+-- | returns Either error (code, time)
+runMLCinST' :: SLProgram -> Either Text (Int, Int)
+runMLCinST' program =
+  case compileSLProgram program of
+    Left err -> Left $ "compile error: " <> tshow err
+    Right mlp -> runST ((do
+      machine <- primToST (initMLMacine (MLConfig 100000) mlp  :: ST s (MLMachine SLPos s))
+      let end :: MLRuntimeError -> ST s (Either Text (Int, Int))
+          end e = do
+            time <- readSTRef $ mltime machine
+            case e of
+              MLRESuccess c -> pure $ Right (c, time)
+              _ -> pure $ Left $ "(" <> tshow time <> " ticks) runtime error:" <> tshow e
+
+          mainloop :: MLMachine SLPos s -> ST s (Either Text (Int, Int))
+          mainloop m = do
+            result <- primToST (runExceptT $ runMLMachine1 m silentDebugger :: ST s (Either MLRuntimeError ()))
+            case result of
+              Left e  -> end e
+              Right _ -> mainloop m
+        in mainloop machine) :: forall s. ST s (Either Text (Int, Int)))
 
 {-| 人間可読なコンパイル成果物を吐きます -}
 mlcResultText :: SLProgram -> Text

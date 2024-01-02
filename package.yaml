@@ -27,6 +27,8 @@ dependencies:
 - vector-builder
 - text
 - primitive
+- megaparsec
+- parser-combinators
 
 default-extensions:
 - StrictData

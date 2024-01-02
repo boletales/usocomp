@@ -1,4 +1,4 @@
-{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeFamilyDependencies #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
@@ -16,15 +16,17 @@ import Data.Proxy
 import Data.Kind
 import Data.Map qualified as M
 import SimpleLang.TypedDef
+import Data.Text as T
+import qualified Data.List as L
 
-newtype SLMVar (t :: SLType) = SLMVar Int deriving (Show, Eq, Ord)
+newtype SLMVar (t :: SLType) = SLMVar Text deriving (Show, Eq, Ord)
 
-unSLMVar :: SLMVar t -> Int
+unSLMVar :: SLMVar t -> Text
 unSLMVar (SLMVar x) = x
 
-newtype SLMArg (t :: SLType) = SLMArg Int deriving (Show, Eq, Ord)
+newtype SLMArg (t :: SLType) = SLMArg Text deriving (Show, Eq, Ord)
 
-unSLMArg :: SLMArg t -> Int
+unSLMArg :: SLMArg t -> Text
 unSLMArg (SLMArg x) = x
 
 newtype SLMBlock (ret :: SLType) = SLMBlock TypedSLBlock
@@ -66,12 +68,13 @@ instance SLMNAryC '[] where
 instance forall args newarg. (SLMNAryC args , KnownType newarg, KnownTypes args) => SLMNAryC (newarg : args) where
   type SLMNaryF (newarg : args) x = TypedSLExp newarg -> SLMNaryF args x
   slmfuncToHsFunc       f arg       = slmfuncToHsFunc (f . TSLEStructCons arg)
-  hsFuncToSLMFuncHelper wordscnt f  = (hsFuncToSLMFuncHelper @args)  (wordscnt + (tslTypeVal >>> sltSizeOf) (Proxy :: Proxy newarg)) (f (TSLEArg wordscnt :: TypedSLExp newarg))
+  hsFuncToSLMFuncHelper argscnt f  = (hsFuncToSLMFuncHelper @args)  (argscnt + 1) (f (TSLEArg ((("A" <>) . T.pack . show) argscnt) :: TypedSLExp newarg))
 
 hsFuncToSLMFunc :: forall args ret. (SLMNAryC args, KnownTypes args, KnownType ret) => SLFuncName -> SLMNaryF args (SLManualBlockM ret ()) -> TypedSLFuncBlock args ret
 hsFuncToSLMFunc name f =
   TSLFuncBlock {
       tslfSignature = TypedSLFunc (SLFuncSignature name (tslTypesVal (Proxy @args)) (tslTypeVal (Proxy @ret))) :: TypedSLFunc args ret
+    , tslfArgs     = ("A" <>) . T.pack . show <$> [0 .. L.length (tslTypesVal (Proxy @args)) - 1]
     , tslfBlock    =  (hsFuncToSLMFuncHelper @args @(SLManualBlockM ret ()) 0
                         >>> flip execState (SLMState 0 V.empty)
                         >>> slmBlocks
@@ -87,7 +90,7 @@ _app :: forall args ret t. (TypedSLCallable args ret t, SLMNAryC args, KnownType
 _app callable = slmfuncToHsFunc (TSLEPushCall . tslCall callable) :: SLMNaryF args (TypedSLExp ret)
 
 slmTailCall :: forall args ret t. (SLMNAryC args, TypedSLCallable args ret t, KnownType ret) => t -> SLMNaryF args (SLManualBlockM ret ())
-slmTailCall x = slmfuncToHsFunc $ (\(args :: TypedSLExp ('SLTStruct args)) -> do
+slmTailCall x = slmfuncToHsFunc (\(args :: TypedSLExp ('SLTStruct args)) -> do
     SLMState cnt blocks <- get
     put (SLMState cnt (V.snoc blocks (TSLBSingle (TSLSTailCallReturn (tslCall @args @ret x args)))))
     (pure () :: SLManualBlockM ret ())
@@ -111,7 +114,8 @@ slmVirtualFunc :: forall args ret. (KnownType ret, KnownTypes args) => SLFuncNam
 slmVirtualFunc name =
   TSLFuncBlock {
       tslfSignature = TypedSLFunc (SLFuncSignature name (tslTypesVal (Proxy @args)) (tslTypeVal (Proxy @ret))) :: TypedSLFunc args ret
-    , tslfBlock     = TSLBMulti V.empty 
+    , tslfArgs      = T.pack . show <$> [0 .. L.length (tslTypesVal (Proxy @args)) - 1]
+    , tslfBlock     = TSLBMulti V.empty
   }
 
 slmSetRealFunc :: forall (args :: [SLType]) (ret :: SLType). (KnownTypes args, KnownType ret, SLMNAryC args) => TypedSLFuncBlock args ret -> SLMNaryF args (SLManualBlockM ret ()) ->  SLMFuncsM ()

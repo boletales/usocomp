@@ -2,7 +2,6 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
@@ -39,7 +38,7 @@ module SimpleLang.TypedDef (
   , sltSizeOf
   , sleGetOffset
   , slRefToPtr
-  , prettyPrintFuncName
+  , prettyPrintSLFuncName
   , prettyPrintSLExp
   , prettyPrintSLRef
   , prettyPrintSLStatement
@@ -57,12 +56,12 @@ import Data.Kind
 import Prelude hiding ((.), id, exp)
 import Control.Category
 import Data.Bifunctor
+import Data.Text as T
 
 type family NatMax (n :: Nat) (m :: Nat) :: Nat where
   NatMax n m = If (n <=? m) m n
 
 type family SLTSizeOf (t :: SLType) :: Nat where
-  SLTSizeOf SLTUnit               = 0
   SLTSizeOf SLTInt                = 1
   SLTSizeOf (SLTFuncPtr args ret) = 1
   SLTSizeOf (SLTPtr t           ) = 1
@@ -94,9 +93,6 @@ tsleGetOffset _ _ = fromIntegral (natVal (Proxy :: Proxy (SLTStructIndexToOffset
 class KnownType (t :: SLType) where
   tslTypeVal :: Proxy t -> SLType
 
-instance KnownType 'SLTUnit where
-    tslTypeVal _ = SLTUnit
-
 instance KnownType 'SLTInt where
     tslTypeVal _ = SLTInt
 
@@ -124,9 +120,9 @@ instance (KnownType t, KnownTypes ts) => KnownTypes (t:ts) where
 
 data TypedSLExp (t :: SLType) where
     TSLEConst      ::                                  SLVal                                               -> TypedSLExp 'SLTInt
-    TSLELocal      :: (KnownType t                ) => Int                                                 -> TypedSLExp t
-    TSLEArg        :: (KnownType t                ) => Int                                                 -> TypedSLExp t
-    TSLEPtr        :: (KnownType t                ) => TypedSLRef t                                        -> TypedSLExp ('SLTPtr t)
+    TSLELocal      :: (KnownType t                ) => Text                                                -> TypedSLExp t
+    TSLEArg        :: (KnownType t                ) => Text                                                -> TypedSLExp t
+    TSLEAddrOf        :: (KnownType t                ) => TypedSLRef t                                        -> TypedSLExp ('SLTPtr t)
     TSLEPushCall   :: (KnownType t                ) => TypedSLCall t                                       -> TypedSLExp t
     TSLEFuncPtr    ::                                  TypedSLFunc args ret                                -> TypedSLExp ('SLTFuncPtr args ret)
     TSLEPrim1      ::                                  SLPrim1 -> TypedSLExp 'SLTInt                       -> TypedSLExp 'SLTInt
@@ -134,7 +130,7 @@ data TypedSLExp (t :: SLType) where
     TSLEStructNil  ::                                                                                         TypedSLExp ('SLTStruct '[])
     TSLEStructCons :: (KnownType t, KnownTypes ts ) => TypedSLExp t -> TypedSLExp ('SLTStruct ts)          -> TypedSLExp ('SLTStruct (t:ts))
     TSLEUnion      :: (KnownType t, Member t ts   ) => TypedSLExp t                                        -> TypedSLExp ('SLTUnion     ts )
-    TSLEDeRef      :: (KnownType t                ) => TypedSLExp ('SLTPtr t)                              -> TypedSLExp t
+    TSLEIndirection      :: (KnownType t                ) => TypedSLExp ('SLTPtr t)                              -> TypedSLExp t
     TSLEPtrShift   :: (KnownType t                ) => TypedSLExp ('SLTPtr t) -> TypedSLExp 'SLTInt        -> TypedSLExp ('SLTPtr t)
     TSLECast       :: (KnownType t, KnownType u, SLTSizeOf t ~ SLTSizeOf u ) => TypedSLExp t               -> TypedSLExp u
     TSLEStructGet  :: (KnownType t, KnownTypes ts, StructAt i ts t, KnownNat i, KnownOffset i ts) => TypedSLExp ('SLTStruct ts) -> Proxy i -> TypedSLExp t
@@ -144,7 +140,7 @@ instance KnownType t => Show (TypedSLExp t) where
 
 data TypedSLRef (t :: SLType) where
     TSLRefPtr   :: (KnownType t) => TypedSLExp ('SLTPtr t) -> TypedSLRef t
-    TSLRefLocal :: (KnownType t) => Int                    -> TypedSLRef t
+    TSLRefLocal :: (KnownType t) => Text                   -> TypedSLRef t
 instance KnownType t => Show (TypedSLRef t) where
   show = show . unTypedSLRef
 
@@ -155,7 +151,7 @@ unTypedSLExp expr =
       TSLEConst val        -> SLEConst val
       TSLELocal i          -> SLELocal tval i
       TSLEArg i            -> SLEArg tval i
-      TSLEPtr ref          -> SLEPtr(unTypedSLRef ref)
+      TSLEAddrOf ref          -> SLEAddrOf(unTypedSLRef ref)
       TSLEPushCall call    -> SLEPushCall (unTypedSLCall call)
       TSLEFuncPtr name     -> SLEFuncPtr (unTypedSLFunc name)
       TSLEPrim1 prim e     -> SLEPrim1 prim (unTypedSLExp e)
@@ -163,7 +159,7 @@ unTypedSLExp expr =
       TSLEStructNil        -> SLEStructNil
       TSLEStructCons e es  -> SLEStructCons (unTypedSLExp e) (unTypedSLExp es)
       TSLEUnion e          -> SLEUnion tval (unTypedSLExp e)
-      TSLEDeRef e          -> SLEDeRef (unTypedSLExp e)
+      TSLEIndirection e          -> SLEIndirection (unTypedSLExp e)
       TSLEPtrShift e1 e2   -> SLEPtrShift (unTypedSLExp e1) (unTypedSLExp e2)
       TSLEStructGet e i    -> SLEStructGet (unTypedSLExp e) ((fromIntegral . natVal) i)
       TSLECast e           -> SLECast tval (unTypedSLExp e)
@@ -182,7 +178,7 @@ unTypedSLCall call =
     TSLClosureCall e        -> SLClosureCall (unTypedSLExp e)
 
 data TypedSLStatement where
-  TSLSInitVar        :: KnownType t => Int -> TypedSLExp t          -> TypedSLStatement
+  TSLSInitVar        :: KnownType t => Text -> TypedSLExp t         -> TypedSLStatement
   TSLSSubst          :: KnownType t => TypedSLRef t -> TypedSLExp t -> TypedSLStatement
   TSLSReturn         :: KnownType t => TypedSLExp t                 -> TypedSLStatement
   TSLSTailCallReturn :: KnownType t => TypedSLCall t                -> TypedSLStatement
@@ -234,13 +230,14 @@ unTypedSLStatement s =
 data TypedSLFuncBlock (args :: [SLType]) (ret :: SLType) =
       TSLFuncBlock {
           tslfSignature     :: TypedSLFunc args ret
+        , tslfArgs     :: [Text]
         , tslfBlock    :: TypedSLBlock
       }
       deriving (Show)
 
 unTypedSLFuncBlock :: forall args ret. KnownTypes args => TypedSLFuncBlock args ret -> SLFuncBlock
-unTypedSLFuncBlock (TSLFuncBlock (TypedSLFunc name) block) =
-  SLFuncBlock name (unTypedSLBlock block)
+unTypedSLFuncBlock (TSLFuncBlock (TypedSLFunc name) args block) =
+  SLFuncBlock name args (unTypedSLBlock block)
 
 newtype TypedSLFunc (args :: [SLType]) (ret :: SLType) = TypedSLFunc SLFuncSignature
   deriving newtype Show

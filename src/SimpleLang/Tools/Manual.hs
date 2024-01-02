@@ -61,6 +61,7 @@ import Control.Monad.State
 import Control.Category
 import Prelude hiding ((.), id, exp)
 import Data.Proxy
+import Data.Text as T
 
 type (-->) args ret = TypedSLFuncBlock args ret
 type (!-->) args ret = 'SLTFuncPtr args ret
@@ -68,7 +69,7 @@ type (!-->) args ret = 'SLTFuncPtr args ret
 slmNewVar :: forall t r. KnownType t => TypedSLExp t -> SLManualBlockM r (SLMVar t)
 slmNewVar exp = do
   SLMState cnt blocks <- get
-  let newVarId = cnt
+  let newVarId = (T.pack . show) $ cnt
   put (SLMState (cnt + (tslTypeVal >>> sltSizeOf) (Proxy :: Proxy t)) blocks)
   slmStmt (TSLSInitVar newVarId exp)
   pure (SLMVar newVarId)
@@ -116,7 +117,7 @@ _reflocal :: KnownType t => SLMVar t -> TypedSLRef t
 _reflocal = unSLMVar >>> TSLRefLocal
 
 _ptr :: KnownType t => TypedSLRef t -> TypedSLExp ('SLTPtr t)
-_ptr = TSLEPtr
+_ptr = TSLEAddrOf
 
 _refptr :: KnownType t => TypedSLExp ('SLTPtr t) -> TypedSLRef t
 _refptr = TSLRefPtr

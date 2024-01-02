@@ -2,6 +2,9 @@
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Avoid lambda" #-}
 {-# HLINT ignore "Use const" #-}
+{-# OPTIONS_GHC -Wno-unused-imports #-}
+{-# OPTIONS_GHC -Wno-unused-matches #-}
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
 module SimpleLang.FromFuncLang.Test where
 
 import SimpleLang.FromFuncLang
@@ -17,6 +20,7 @@ type (->>) = FLTLambda
 ($$$) :: forall (t1 :: FLType) (t :: FLType) tag. (SomeFLType t1, SomeFLType t) => FLExp tag ('FLTLambda t1 t) -> FLExp tag t1 -> FLExp tag t
 ($$$) = flmApp
 
+captureTest :: FLProgram Text
 captureTest = runFLM $ do
   --x <- flmDecl "x" (flmLam "x1" (\(x1 :: FLExp' FLTInt) -> flmLam "x2" (\(x2 :: FLExp' FLTInt) -> x1)))
   --z <- flmDecl "z" (flmLam "x1" (\(x1 :: FLExp' (FLTInt ->> FLTInt)) -> flmLam "x2" (\(x2 :: FLExp' FLTInt) -> flmApp x1 x2)))

@@ -15,7 +15,6 @@ import SimpleLang.Def
 import SimpleLang.Tools.Manual
 
 import Data.Text as T
-import Control.Category
 import Prelude hiding ((.), id)
 
 type (->>) = FLTLambda
@@ -106,3 +105,5 @@ instance FLPrim (FLTInt ->> FLTInt ->> FLTInt) FLPrimII2I where
             FLPLtI  -> _lt
             FLPGtI  -> _gt
           ) x1 x2
+  
+  flpclstype _ = ([FLTInt, FLTInt], FLTInt)
