@@ -57,6 +57,7 @@ import Data.Kind
 import Prelude hiding ((.), id, exp)
 import Control.Category
 import Data.Bifunctor
+import Data.Text as T
 
 type family NatMax (n :: Nat) (m :: Nat) :: Nat where
   NatMax n m = If (n <=? m) m n
@@ -124,8 +125,8 @@ instance (KnownType t, KnownTypes ts) => KnownTypes (t:ts) where
 
 data TypedSLExp (t :: SLType) where
     TSLEConst      ::                                  SLVal                                               -> TypedSLExp 'SLTInt
-    TSLELocal      :: (KnownType t                ) => Int                                                 -> TypedSLExp t
-    TSLEArg        :: (KnownType t                ) => Int                                                 -> TypedSLExp t
+    TSLELocal      :: (KnownType t                ) => Text                                                -> TypedSLExp t
+    TSLEArg        :: (KnownType t                ) => Text                                                -> TypedSLExp t
     TSLEPtr        :: (KnownType t                ) => TypedSLRef t                                        -> TypedSLExp ('SLTPtr t)
     TSLEPushCall   :: (KnownType t                ) => TypedSLCall t                                       -> TypedSLExp t
     TSLEFuncPtr    ::                                  TypedSLFunc args ret                                -> TypedSLExp ('SLTFuncPtr args ret)
@@ -144,7 +145,7 @@ instance KnownType t => Show (TypedSLExp t) where
 
 data TypedSLRef (t :: SLType) where
     TSLRefPtr   :: (KnownType t) => TypedSLExp ('SLTPtr t) -> TypedSLRef t
-    TSLRefLocal :: (KnownType t) => Int                    -> TypedSLRef t
+    TSLRefLocal :: (KnownType t) => Text                   -> TypedSLRef t
 instance KnownType t => Show (TypedSLRef t) where
   show = show . unTypedSLRef
 
@@ -182,7 +183,7 @@ unTypedSLCall call =
     TSLClosureCall e        -> SLClosureCall (unTypedSLExp e)
 
 data TypedSLStatement where
-  TSLSInitVar        :: KnownType t => Int -> TypedSLExp t          -> TypedSLStatement
+  TSLSInitVar        :: KnownType t => Text -> TypedSLExp t         -> TypedSLStatement
   TSLSSubst          :: KnownType t => TypedSLRef t -> TypedSLExp t -> TypedSLStatement
   TSLSReturn         :: KnownType t => TypedSLExp t                 -> TypedSLStatement
   TSLSTailCallReturn :: KnownType t => TypedSLCall t                -> TypedSLStatement
@@ -234,13 +235,14 @@ unTypedSLStatement s =
 data TypedSLFuncBlock (args :: [SLType]) (ret :: SLType) =
       TSLFuncBlock {
           tslfSignature     :: TypedSLFunc args ret
+        , tslfArgs     :: [Text]
         , tslfBlock    :: TypedSLBlock
       }
       deriving (Show)
 
 unTypedSLFuncBlock :: forall args ret. KnownTypes args => TypedSLFuncBlock args ret -> SLFuncBlock
-unTypedSLFuncBlock (TSLFuncBlock (TypedSLFunc name) block) =
-  SLFuncBlock name (unTypedSLBlock block)
+unTypedSLFuncBlock (TSLFuncBlock (TypedSLFunc name) args block) =
+  SLFuncBlock name args (unTypedSLBlock block)
 
 newtype TypedSLFunc (args :: [SLType]) (ret :: SLType) = TypedSLFunc SLFuncSignature
   deriving newtype Show

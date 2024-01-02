@@ -116,8 +116,8 @@ data SLPrim2 =
 
 data SLExp =
       SLEConst      SLVal
-    | SLELocal      SLType Int
-    | SLEArg        SLType Int
+    | SLELocal      SLType Text
+    | SLEArg        SLType Text
     | SLEPtr        SLRef
     | SLEPushCall   SLCall
     | SLEFuncPtr    SLFuncSignature
@@ -137,13 +137,13 @@ instance Show SLExp where
 
 data SLRef =
       SLRefPtr   SLType SLExp
-    | SLRefLocal SLType Int
+    | SLRefLocal SLType Text
   deriving (Eq, Ord)
 instance Show SLRef where
   show = T.unpack . prettyPrintSLRef
 
 data SLStatement =
-    SLSInitVar        Int    SLExp
+    SLSInitVar        Text   SLExp
   | SLSSubst          SLRef  SLExp
   | SLSReturn         SLExp
   | SLSTailCallReturn SLCall
@@ -164,6 +164,7 @@ instance Show SLBlock where
 data SLFuncBlock =
       SLFuncBlock {
           slfSignature :: SLFuncSignature
+        , slfArgs      :: [Text]
         , slfBlock     :: SLBlock
       }
       deriving (Show)
@@ -508,9 +509,9 @@ prettyPrintSLBlock indent block =
 prettyPrintSLProgram :: SLProgram -> Text
 prettyPrintSLProgram program =
   T.intercalate "\n" $
-    (\(name, SLFuncBlock sig block) ->
+    (\(name, SLFuncBlock sig args block) ->
           ("\nfunction "
               <> prettyPrintSLFuncName name
-              <> "(" <> T.intercalate ", " ((\(t, i) -> pack (show t) <> " $A" <> pack (show i)) <$> L.zip (slfsArgs sig) [(0::Int)..]) <> ")" <> " -> " <> (show >>> T.pack) (slfsRet sig))
+              <> "(" <> T.intercalate ", " ((\(t, i) -> pack (show t) <> " $A" <> i) <$> L.zip (slfsArgs sig) args) <> ")" <> " -> " <> (show >>> T.pack) (slfsRet sig))
            : V.toList (prettyPrintSLBlock 0 block)
       ) =<< M.assocs program

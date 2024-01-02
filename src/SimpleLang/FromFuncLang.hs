@@ -541,9 +541,9 @@ flcCompileProgram program =
 
       flcGenerateFunc :: FLCFuncDecl -> Either Text SLFuncBlock
       flcGenerateFunc (FLCFuncDecl name args ret body) = do
-        let argdict = fst $ L.foldl' (\(d, pos) (aname, t) -> (M.insert aname (SLEArg (flTypeToSLType t) pos) d, pos + sltSizeOf (flTypeToSLType t))) (M.empty, 0) args
+        let argdict = fst $ L.foldl' (\(d, pos) (aname, t) -> (M.insert aname (SLEArg (flTypeToSLType t) (tshow pos)) d, pos + sltSizeOf (flTypeToSLType t))) (M.empty, 0) args
         body' <- flcCompileExpr1 (funcdict <> argdict) (FLCIEFLCE body)
-        pure $ SLFuncBlock (toSLSignature name args ret) ((SLBSingle >>> V.singleton >>> SLBMulti) (
+        pure $ SLFuncBlock (toSLSignature name args ret) (tshow <$> args) ((SLBSingle >>> V.singleton >>> SLBMulti) (
             case body' of
               SLEPushCall c -> SLSTailCallReturn c
               _ -> SLSReturn body'
@@ -554,7 +554,7 @@ flcCompileProgram program =
         flmainbody <- maybe (Left "Error! (compilation of FLang): No main function") pure (M.lookup (FLCUniqueIdentifier FLCPathTop "main") funcdict)
         flmainoriginal <- maybe (Left "Error! (compilation of FLang): No main function") pure (M.lookup (FLCUniqueIdentifier FLCPathTop "main") ((\(FLCProgram p) -> p) program))
         case flmainoriginal of
-          FLCFuncDecl _ [] FLTInt _ -> pure $ SLFuncBlock (SLFuncSignature SLFuncMain [] SLTInt) ((SLBSingle >>> V.singleton >>> SLBMulti) (SLSTailCallReturn (SLClosureCall flmainbody)))
+          FLCFuncDecl _ [] FLTInt _ -> pure $ SLFuncBlock (SLFuncSignature SLFuncMain [] SLTInt) [] ((SLBSingle >>> V.singleton >>> SLBMulti) (SLSTailCallReturn (SLClosureCall flmainbody)))
           _ -> Left "Error! (compilation of FLang): type of main should be Int"
   in  do
         funcs <- M.mapKeys toSLName <$> forM ((\(FLCProgram decls) -> decls) program) flcGenerateFunc

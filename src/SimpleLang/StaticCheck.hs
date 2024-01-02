@@ -17,7 +17,7 @@ import Data.Text as T hiding (
 import Data.Map as M
 import Control.Monad.State as S
 import Control.Monad.Except
-import Data.Foldable as F
+--import Data.Foldable as F
 import Data.Vector as V hiding (forM_)
 import qualified Data.List as L
 import Prelude hiding (
@@ -95,12 +95,11 @@ prettyPrintSLSCError err =
   in prettyPrintSLPos pos <> ": " <> msg
 
 data SLSCState = SLSCState {
-      slscsVars  :: Map Int SLType
-    , slscsArgs  :: Map Int SLType
+      slscsVars  :: Map Text SLType
+    , slscsArgs  :: Map Text SLType
     , slscsFuncs :: Map SLFuncName SLFuncSignature
     , slscsRetType :: SLType
     , slscsPos :: SLPos
-    , stackCount :: Int
   } deriving (Show)
 
 
@@ -108,17 +107,18 @@ type MonadSLSC = ExceptT SLSCError (State SLSCState)
 
 slscCheck :: SLProgram -> Either SLSCError ()
 slscCheck decls = 
-  let funcdict = M.fromList $ (\(SLFuncBlock sig _) -> (slfsName sig, sig)) <$> M.elems decls
+  let funcdict = M.fromList $ (\(SLFuncBlock sig _ _) -> (slfsName sig, sig)) <$> M.elems decls
         
 
   in  forM_ (M.assocs decls) (\(fname, fblock) -> do
-                let SLFuncBlock sig block = fblock
-                let SLFuncSignature name args rettype = sig
+                let SLFuncBlock sig argnames block = fblock
+                let SLFuncSignature name argtypes rettype = sig
                 when (name /= fname)
                   $ throwError $ SLSCFunctionNameMismatch name fname (SLPos fname [])
                 
                 let argdict =
-                      M.fromList $ snd $ F.foldl (\(argpos, argdata) t -> (argpos + sltSizeOf t, (argpos, t): argdata)) (0, []) args
+                      --M.fromList $ snd $ F.foldl (\(argpos, argdata) t -> (argpos + sltSizeOf t, (argpos, t): argdata)) (0, []) args
+                      M.fromList $ L.zip argnames argtypes
 
                 let initstate = SLSCState {
                         slscsVars = M.empty
@@ -126,7 +126,6 @@ slscCheck decls =
                       , slscsFuncs = funcdict
                       , slscsRetType = rettype
                       , slscsPos = SLPos fname []
-                      , stackCount = 0
                       }
 
                 _ <- (`evalState` initstate) $ runExceptT $ checkBlock block
@@ -211,9 +210,9 @@ checkStmt stmt = case stmt of
   SLSInitVar i exp -> do
     t <- checkExpr exp
     vars <- gets slscsVars
-    scnt <- gets stackCount
-    when (i /= scnt) $ throwSLSCError $ SLSCWrongLocalArgAddr (prettyPrintSLStatement stmt)
-    S.modify (\s -> s {slscsVars = M.insert i t vars, stackCount = scnt + sltSizeOf t})
+    --scnt <- gets stackCount
+    --when (i /= scnt) $ throwSLSCError $ SLSCWrongLocalArgAddr (prettyPrintSLStatement stmt)
+    S.modify (\s -> s {slscsVars = M.insert i t vars{-, stackCount = scnt + sltSizeOf t-}})
 
 checkExpr :: SLExp -> MonadSLSC SLType
 checkExpr exp = inPos (SLLPExpr exp) $ case exp of
