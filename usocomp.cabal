@@ -67,9 +67,36 @@ library
     , vector-builder
   default-language: GHC2021
 
+executable slangc
+  main-is: SimpleLangC.hs
+  other-modules:
+      Main
+      Paths_usocomp
+  autogen-modules:
+      Paths_usocomp
+  hs-source-dirs:
+      app
+  default-extensions:
+      StrictData
+      DataKinds
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -main-is SimpleLangC -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , megaparsec
+    , mtl
+    , parser-combinators
+    , primitive
+    , text
+    , usocomp
+    , vector
+    , vector-builder
+  default-language: GHC2021
+
 executable usocomp-exe
   main-is: Main.hs
   other-modules:
+      SimpleLangC
       Paths_usocomp
   autogen-modules:
       Paths_usocomp

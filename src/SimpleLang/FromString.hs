@@ -5,6 +5,7 @@ module SimpleLang.FromString (
 ) where
 
 import SimpleLang.Def
+import SimpleLang.Tools
 import Data.Text as T
 import Text.Megaparsec as MP hiding (State)
 import Text.Megaparsec.Char as MP
@@ -19,6 +20,9 @@ import qualified Data.List as L
 import Data.Bifunctor
 import Debug.Trace
 import Data.Maybe
+import SimpleLang.StaticCheck
+import Control.Applicative hiding (many, some)
+import Data.Set as S
 
 newtype SLParserError = SLParserError Text deriving (Show, Eq, Ord)
 instance ShowErrorComponent  SLParserError where
@@ -31,22 +35,26 @@ data LocalParserState = LocalParserState {
   , lpsArgs   :: M.Map Text SLType
   , lpsFuncs  :: M.Map SLFuncName SLFuncSignature
   , lpsFirstPath :: Bool
+  , lpsSLPos  :: Maybe SLPos
+  , lpsReportingError :: Maybe SLSCError
   } deriving (Show)
 
 emptyState :: LocalParserState
-emptyState = LocalParserState M.empty M.empty M.empty True
+emptyState = LocalParserState M.empty M.empty M.empty True Nothing Nothing
 
 type LocalParser = StateT LocalParserState Parser
 
-
+{-# SPECIALISE parseStructType :: LocalParser [SLType] #-}
 parseStructType :: MonadParsec SLParserError Text m => m [SLType]
 parseStructType =
   char '(' *> sepBy parseType (char ',') <* char ')'
 
+{-# SPECIALISE parseUnionType :: LocalParser [SLType] #-}
 parseUnionType :: MonadParsec SLParserError Text m => m [SLType]
 parseUnionType =
   char '[' *> sepBy parseType (char '|') <* char ']'
 
+{-# SPECIALISE parseType :: LocalParser SLType #-}
 parseType :: MonadParsec SLParserError Text m => m SLType
 parseType = unwrapspace $ do
   choice [
@@ -56,6 +64,7 @@ parseType = unwrapspace $ do
     , try $ SLTUnion <$> parseUnionType
     ]
 
+{-# SPECIALISE parseFuncName :: LocalParser SLFuncName #-}
 parseName :: MonadParsec SLParserError Text m => m Text
 parseName = T.pack <$> some alphaNumChar
 
@@ -88,7 +97,7 @@ parseFuncSignature = do
   fdict <- gets lpsFuncs
   isFirstPath <- gets lpsFirstPath
   if isFirstPath then pure $ SLFuncSignature n [] SLTInt
-  else 
+  else
     case M.lookup n fdict of
       Just t  -> pure t
       Nothing -> customFailure $ SLParserError $ "Function " <> prettyPrintSLFuncName n <> " not found"
@@ -159,10 +168,8 @@ parseParensExpr :: LocalParser SLExp
 parseParensExpr = char '(' *> parseExp <* char ')'
 
 parseExp :: LocalParser SLExp
-parseExp = unwrapspace $
-  choice [
+parseExp = unwrapspace $ choice [
         try $ makeExprParser parseTerm operators
-      --, try parseTerm
     ]
 
 parseTerm :: LocalParser SLExp
@@ -205,25 +212,26 @@ parseStatement = do
           pure $ SLSInitVar n e
         )
     , try $ SLSSubst <$> parseRef  <* hspace <* string "="  <* hspace <*> parseExp
-    ]
+    ] <* reportNonParserError
 
 
 parseBlock :: LocalParser SLBlock
 parseBlock = do
   choice [
-      try $ SLBMulti  <$ scn <*> (char '{' *> scn *> (V.fromList . catMaybes <$> sepBy (try (Just <$> parseBlock) <|> pure Nothing) parseEOS) <* scn <* char '}')
-    , try $ SLBCase   <$ scn <*> (fmap V.fromList . some $ ((,) <$ string "when" <* hspace <*> parseExp <* scn <*> parseBlock)) <* scn <* string "else" <* scn <*> parseBlock
-    , try $ SLBWhile  <$ scn <*  string "while" <*> parseExp <*> parseBlock
+      try $ SLBMulti  <$ scn <*> (char '{' *> scn *> (V.fromList . catMaybes <$> sepByIndex (\i -> try (Just <$> inPos (SLLPMulti i) parseBlock) <|> pure Nothing) parseEOS) <* scn <* char '}')
+    , try $ SLBCase   <$ scn <*> (fmap V.fromList . someIndex $ (\i -> (,) <$ string "when" <* hspace <*> inPos (SLLPCaseCond i) parseExp <* scn <*> inPos (SLLPCaseBody i) parseBlock)) <* scn <* string "else" <* scn <*> inPos SLLPCaseElseBody parseBlock
+    , try $ SLBWhile  <$ scn <*  string "while" <*> inPos SLLPWhileCond parseExp <*> inPos SLLPWhileBody parseBlock
     , try $ SLBSingle <$ scn <*> parseStatement
     ]
 
+{-# SPECIALISE parseFuncName :: LocalParser SLFuncName #-}
 parseFuncName :: MonadParsec SLParserError Text m => m SLFuncName
 parseFuncName = do
   n <- sepBy parseName (char '.')
   case n of
     ["main"] -> pure SLFuncMain
     [fname]  -> pure $ SLUserFunc "main" fname
-    _    -> 
+    _    ->
       case L.uncons (L.reverse n) of
         Just (fname, revm) -> pure $ SLUserFunc (T.intercalate "." (L.reverse revm)) fname
         Nothing         -> customFailure $ SLParserError $ "Invalid function name: " <> T.intercalate "." n
@@ -235,7 +243,7 @@ parseFunction fdict errorOnNonExistentFunc = do
   fargs <- char '(' *> sepBy (flip (,) <$> parseType <* string "$" <*> parseName) (char ',') <* char ')'
   _ <- scn
   fret  <- string "->" *> scn *> parseType
-  fbody <- runStateT parseBlock (emptyState { lpsArgs = M.fromList fargs, lpsFuncs = fdict, lpsFirstPath = errorOnNonExistentFunc})
+  fbody <- runStateT parseBlock (emptyState { lpsArgs = M.fromList fargs, lpsFuncs = fdict, lpsFirstPath = errorOnNonExistentFunc, lpsSLPos = Just (SLPos fname [])})
   let fsig = SLFuncSignature fname (snd <$> fargs) fret
   pure $ SLFuncBlock fsig (fst <$> fargs) (fst fbody)
 
@@ -253,17 +261,82 @@ parseEOS =
     , try $ MP.hspace *> eof
     ]
 
+{-# SPECIALISE scn :: LocalParser () #-}
 scn :: MonadParsec SLParserError Text m => m ()
 scn = MPL.space
   MP.space1
   (MPL.skipLineComment "//")
   (MPL.skipBlockComment "/*" "*/")
 
-
+{-# SPECIALISE unwrapspace :: LocalParser a -> LocalParser a #-}
 unwrapspace :: MonadParsec SLParserError Text m => m a -> m a
 unwrapspace p = MP.hspace *> p <* MP.hspace
+
+
+inPos :: SLLocalPos -> LocalParser x -> LocalParser x
+inPos newpos v = do
+    oldpos <- gets lpsSLPos
+    modify (\s -> s {lpsSLPos = pushPos newpos <$> oldpos})
+    x <- v
+    modify (\s -> s {lpsSLPos = oldpos})
+    pure x
+
+outPos :: LocalParser x -> LocalParser x
+outPos v = do
+    oldpos <- gets lpsSLPos
+    modify (\s -> s {lpsSLPos = popPos <$> oldpos})
+    x <- v
+    modify (\s -> s {lpsSLPos = oldpos})
+    pure x
+
+sepByIndex :: Alternative m => (Int -> m a) -> m sep -> m [a]
+sepByIndex p sep = sepBy1Index p sep <|> pure []
+{-# INLINE sepByIndex #-}
+
+sepBy1Index :: Alternative m => (Int -> m a) -> m sep -> m [a]
+sepBy1Index p sep = liftA2 (:) (p 0) (manyIndex (\i -> sep *> p i))
+{-# INLINE sepBy1Index #-}
+
+manyIndex :: Alternative f => (Int -> f a)-> f [a]
+manyIndex v = many_v 0
+  where
+    many_v i = some_v i <|> pure []
+    some_v i = liftA2 (:) (v i) (many_v (i + 1))
+
+someIndex :: Alternative f => (Int -> f a)-> f [a]
+someIndex v = some_v 0
+  where
+    many_v i = some_v i <|> pure []
+    some_v i = liftA2 (:) (v i) (many_v (i + 1))
+
+reportNonParserError :: LocalParser ()
+reportNonParserError = do
+  e <- gets lpsReportingError
+  case e of
+    Nothing -> pure ()
+    Just e' -> do
+      pos <- gets lpsSLPos
+      case pos of
+        Nothing -> pure ()
+        Just pos' -> when (arePosOnSameStatement (slscegetPos e') pos') $
+          (registerFancyFailure . S.singleton . ErrorCustom) $ SLParserError $ prettyPrintSLSCError e'
+
+arePosOnSameStatement :: SLPos -> SLPos -> Bool
+arePosOnSameStatement (SLPos f1 xs1) (SLPos f2 xs2) =
+  if L.length xs1 < L.length xs2 then arePosOnSameStatement (SLPos f2 xs2) (SLPos f1 xs1)
+  else
+    (f1 == f2 && xs2 `L.isPrefixOf` xs1) && (case L.drop (L.length xs2) xs1 of
+        [] -> True
+        (x:_) -> case x of
+          SLLPExpr _ -> True
+          _ -> False)
+
+
+
 
 textToSLProgram :: Text -> Either Text SLProgram
 textToSLProgram t = do
   fdict <- first (pack . errorBundlePretty) $ parse parseFDict "main.slang" t
-  first (pack . errorBundlePretty) $ parse (parseSLProgram fdict) "main.slang" t
+  program <- first (pack . errorBundlePretty) $ parse (parseSLProgram fdict) "main.slang" t
+  first prettyPrintSLSCError $ slscCheck program
+  pure program

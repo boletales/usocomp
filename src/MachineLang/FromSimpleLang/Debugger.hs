@@ -8,6 +8,7 @@ module MachineLang.FromSimpleLang.Debugger (
     debugMLC
   , runMLC
   , mlcResultText
+  , mlcResultEither
   , runMLCinST
   , runMLCinST'
 ) where
@@ -240,14 +241,17 @@ runMLCinST' program =
 
 {-| 人間可読なコンパイル成果物を吐きます -}
 mlcResultText :: SLProgram -> Text
-mlcResultText program =
+mlcResultText program = either id id $ mlcResultEither program
+
+mlcResultEither :: SLProgram -> Either Text Text
+mlcResultEither program =
   case compileSLProgram program of
-    Left err -> tshow err
+    Left err -> Left $ tshow err
     Right mlp ->
-        V.foldl (\ac (inst, pos) ->
+        Right $ V.foldl (\ac (inst, pos) ->
             let instText = mliAbbrText inst
                 posText  = slPosAbbrText pos
 
             in  ac <> "\n" <>
-                 instText <> T.replicate (40 - T.length instText) " " <> posText
+                 instText <> T.replicate (40 - T.length instText) " " <> "#" <> posText
           ) "" mlp

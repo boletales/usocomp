@@ -1,0 +1,250 @@
+
+nop                                     #main
+const r2 1                              #main
+const r1 1                              #main
+const r3 248                            #main
+store r3 r1                             #main
+add   r1 r1 r2                          #main
+const r3 0                              #main
+store r3 r1                             #main
+const r3 0                              #main
+add   r1 r1 r2                          #main
+store r3 r1                             #main
+copy  r0 r1                             #main
+const pc 13                             #main
+const r2 1                              #main[0].expr main.fibonacci(20, 0, 1)
+add   r1 r1 r2                          #main[0].expr main.fibonacci(20, 0, 1)
+const r2 1                              #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 20
+add   r1 r1 r2                          #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 20
+const r3 20                             #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 20
+store r3 r1                             #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 20
+const r2 1                              #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 0
+add   r1 r1 r2                          #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 0
+const r3 0                              #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 0
+store r3 r1                             #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 0
+const r2 1                              #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 1
+add   r1 r1 r2                          #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 1
+const r3 1                              #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 1
+store r3 r1                             #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 1
+const r4 81                             #main[0].expr main.fibonacci(20, 0, 1)
+const r2 1                              #main[0].expr main.fibonacci(20, 0, 1)
+add   r1 r1 r2                          #main[0].expr main.fibonacci(20, 0, 1)
+const r3 9                              #main[0].expr main.fibonacci(20, 0, 1)
+add   r3 r3 pc                          #main[0].expr main.fibonacci(20, 0, 1)
+store r3 r1                             #main[0].expr main.fibonacci(20, 0, 1)
+add   r1 r1 r2                          #main[0].expr main.fibonacci(20, 0, 1)
+const r3 -5                             #main[0].expr main.fibonacci(20, 0, 1)
+add   r3 r1 r3                          #main[0].expr main.fibonacci(20, 0, 1)
+store r3 r1                             #main[0].expr main.fibonacci(20, 0, 1)
+add   r1 r1 r2                          #main[0].expr main.fibonacci(20, 0, 1)
+store r0 r1                             #main[0].expr main.fibonacci(20, 0, 1)
+copy  r0 r1                             #main[0].expr main.fibonacci(20, 0, 1)
+copy  pc r4                             #main[0].expr main.fibonacci(20, 0, 1)
+const r2 1                              #main[1].expr $0
+add   r1 r1 r2                          #main[1].expr $0
+const r2 1                              #main[1].expr $0
+add   r2 r2 r0                          #main[1].expr $0
+load  r2 r2                             #main[1].expr $0
+store r2 r1                             #main[1].expr $0
+const r2 -1                             #main[1]
+add   r4 r2 r0                          #main[1]
+load  r4 r4                             #main[1]
+load  r3 r1                             #main[1]
+store r3 r4                             #main[1]
+add   r1 r1 r2                          #main[1]
+add   r4 r4 r2                          #main[1]
+copy  r2 r0                             #main[1]
+load  r0 r0                             #main[1]
+const r3 -1                             #main[1]
+add   r2 r2 r3                          #main[1]
+load  r1 r2                             #main[1]
+add   r2 r2 r3                          #main[1]
+load  pc r2                             #main[1]
+const r2 -1                             #main
+add   r1 r1 r2                          #main
+const r2 1                              #main.forceReturn.expr 0
+add   r1 r1 r2                          #main.forceReturn.expr 0
+const r3 0                              #main.forceReturn.expr 0
+store r3 r1                             #main.forceReturn.expr 0
+const r2 -1                             #main.forceReturn
+add   r4 r2 r0                          #main.forceReturn
+load  r4 r4                             #main.forceReturn
+load  r3 r1                             #main.forceReturn
+store r3 r4                             #main.forceReturn
+add   r1 r1 r2                          #main.forceReturn
+add   r4 r4 r2                          #main.forceReturn
+copy  r2 r0                             #main.forceReturn
+load  r0 r0                             #main.forceReturn
+const r3 -1                             #main.forceReturn
+add   r2 r2 r3                          #main.forceReturn
+load  r1 r2                             #main.forceReturn
+add   r2 r2 r3                          #main.forceReturn
+load  pc r2                             #main.forceReturn
+const r2 1                              #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
+add   r1 r1 r2                          #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
+const r2 -1                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
+add   r2 r2 r0                          #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
+load  r2 r2                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
+const r3 1                              #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
+add   r2 r2 r3                          #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
+load  r2 r2                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
+store r2 r1                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
+const r2 1                              #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr 0
+add   r1 r1 r2                          #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr 0
+const r3 0                              #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr 0
+store r3 r1                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr 0
+const r2 -1                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0)
+load  r4 r1                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0)
+add   r1 r1 r2                          #main.fibonacci[0].whenCond_0.expr ($A0 == 0)
+load  r3 r1                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0)
+or    r3 r3 r4                          #main.fibonacci[0].whenCond_0.expr ($A0 == 0)
+store r3 r1                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0)
+load  r2 r1                             #main.fibonacci[0].whenCond_0
+const r3 -1                             #main.fibonacci[0].whenCond_0
+add   r1 r1 r3                          #main.fibonacci[0].whenCond_0
+const r3 27                             #main.fibonacci[0].whenCond_0
+add   r3 r3 pc                          #main.fibonacci[0].whenCond_0
+njmp  r3 r2                             #main.fibonacci[0].whenCond_0
+const r2 1                              #main.fibonacci[0].whenBody_0[0].expr $A2
+add   r1 r1 r2                          #main.fibonacci[0].whenBody_0[0].expr $A2
+const r2 -1                             #main.fibonacci[0].whenBody_0[0].expr $A2
+add   r2 r2 r0                          #main.fibonacci[0].whenBody_0[0].expr $A2
+load  r2 r2                             #main.fibonacci[0].whenBody_0[0].expr $A2
+const r3 3                              #main.fibonacci[0].whenBody_0[0].expr $A2
+add   r2 r2 r3                          #main.fibonacci[0].whenBody_0[0].expr $A2
+load  r2 r2                             #main.fibonacci[0].whenBody_0[0].expr $A2
+store r2 r1                             #main.fibonacci[0].whenBody_0[0].expr $A2
+const r2 -1                             #main.fibonacci[0].whenBody_0[0]
+add   r4 r2 r0                          #main.fibonacci[0].whenBody_0[0]
+load  r4 r4                             #main.fibonacci[0].whenBody_0[0]
+load  r3 r1                             #main.fibonacci[0].whenBody_0[0]
+store r3 r4                             #main.fibonacci[0].whenBody_0[0]
+add   r1 r1 r2                          #main.fibonacci[0].whenBody_0[0]
+add   r4 r4 r2                          #main.fibonacci[0].whenBody_0[0]
+copy  r2 r0                             #main.fibonacci[0].whenBody_0[0]
+load  r0 r0                             #main.fibonacci[0].whenBody_0[0]
+const r3 -1                             #main.fibonacci[0].whenBody_0[0]
+add   r2 r2 r3                          #main.fibonacci[0].whenBody_0[0]
+load  r1 r2                             #main.fibonacci[0].whenBody_0[0]
+add   r2 r2 r3                          #main.fibonacci[0].whenBody_0[0]
+load  pc r2                             #main.fibonacci[0].whenBody_0[0]
+const r3 99                             #main.fibonacci[0].whenBody_0
+add   r3 r3 pc                          #main.fibonacci[0].whenBody_0
+jump  r3                                #main.fibonacci[0].whenBody_0
+const r2 1                              #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
+const r2 -1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
+add   r2 r2 r0                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
+load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
+const r3 1                              #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
+add   r2 r2 r3                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
+load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
+store r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
+const r2 1                              #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr 1
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr 1
+const r3 1                              #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr 1
+store r3 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr 1
+const r2 -1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1)
+load  r4 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1)
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1)
+load  r3 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1)
+sub   r3 r3 r4                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1)
+store r3 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1)
+const r2 1                              #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
+const r2 -1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
+add   r2 r2 r0                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
+load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
+const r3 3                              #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
+add   r2 r2 r3                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
+load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
+store r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
+const r2 1                              #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
+const r2 -1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
+add   r2 r2 r0                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
+load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
+const r3 2                              #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
+add   r2 r2 r3                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
+load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
+store r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
+const r2 1                              #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
+const r2 -1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
+add   r2 r2 r0                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
+load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
+const r3 3                              #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
+add   r2 r2 r3                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
+load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
+store r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
+const r2 -1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
+load  r4 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
+load  r3 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
+add   r3 r3 r4                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
+store r3 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
+const r5 81                             #main.fibonacci[0].whenElseBody[0]
+const r3 -2                             #main.fibonacci[0].whenElseBody[0]
+add   r3 r3 r0                          #main.fibonacci[0].whenElseBody[0]
+const r2 1                              #main.fibonacci[0].whenElseBody[0]
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0]
+load  r4 r3                             #main.fibonacci[0].whenElseBody[0]
+store r4 r1                             #main.fibonacci[0].whenElseBody[0]
+add   r3 r3 r2                          #main.fibonacci[0].whenElseBody[0]
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0]
+load  r4 r3                             #main.fibonacci[0].whenElseBody[0]
+store r4 r1                             #main.fibonacci[0].whenElseBody[0]
+add   r3 r3 r2                          #main.fibonacci[0].whenElseBody[0]
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0]
+load  r4 r3                             #main.fibonacci[0].whenElseBody[0]
+store r4 r1                             #main.fibonacci[0].whenElseBody[0]
+const r3 -5                             #main.fibonacci[0].whenElseBody[0]
+add   r3 r3 r1                          #main.fibonacci[0].whenElseBody[0]
+const r4 -1                             #main.fibonacci[0].whenElseBody[0]
+add   r4 r1 r4                          #main.fibonacci[0].whenElseBody[0]
+load  r1 r4                             #main.fibonacci[0].whenElseBody[0]
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0]
+const r4 5                              #main.fibonacci[0].whenElseBody[0]
+add   r0 r1 r4                          #main.fibonacci[0].whenElseBody[0]
+load  r4 r3                             #main.fibonacci[0].whenElseBody[0]
+store r4 r1                             #main.fibonacci[0].whenElseBody[0]
+add   r3 r3 r2                          #main.fibonacci[0].whenElseBody[0]
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0]
+load  r4 r3                             #main.fibonacci[0].whenElseBody[0]
+store r4 r1                             #main.fibonacci[0].whenElseBody[0]
+add   r3 r3 r2                          #main.fibonacci[0].whenElseBody[0]
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0]
+load  r4 r3                             #main.fibonacci[0].whenElseBody[0]
+store r4 r1                             #main.fibonacci[0].whenElseBody[0]
+add   r3 r3 r2                          #main.fibonacci[0].whenElseBody[0]
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0]
+load  r4 r3                             #main.fibonacci[0].whenElseBody[0]
+store r4 r1                             #main.fibonacci[0].whenElseBody[0]
+add   r3 r3 r2                          #main.fibonacci[0].whenElseBody[0]
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0]
+load  r4 r3                             #main.fibonacci[0].whenElseBody[0]
+store r4 r1                             #main.fibonacci[0].whenElseBody[0]
+add   r3 r3 r2                          #main.fibonacci[0].whenElseBody[0]
+add   r1 r1 r2                          #main.fibonacci[0].whenElseBody[0]
+load  r4 r3                             #main.fibonacci[0].whenElseBody[0]
+store r4 r1                             #main.fibonacci[0].whenElseBody[0]
+copy  pc r5                             #main.fibonacci[0].whenElseBody[0]
+const r2 1                              #main.fibonacci.forceReturn.expr 0
+add   r1 r1 r2                          #main.fibonacci.forceReturn.expr 0
+const r3 0                              #main.fibonacci.forceReturn.expr 0
+store r3 r1                             #main.fibonacci.forceReturn.expr 0
+const r2 -1                             #main.fibonacci.forceReturn
+add   r4 r2 r0                          #main.fibonacci.forceReturn
+load  r4 r4                             #main.fibonacci.forceReturn
+load  r3 r1                             #main.fibonacci.forceReturn
+store r3 r4                             #main.fibonacci.forceReturn
+add   r1 r1 r2                          #main.fibonacci.forceReturn
+add   r4 r4 r2                          #main.fibonacci.forceReturn
+copy  r2 r0                             #main.fibonacci.forceReturn
+load  r0 r0                             #main.fibonacci.forceReturn
+const r3 -1                             #main.fibonacci.forceReturn
+add   r2 r2 r3                          #main.fibonacci.forceReturn
+load  r1 r2                             #main.fibonacci.forceReturn
+add   r2 r2 r3                          #main.fibonacci.forceReturn
+load  pc r2                             #main.fibonacci.forceReturn
+nop                                     #main

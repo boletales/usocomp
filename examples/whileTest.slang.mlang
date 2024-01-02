@@ -1,0 +1,108 @@
+
+nop                                     #main
+const r2 1                              #main
+const r1 1                              #main
+const r3 106                            #main
+store r3 r1                             #main
+add   r1 r1 r2                          #main
+const r3 0                              #main
+store r3 r1                             #main
+const r3 0                              #main
+add   r1 r1 r2                          #main
+store r3 r1                             #main
+copy  r0 r1                             #main
+const pc 13                             #main
+const r2 1                              #main[0].expr 1
+add   r1 r1 r2                          #main[0].expr 1
+const r3 1                              #main[0].expr 1
+store r3 r1                             #main[0].expr 1
+const r2 1                              #main[1].whileCond.expr ($0 < 1000).expr $0
+add   r1 r1 r2                          #main[1].whileCond.expr ($0 < 1000).expr $0
+const r2 1                              #main[1].whileCond.expr ($0 < 1000).expr $0
+add   r2 r2 r0                          #main[1].whileCond.expr ($0 < 1000).expr $0
+load  r2 r2                             #main[1].whileCond.expr ($0 < 1000).expr $0
+store r2 r1                             #main[1].whileCond.expr ($0 < 1000).expr $0
+const r2 1                              #main[1].whileCond.expr ($0 < 1000).expr 1000
+add   r1 r1 r2                          #main[1].whileCond.expr ($0 < 1000).expr 1000
+const r3 1000                           #main[1].whileCond.expr ($0 < 1000).expr 1000
+store r3 r1                             #main[1].whileCond.expr ($0 < 1000).expr 1000
+const r2 -1                             #main[1].whileCond.expr ($0 < 1000)
+load  r4 r1                             #main[1].whileCond.expr ($0 < 1000)
+add   r1 r1 r2                          #main[1].whileCond.expr ($0 < 1000)
+load  r3 r1                             #main[1].whileCond.expr ($0 < 1000)
+lt    r3 r3 r4                          #main[1].whileCond.expr ($0 < 1000)
+store r3 r1                             #main[1].whileCond.expr ($0 < 1000)
+load  r2 r1                             #main[1].whileCond
+const r3 -1                             #main[1].whileCond
+add   r1 r1 r3                          #main[1].whileCond
+const r3 29                             #main[1].whileCond
+add   r3 r3 pc                          #main[1].whileCond
+njmp  r3 r2                             #main[1].whileCond
+const r2 1                              #main[1].whileBody[0].expr ($0 + $0).expr $0
+add   r1 r1 r2                          #main[1].whileBody[0].expr ($0 + $0).expr $0
+const r2 1                              #main[1].whileBody[0].expr ($0 + $0).expr $0
+add   r2 r2 r0                          #main[1].whileBody[0].expr ($0 + $0).expr $0
+load  r2 r2                             #main[1].whileBody[0].expr ($0 + $0).expr $0
+store r2 r1                             #main[1].whileBody[0].expr ($0 + $0).expr $0
+const r2 1                              #main[1].whileBody[0].expr ($0 + $0).expr $0
+add   r1 r1 r2                          #main[1].whileBody[0].expr ($0 + $0).expr $0
+const r2 1                              #main[1].whileBody[0].expr ($0 + $0).expr $0
+add   r2 r2 r0                          #main[1].whileBody[0].expr ($0 + $0).expr $0
+load  r2 r2                             #main[1].whileBody[0].expr ($0 + $0).expr $0
+store r2 r1                             #main[1].whileBody[0].expr ($0 + $0).expr $0
+const r2 -1                             #main[1].whileBody[0].expr ($0 + $0)
+load  r4 r1                             #main[1].whileBody[0].expr ($0 + $0)
+add   r1 r1 r2                          #main[1].whileBody[0].expr ($0 + $0)
+load  r3 r1                             #main[1].whileBody[0].expr ($0 + $0)
+add   r3 r3 r4                          #main[1].whileBody[0].expr ($0 + $0)
+store r3 r1                             #main[1].whileBody[0].expr ($0 + $0)
+load  r3 r1                             #main[1].whileBody[0]
+const r2 -1                             #main[1].whileBody[0]
+add   r1 r1 r2                          #main[1].whileBody[0]
+const r2 1                              #main[1].whileBody[0]
+add   r2 r2 r0                          #main[1].whileBody[0]
+store r3 r2                             #main[1].whileBody[0]
+const r3 -48                            #main[1].whileFooter
+add   r3 r3 pc                          #main[1].whileFooter
+jump  r3                                #main[1].whileFooter
+const r2 1                              #main[2].expr $0
+add   r1 r1 r2                          #main[2].expr $0
+const r2 1                              #main[2].expr $0
+add   r2 r2 r0                          #main[2].expr $0
+load  r2 r2                             #main[2].expr $0
+store r2 r1                             #main[2].expr $0
+const r2 -1                             #main[2]
+add   r4 r2 r0                          #main[2]
+load  r4 r4                             #main[2]
+load  r3 r1                             #main[2]
+store r3 r4                             #main[2]
+add   r1 r1 r2                          #main[2]
+add   r4 r4 r2                          #main[2]
+copy  r2 r0                             #main[2]
+load  r0 r0                             #main[2]
+const r3 -1                             #main[2]
+add   r2 r2 r3                          #main[2]
+load  r1 r2                             #main[2]
+add   r2 r2 r3                          #main[2]
+load  pc r2                             #main[2]
+const r2 -1                             #main
+add   r1 r1 r2                          #main
+const r2 1                              #main.forceReturn.expr 0
+add   r1 r1 r2                          #main.forceReturn.expr 0
+const r3 0                              #main.forceReturn.expr 0
+store r3 r1                             #main.forceReturn.expr 0
+const r2 -1                             #main.forceReturn
+add   r4 r2 r0                          #main.forceReturn
+load  r4 r4                             #main.forceReturn
+load  r3 r1                             #main.forceReturn
+store r3 r4                             #main.forceReturn
+add   r1 r1 r2                          #main.forceReturn
+add   r4 r4 r2                          #main.forceReturn
+copy  r2 r0                             #main.forceReturn
+load  r0 r0                             #main.forceReturn
+const r3 -1                             #main.forceReturn
+add   r2 r2 r3                          #main.forceReturn
+load  r1 r2                             #main.forceReturn
+add   r2 r2 r3                          #main.forceReturn
+load  pc r2                             #main.forceReturn
+nop                                     #main

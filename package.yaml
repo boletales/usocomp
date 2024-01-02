@@ -60,6 +60,17 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - usocomp
+  
+  slangc:
+    main:                SimpleLangC.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is SimpleLangC
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - usocomp
 
 tests:
   usocomp-test:

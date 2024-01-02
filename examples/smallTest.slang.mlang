@@ -1,0 +1,51 @@
+
+nop                                     #main
+const r2 1                              #main
+const r1 1                              #main
+const r3 49                             #main
+store r3 r1                             #main
+add   r1 r1 r2                          #main
+const r3 0                              #main
+store r3 r1                             #main
+const r3 0                              #main
+add   r1 r1 r2                          #main
+store r3 r1                             #main
+copy  r0 r1                             #main
+const pc 13                             #main
+const r2 1                              #main[0].expr 12345
+add   r1 r1 r2                          #main[0].expr 12345
+const r3 12345                          #main[0].expr 12345
+store r3 r1                             #main[0].expr 12345
+const r2 -1                             #main[0]
+add   r4 r2 r0                          #main[0]
+load  r4 r4                             #main[0]
+load  r3 r1                             #main[0]
+store r3 r4                             #main[0]
+add   r1 r1 r2                          #main[0]
+add   r4 r4 r2                          #main[0]
+copy  r2 r0                             #main[0]
+load  r0 r0                             #main[0]
+const r3 -1                             #main[0]
+add   r2 r2 r3                          #main[0]
+load  r1 r2                             #main[0]
+add   r2 r2 r3                          #main[0]
+load  pc r2                             #main[0]
+const r2 1                              #main.forceReturn.expr 0
+add   r1 r1 r2                          #main.forceReturn.expr 0
+const r3 0                              #main.forceReturn.expr 0
+store r3 r1                             #main.forceReturn.expr 0
+const r2 -1                             #main.forceReturn
+add   r4 r2 r0                          #main.forceReturn
+load  r4 r4                             #main.forceReturn
+load  r3 r1                             #main.forceReturn
+store r3 r4                             #main.forceReturn
+add   r1 r1 r2                          #main.forceReturn
+add   r4 r4 r2                          #main.forceReturn
+copy  r2 r0                             #main.forceReturn
+load  r0 r0                             #main.forceReturn
+const r3 -1                             #main.forceReturn
+add   r2 r2 r3                          #main.forceReturn
+load  r1 r2                             #main.forceReturn
+add   r2 r2 r3                          #main.forceReturn
+load  pc r2                             #main.forceReturn
+nop                                     #main

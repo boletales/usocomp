@@ -1,0 +1,265 @@
+
+nop                                     #main
+const r2 1                              #main
+const r1 1                              #main
+const r3 263                            #main
+store r3 r1                             #main
+add   r1 r1 r2                          #main
+const r3 0                              #main
+store r3 r1                             #main
+const r3 0                              #main
+add   r1 r1 r2                          #main
+store r3 r1                             #main
+copy  r0 r1                             #main
+const pc 13                             #main
+const r2 1                              #main[0].expr 100
+add   r1 r1 r2                          #main[0].expr 100
+const r3 100                            #main[0].expr 100
+store r3 r1                             #main[0].expr 100
+const r2 1                              #main[1].expr 200
+add   r1 r1 r2                          #main[1].expr 200
+const r3 200                            #main[1].expr 200
+store r3 r1                             #main[1].expr 200
+const r2 1                              #main[2].expr 1000
+add   r1 r1 r2                          #main[2].expr 1000
+const r3 1000                           #main[2].expr 1000
+store r3 r1                             #main[2].expr 1000
+const r2 1                              #main[3].expr 2000
+add   r1 r1 r2                          #main[3].expr 2000
+const r3 2000                           #main[3].expr 2000
+store r3 r1                             #main[3].expr 2000
+const r2 1                              #main[4].expr 3000
+add   r1 r1 r2                          #main[4].expr 3000
+const r3 3000                           #main[4].expr 3000
+store r3 r1                             #main[4].expr 3000
+const r2 1                              #main[5].expr 4000
+add   r1 r1 r2                          #main[5].expr 4000
+const r3 4000                           #main[5].expr 4000
+store r3 r1                             #main[5].expr 4000
+const r2 1                              #main[6].whenCond_0.expr ($0 > $1).expr $0
+add   r1 r1 r2                          #main[6].whenCond_0.expr ($0 > $1).expr $0
+const r2 1                              #main[6].whenCond_0.expr ($0 > $1).expr $0
+add   r2 r2 r0                          #main[6].whenCond_0.expr ($0 > $1).expr $0
+load  r2 r2                             #main[6].whenCond_0.expr ($0 > $1).expr $0
+store r2 r1                             #main[6].whenCond_0.expr ($0 > $1).expr $0
+const r2 1                              #main[6].whenCond_0.expr ($0 > $1).expr $1
+add   r1 r1 r2                          #main[6].whenCond_0.expr ($0 > $1).expr $1
+const r2 2                              #main[6].whenCond_0.expr ($0 > $1).expr $1
+add   r2 r2 r0                          #main[6].whenCond_0.expr ($0 > $1).expr $1
+load  r2 r2                             #main[6].whenCond_0.expr ($0 > $1).expr $1
+store r2 r1                             #main[6].whenCond_0.expr ($0 > $1).expr $1
+const r2 -1                             #main[6].whenCond_0.expr ($0 > $1)
+load  r4 r1                             #main[6].whenCond_0.expr ($0 > $1)
+add   r1 r1 r2                          #main[6].whenCond_0.expr ($0 > $1)
+load  r3 r1                             #main[6].whenCond_0.expr ($0 > $1)
+gt    r3 r3 r4                          #main[6].whenCond_0.expr ($0 > $1)
+store r3 r1                             #main[6].whenCond_0.expr ($0 > $1)
+load  r2 r1                             #main[6].whenCond_0
+const r3 -1                             #main[6].whenCond_0
+add   r1 r1 r3                          #main[6].whenCond_0
+const r3 14                             #main[6].whenCond_0
+add   r3 r3 pc                          #main[6].whenCond_0
+njmp  r3 r2                             #main[6].whenCond_0
+const r2 1                              #main[6].whenBody_0[0].expr 10000
+add   r1 r1 r2                          #main[6].whenBody_0[0].expr 10000
+const r3 10000                          #main[6].whenBody_0[0].expr 10000
+store r3 r1                             #main[6].whenBody_0[0].expr 10000
+load  r3 r1                             #main[6].whenBody_0[0]
+const r2 -1                             #main[6].whenBody_0[0]
+add   r1 r1 r2                          #main[6].whenBody_0[0]
+const r2 3                              #main[6].whenBody_0[0]
+add   r2 r2 r0                          #main[6].whenBody_0[0]
+store r3 r2                             #main[6].whenBody_0[0]
+const r3 11                             #main[6].whenBody_0
+add   r3 r3 pc                          #main[6].whenBody_0
+jump  r3                                #main[6].whenBody_0
+const r2 1                              #main[6].whenElseBody[0].expr 20000
+add   r1 r1 r2                          #main[6].whenElseBody[0].expr 20000
+const r3 20000                          #main[6].whenElseBody[0].expr 20000
+store r3 r1                             #main[6].whenElseBody[0].expr 20000
+load  r3 r1                             #main[6].whenElseBody[0]
+const r2 -1                             #main[6].whenElseBody[0]
+add   r1 r1 r2                          #main[6].whenElseBody[0]
+const r2 3                              #main[6].whenElseBody[0]
+add   r2 r2 r0                          #main[6].whenElseBody[0]
+store r3 r2                             #main[6].whenElseBody[0]
+const r2 1                              #main[7].whenCond_0.expr ($0 < $1).expr $0
+add   r1 r1 r2                          #main[7].whenCond_0.expr ($0 < $1).expr $0
+const r2 1                              #main[7].whenCond_0.expr ($0 < $1).expr $0
+add   r2 r2 r0                          #main[7].whenCond_0.expr ($0 < $1).expr $0
+load  r2 r2                             #main[7].whenCond_0.expr ($0 < $1).expr $0
+store r2 r1                             #main[7].whenCond_0.expr ($0 < $1).expr $0
+const r2 1                              #main[7].whenCond_0.expr ($0 < $1).expr $1
+add   r1 r1 r2                          #main[7].whenCond_0.expr ($0 < $1).expr $1
+const r2 2                              #main[7].whenCond_0.expr ($0 < $1).expr $1
+add   r2 r2 r0                          #main[7].whenCond_0.expr ($0 < $1).expr $1
+load  r2 r2                             #main[7].whenCond_0.expr ($0 < $1).expr $1
+store r2 r1                             #main[7].whenCond_0.expr ($0 < $1).expr $1
+const r2 -1                             #main[7].whenCond_0.expr ($0 < $1)
+load  r4 r1                             #main[7].whenCond_0.expr ($0 < $1)
+add   r1 r1 r2                          #main[7].whenCond_0.expr ($0 < $1)
+load  r3 r1                             #main[7].whenCond_0.expr ($0 < $1)
+lt    r3 r3 r4                          #main[7].whenCond_0.expr ($0 < $1)
+store r3 r1                             #main[7].whenCond_0.expr ($0 < $1)
+load  r2 r1                             #main[7].whenCond_0
+const r3 -1                             #main[7].whenCond_0
+add   r1 r1 r3                          #main[7].whenCond_0
+const r3 14                             #main[7].whenCond_0
+add   r3 r3 pc                          #main[7].whenCond_0
+njmp  r3 r2                             #main[7].whenCond_0
+const r2 1                              #main[7].whenBody_0[0].expr 10000
+add   r1 r1 r2                          #main[7].whenBody_0[0].expr 10000
+const r3 10000                          #main[7].whenBody_0[0].expr 10000
+store r3 r1                             #main[7].whenBody_0[0].expr 10000
+load  r3 r1                             #main[7].whenBody_0[0]
+const r2 -1                             #main[7].whenBody_0[0]
+add   r1 r1 r2                          #main[7].whenBody_0[0]
+const r2 4                              #main[7].whenBody_0[0]
+add   r2 r2 r0                          #main[7].whenBody_0[0]
+store r3 r2                             #main[7].whenBody_0[0]
+const r3 11                             #main[7].whenBody_0
+add   r3 r3 pc                          #main[7].whenBody_0
+jump  r3                                #main[7].whenBody_0
+const r2 1                              #main[7].whenElseBody[0].expr 20000
+add   r1 r1 r2                          #main[7].whenElseBody[0].expr 20000
+const r3 20000                          #main[7].whenElseBody[0].expr 20000
+store r3 r1                             #main[7].whenElseBody[0].expr 20000
+load  r3 r1                             #main[7].whenElseBody[0]
+const r2 -1                             #main[7].whenElseBody[0]
+add   r1 r1 r2                          #main[7].whenElseBody[0]
+const r2 4                              #main[7].whenElseBody[0]
+add   r2 r2 r0                          #main[7].whenElseBody[0]
+store r3 r2                             #main[7].whenElseBody[0]
+const r2 1                              #main[8].whenCond_0.expr ($1 > $0).expr $1
+add   r1 r1 r2                          #main[8].whenCond_0.expr ($1 > $0).expr $1
+const r2 2                              #main[8].whenCond_0.expr ($1 > $0).expr $1
+add   r2 r2 r0                          #main[8].whenCond_0.expr ($1 > $0).expr $1
+load  r2 r2                             #main[8].whenCond_0.expr ($1 > $0).expr $1
+store r2 r1                             #main[8].whenCond_0.expr ($1 > $0).expr $1
+const r2 1                              #main[8].whenCond_0.expr ($1 > $0).expr $0
+add   r1 r1 r2                          #main[8].whenCond_0.expr ($1 > $0).expr $0
+const r2 1                              #main[8].whenCond_0.expr ($1 > $0).expr $0
+add   r2 r2 r0                          #main[8].whenCond_0.expr ($1 > $0).expr $0
+load  r2 r2                             #main[8].whenCond_0.expr ($1 > $0).expr $0
+store r2 r1                             #main[8].whenCond_0.expr ($1 > $0).expr $0
+const r2 -1                             #main[8].whenCond_0.expr ($1 > $0)
+load  r4 r1                             #main[8].whenCond_0.expr ($1 > $0)
+add   r1 r1 r2                          #main[8].whenCond_0.expr ($1 > $0)
+load  r3 r1                             #main[8].whenCond_0.expr ($1 > $0)
+gt    r3 r3 r4                          #main[8].whenCond_0.expr ($1 > $0)
+store r3 r1                             #main[8].whenCond_0.expr ($1 > $0)
+load  r2 r1                             #main[8].whenCond_0
+const r3 -1                             #main[8].whenCond_0
+add   r1 r1 r3                          #main[8].whenCond_0
+const r3 14                             #main[8].whenCond_0
+add   r3 r3 pc                          #main[8].whenCond_0
+njmp  r3 r2                             #main[8].whenCond_0
+const r2 1                              #main[8].whenBody_0[0].expr 10000
+add   r1 r1 r2                          #main[8].whenBody_0[0].expr 10000
+const r3 10000                          #main[8].whenBody_0[0].expr 10000
+store r3 r1                             #main[8].whenBody_0[0].expr 10000
+load  r3 r1                             #main[8].whenBody_0[0]
+const r2 -1                             #main[8].whenBody_0[0]
+add   r1 r1 r2                          #main[8].whenBody_0[0]
+const r2 5                              #main[8].whenBody_0[0]
+add   r2 r2 r0                          #main[8].whenBody_0[0]
+store r3 r2                             #main[8].whenBody_0[0]
+const r3 11                             #main[8].whenBody_0
+add   r3 r3 pc                          #main[8].whenBody_0
+jump  r3                                #main[8].whenBody_0
+const r2 1                              #main[8].whenElseBody[0].expr 20000
+add   r1 r1 r2                          #main[8].whenElseBody[0].expr 20000
+const r3 20000                          #main[8].whenElseBody[0].expr 20000
+store r3 r1                             #main[8].whenElseBody[0].expr 20000
+load  r3 r1                             #main[8].whenElseBody[0]
+const r2 -1                             #main[8].whenElseBody[0]
+add   r1 r1 r2                          #main[8].whenElseBody[0]
+const r2 5                              #main[8].whenElseBody[0]
+add   r2 r2 r0                          #main[8].whenElseBody[0]
+store r3 r2                             #main[8].whenElseBody[0]
+const r2 1                              #main[9].whenCond_0.expr ($1 < $0).expr $1
+add   r1 r1 r2                          #main[9].whenCond_0.expr ($1 < $0).expr $1
+const r2 2                              #main[9].whenCond_0.expr ($1 < $0).expr $1
+add   r2 r2 r0                          #main[9].whenCond_0.expr ($1 < $0).expr $1
+load  r2 r2                             #main[9].whenCond_0.expr ($1 < $0).expr $1
+store r2 r1                             #main[9].whenCond_0.expr ($1 < $0).expr $1
+const r2 1                              #main[9].whenCond_0.expr ($1 < $0).expr $0
+add   r1 r1 r2                          #main[9].whenCond_0.expr ($1 < $0).expr $0
+const r2 1                              #main[9].whenCond_0.expr ($1 < $0).expr $0
+add   r2 r2 r0                          #main[9].whenCond_0.expr ($1 < $0).expr $0
+load  r2 r2                             #main[9].whenCond_0.expr ($1 < $0).expr $0
+store r2 r1                             #main[9].whenCond_0.expr ($1 < $0).expr $0
+const r2 -1                             #main[9].whenCond_0.expr ($1 < $0)
+load  r4 r1                             #main[9].whenCond_0.expr ($1 < $0)
+add   r1 r1 r2                          #main[9].whenCond_0.expr ($1 < $0)
+load  r3 r1                             #main[9].whenCond_0.expr ($1 < $0)
+lt    r3 r3 r4                          #main[9].whenCond_0.expr ($1 < $0)
+store r3 r1                             #main[9].whenCond_0.expr ($1 < $0)
+load  r2 r1                             #main[9].whenCond_0
+const r3 -1                             #main[9].whenCond_0
+add   r1 r1 r3                          #main[9].whenCond_0
+const r3 14                             #main[9].whenCond_0
+add   r3 r3 pc                          #main[9].whenCond_0
+njmp  r3 r2                             #main[9].whenCond_0
+const r2 1                              #main[9].whenBody_0[0].expr 10000
+add   r1 r1 r2                          #main[9].whenBody_0[0].expr 10000
+const r3 10000                          #main[9].whenBody_0[0].expr 10000
+store r3 r1                             #main[9].whenBody_0[0].expr 10000
+load  r3 r1                             #main[9].whenBody_0[0]
+const r2 -1                             #main[9].whenBody_0[0]
+add   r1 r1 r2                          #main[9].whenBody_0[0]
+const r2 6                              #main[9].whenBody_0[0]
+add   r2 r2 r0                          #main[9].whenBody_0[0]
+store r3 r2                             #main[9].whenBody_0[0]
+const r3 11                             #main[9].whenBody_0
+add   r3 r3 pc                          #main[9].whenBody_0
+jump  r3                                #main[9].whenBody_0
+const r2 1                              #main[9].whenElseBody[0].expr 20000
+add   r1 r1 r2                          #main[9].whenElseBody[0].expr 20000
+const r3 20000                          #main[9].whenElseBody[0].expr 20000
+store r3 r1                             #main[9].whenElseBody[0].expr 20000
+load  r3 r1                             #main[9].whenElseBody[0]
+const r2 -1                             #main[9].whenElseBody[0]
+add   r1 r1 r2                          #main[9].whenElseBody[0]
+const r2 6                              #main[9].whenElseBody[0]
+add   r2 r2 r0                          #main[9].whenElseBody[0]
+store r3 r2                             #main[9].whenElseBody[0]
+const r2 1                              #main[10].expr 0
+add   r1 r1 r2                          #main[10].expr 0
+const r3 0                              #main[10].expr 0
+store r3 r1                             #main[10].expr 0
+const r2 -1                             #main[10]
+add   r4 r2 r0                          #main[10]
+load  r4 r4                             #main[10]
+load  r3 r1                             #main[10]
+store r3 r4                             #main[10]
+add   r1 r1 r2                          #main[10]
+add   r4 r4 r2                          #main[10]
+copy  r2 r0                             #main[10]
+load  r0 r0                             #main[10]
+const r3 -1                             #main[10]
+add   r2 r2 r3                          #main[10]
+load  r1 r2                             #main[10]
+add   r2 r2 r3                          #main[10]
+load  pc r2                             #main[10]
+const r2 -6                             #main
+add   r1 r1 r2                          #main
+const r2 1                              #main.forceReturn.expr 0
+add   r1 r1 r2                          #main.forceReturn.expr 0
+const r3 0                              #main.forceReturn.expr 0
+store r3 r1                             #main.forceReturn.expr 0
+const r2 -1                             #main.forceReturn
+add   r4 r2 r0                          #main.forceReturn
+load  r4 r4                             #main.forceReturn
+load  r3 r1                             #main.forceReturn
+store r3 r4                             #main.forceReturn
+add   r1 r1 r2                          #main.forceReturn
+add   r4 r4 r2                          #main.forceReturn
+copy  r2 r0                             #main.forceReturn
+load  r0 r0                             #main.forceReturn
+const r3 -1                             #main.forceReturn
+add   r2 r2 r3                          #main.forceReturn
+load  r1 r2                             #main.forceReturn
+add   r2 r2 r3                          #main.forceReturn
+load  pc r2                             #main.forceReturn
+nop                                     #main
