@@ -261,6 +261,27 @@ mlctComplexTest = MLCTUnit {
 -- >>> runMLCinST complexTest
 -- "(263 ticks) successfully terminated. code:100000"
 
+-- >>> error $ unpack $ prettyPrintSLProgram complexTest
+-- function #main() -> int
+-- {
+--   (int, int) $L0 = (100, 200)
+--   (int, int) $L2 = (300, 400)
+--   int $L4 = 1111111
+--   (int, int) $L5 = #main/complexProd($L0, $L2)
+--   int $L7 = 2222222
+--   return $L5.1
+-- }
+-- function #main/complexProd((int, int) $A0, (int, int) $A1) -> (int, int)
+-- {
+--   int $L0 = $A0.0
+--   int $L1 = $A0.1
+--   int $L2 = $A2.0
+--   int $L3 = $A2.1
+--   int $L4 = (($L0 * $L2) - ($L1 * $L3))
+--   int $L5 = (($L0 * $L3) + ($L1 * $L2))
+--   return ($L4, $L5)
+-- }
+
 
 tailRecTest :: SLProgram
 tailRecTest =
@@ -332,3 +353,18 @@ mlctClosureTest = MLCTUnit {
 
 -- >>> runMLCinST closureTest
 -- "(168 ticks) successfully terminated. code:10000"
+
+-- >>> error $ unpack $ prettyPrintSLProgram closureTest
+-- function #main() -> int
+-- {
+--   return (#main/func1, 12345, #main/func2)()
+-- }
+-- function #main/func1(int $A0, (int, int) -> int $A1) -> int
+-- {
+--   int $L0 = 2345
+--   tailcall ($A1, $A0, $L0)()
+-- }
+-- function #main/func2(int $A0, int $A1) -> int
+-- {
+--   return ($A0 - $A1)
+-- }
