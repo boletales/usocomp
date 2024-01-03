@@ -48,8 +48,7 @@ prettyPrintMemState regs mem =
           "  " <> "RegSPtr: " <> tshow (regs V.! fromEnum (interpretReg MLCRegStackPtr)) <> "\n" <>
           "  " <> "RegX   : " <> tshow (regs V.! fromEnum (interpretReg MLCRegX)) <> "\n" <>
           "  " <> "RegY   : " <> tshow (regs V.! fromEnum (interpretReg MLCRegY)) <> "\n" <>
-          "  " <> "RegZ   : " <> tshow (regs V.! fromEnum (interpretReg MLCRegZ)) <> "\n" <>
-          "  " <> "RegW   : " <> tshow (regs V.! fromEnum (interpretReg MLCRegW)) <> "\n"
+          "  " <> "RegZ   : " <> tshow (regs V.! fromEnum (interpretReg MLCRegZ)) <> "\n"
 
       stackTopAddr    = regs V.! fromEnum (interpretReg MLCRegStackPtr)
       oldFramePtrAddr = regs V.! fromEnum (interpretReg MLCRegFramePtr)

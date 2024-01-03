@@ -32,6 +32,7 @@ newtype MLVal  = MLVal  Int deriving (Show, Eq)
 data MLInst' r v =
     MLINop
   | MLIConst   r v   --
+  | MLIAddI    r r v --
   | MLILoad    r r   --
   | MLIStore   r r   --
   | MLIAdd     r r r --
@@ -57,6 +58,7 @@ instance Bifunctor MLInst' where
     case x of
       MLINop              -> MLINop
       MLIConst   r1 v     -> MLIConst   (f r1) (g v)
+      MLIAddI    r1 r2 v  -> MLIAddI    (f r1) (f r2) (g v)
       MLILoad    r1 r2    -> MLILoad    (f r1) (f r2)
       MLIStore   r1 r2    -> MLIStore   (f r1) (f r2)
       MLIAdd     r1 r2 r3 -> MLIAdd     (f r1) (f r2) (f r3)
@@ -81,6 +83,7 @@ instance Bifoldable MLInst' where
     case x of
       MLINop              -> mempty
       MLIConst   r1 v     -> f r1 <> g v
+      MLIAddI    r1 r2 v  -> f r1 <> f r2 <> g v
       MLILoad    r1 r2    -> f r1 <> f r2
       MLIStore   r1 r2    -> f r1 <> f r2
       MLIAdd     r1 r2 r3 -> f r1 <> f r2 <> f r3
@@ -105,6 +108,7 @@ instance Bitraversable MLInst' where
     case x of
       MLINop              -> pure MLINop
       MLIConst   r1 v     -> MLIConst   <$> f r1 <*> g v
+      MLIAddI    r1 r2 v  -> MLIAddI    <$> f r1 <*> f r2 <*> g v
       MLILoad    r1 r2    -> MLILoad    <$> f r1 <*> f r2
       MLIStore   r1 r2    -> MLIStore   <$> f r1 <*> f r2
       MLIAdd     r1 r2 r3 -> MLIAdd     <$> f r1 <*> f r2 <*> f r3

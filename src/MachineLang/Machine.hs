@@ -119,6 +119,7 @@ runMLMachine1 machine debugger =
               MLILoad    dest   addr            -> readReg reg addr >>= \addrval -> readMem mem addrval >>= writeReg reg dest                                                   
               MLIStore   source addr            -> readReg reg addr >>= \addrval -> readReg reg source  >>= writeMem mem addrval                                                  
               MLIConst   dest   val             -> writeReg reg dest val                                                                      
+              MLIAddI    dest   source val      -> do v1 <- readReg reg source; writeReg reg dest (over2 (+) v1 val)
               MLIAdd     dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (+)   v1 v2);
               MLISub     dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (-)   v1 v2);
               MLIMult    dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (*)   v1 v2);

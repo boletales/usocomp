@@ -2,7 +2,6 @@ module FuncLang.Tools.Manual where
 
 import FuncLang.Def
 import Data.Text as T
-import Control.Category
 import Prelude hiding ((.), id)
 import Data.Map as M
 import Control.Monad.State
