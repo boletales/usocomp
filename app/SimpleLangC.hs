@@ -43,7 +43,7 @@ main' opts filename = do
       liftIO $ 
         if S.member SLCOptionDebug opts
           then debugMLC slprogram
-          else runMLC slprogram
+          else runMLCFast slprogram
         
 
 

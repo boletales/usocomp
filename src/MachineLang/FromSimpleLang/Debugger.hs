@@ -7,6 +7,7 @@
 module MachineLang.FromSimpleLang.Debugger (
     debugMLC
   , runMLC
+  , runMLCFast
   , mlcResultText
   , mlcResultEither
   , runMLCinST
@@ -29,6 +30,7 @@ import Control.Monad
 import Control.Monad.ST
 import Control.Monad.Primitive
 import Data.STRef (readSTRef)
+import Data.Bifunctor (Bifunctor(second))
 
 
 tshow :: Show a => a -> Text
@@ -120,6 +122,11 @@ tickDebugger :: MLDebugger SLPos (ExceptT MLRuntimeError IO)
 tickDebugger (_, _, _, _, _, time) = lift $ do
   TIO.putStr ("\rtick: " <> tshow time)
 
+lazyTickDebugger :: Int -> MLDebugger SLPos IO
+lazyTickDebugger n (_, _, _, _, _, time) = do
+  when (time `mod` n == 0) $ do
+    TIO.putStr ("\ntick: " <> tshow time)
+
 {-| インタラクティブなデバッガを起動します -}
 
 debugMLC :: SLProgram -> IO ()
@@ -191,6 +198,28 @@ runMLC program =
             result <- runExceptT $ runMLMachine1 m tickDebugger
             case result of
               Left e -> end e
+              Right _  ->  mainloop m
+        in mainloop machine
+
+runMLCFast :: SLProgram -> IO ()
+runMLCFast program =
+  case compileSLProgram program of
+    Left err -> TIO.putStrLn (tshow err)
+    Right mlp -> do
+      TIO.putStrLn "Compiled!"
+      TIO.putStrLn "Running..."
+      machine <- initMLMacine (MLConfig 100000) (second (const ()) <$> mlp)
+
+      let end e m = do
+            tick <- stToIO $ readSTRef $ mltime m
+            case e of
+              MLRESuccess c -> TIO.putStrLn ("\rtick: " <> tshow tick <> "\n" <> "successfully terminated. code:" <> tshow c)
+              _ -> TIO.putStrLn ("\rtick: " <> tshow tick <> "\n" <> "runtime error:" <> tshow e)
+
+          mainloop m = do
+            result <- runMLMachine1Fast m (TIO.putStr . ("\rtick: " <>) . tshow)
+            case result of
+              Left e -> end e m
               Right _  ->  mainloop m
         in mainloop machine
 

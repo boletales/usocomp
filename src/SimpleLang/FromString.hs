@@ -40,7 +40,7 @@ data LocalParserState = LocalParserState {
   } deriving (Show)
 
 emptyState :: LocalParserState
-emptyState = LocalParserState M.empty M.empty M.empty True Nothing Nothing
+emptyState = LocalParserState M.empty M.empty M.empty False Nothing Nothing
 
 type LocalParser = StateT LocalParserState Parser
 
@@ -169,7 +169,7 @@ parseParensExpr = char '(' *> parseExp <* char ')'
 
 parseExp :: LocalParser SLExp
 parseExp = unwrapspace $ choice [
-        try $ makeExprParser parseTerm operators
+        makeExprParser parseTerm operators
     ]
 
 parseTerm :: LocalParser SLExp
@@ -183,6 +183,7 @@ parseTerm = unwrapspace $
     , try $ SLEPushCall <$> parseCall
     , try parseParensExpr
     , try $ L.foldr SLEStructCons SLEStructNil <$> (char '(' *> sepBy parseExp (char ',') <* char ')')
+    , try $ some alphaNumChar $> SLELocal SLTInt "dummy" <* registerCustomError (SLParserError "Invalid expression (forgot to put $?)")
     ]
 
 parseTypedExp :: LocalParser (SLType, SLExp)

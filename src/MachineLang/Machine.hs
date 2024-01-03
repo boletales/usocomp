@@ -11,6 +11,7 @@ module MachineLang.Machine (
   , MLRuntimeError (..)
   , getInst
   , runMLMachine1
+  , runMLMachine1Fast
  ) where
 
 import Data.Vector as V
@@ -20,6 +21,7 @@ import Control.Monad.Except
 import Data.Bits
 import Data.STRef
 import Control.Monad.Primitive
+import SimpleLang.Tools
 
 
 data MLMachine posdata s = MLMachine {
@@ -64,6 +66,7 @@ getInst machine =
       (MLVal pc) <- readReg reg MLRegPC
       pure $ mlprogram machine V.!? pc
 
+{-# SPECIALISE runMLMachine1 :: MLMachine SLPos (PrimState (ExceptT MLRuntimeError IO)) -> MLDebugger SLPos (ExceptT MLRuntimeError IO) -> ExceptT MLRuntimeError IO () #-}
 runMLMachine1 :: forall p m. (PrimMonad m, MonadError MLRuntimeError m) => MLMachine p (PrimState m) -> MLDebugger p m -> m ()
 runMLMachine1 machine debugger = 
   let readMem :: MV.MVector (PrimState m) Int -> MLVal -> m MLVal
@@ -135,4 +138,84 @@ runMLMachine1 machine debugger =
               MLIJump    jumpto                 -> do ja <- readReg reg jumpto; writeReg reg MLRegPC ja
               MLIIfJump  jumpto cond            -> do ja <- readReg reg jumpto; val <- readReg reg cond; when (val /= MLVal 0) (writeReg reg MLRegPC ja)
               MLINotJump jumpto cond            -> do ja <- readReg reg jumpto; val <- readReg reg cond; when (val == MLVal 0) (writeReg reg MLRegPC ja)
+            
+
+
+
+
+runMLMachine1Fast :: MLMachine () (PrimState IO) -> (Int -> IO ()) -> IO (Either MLRuntimeError ())
+runMLMachine1Fast machine ticker = 
+  let {-# INLINE readMem #-}
+      readMem :: MV.MVector (PrimState IO) Int -> MLVal -> IO MLVal
+      readMem mem (MLVal addr) = 
+          MLVal <$> MV.unsafeRead mem addr
+
+      {-# INLINE writeMem #-}
+      writeMem :: MV.MVector (PrimState IO) Int -> MLVal -> MLVal -> IO ()
+      writeMem mem (MLVal addr) (MLVal val) = 
+          MV.unsafeWrite mem addr val
+
+      {-# INLINE readReg #-}
+      readReg :: MV.MVector (PrimState IO) Int -> MLReg -> IO MLVal
+      readReg reg ix = 
+        MLVal <$> MV.unsafeRead reg (fromEnum ix)
+
+      {-# INLINE writeReg #-}
+      writeReg :: MV.MVector (PrimState IO) Int -> MLReg -> MLVal -> IO ()
+      writeReg reg ix (MLVal val) = 
+        MV.unsafeWrite reg (fromEnum ix) val
+
+      {-# INLINE over1 #-}
+      over1 :: (Int -> Int) -> MLVal -> MLVal
+      over1 f (MLVal x) = MLVal (f x)
+
+      {-# INLINE over2 #-}
+      over2 :: (Int -> Int -> Int) -> MLVal -> MLVal -> MLVal
+      over2 f (MLVal x) (MLVal y) = MLVal (f x y)
+      
+  in do
+        let mem = mlmemory machine
+        let reg = mlregs machine
+
+        (MLVal pc) <- readReg reg MLRegPC
+        let minst = mlprogram machine V.!? pc
+
+        case minst of
+          Nothing -> 
+            if pc == V.length (mlprogram machine)
+              then MV.read mem 0 >>= \i -> pure $ Left (MLRESuccess i)
+              else pure $ Left (MLREProgramOutOfRange pc)
+          Just (inst, _) -> do
+            -- memold <- V.freeze mem
+            -- regold <- V.freeze reg
+            timeold <- stToPrim $ readSTRef (mltime machine)
+            -- debugger (inst, pos, pc, memold, regold, timeold)
+
+            when (timeold `mod` 1000000 == 0) (ticker timeold)
+
+            stToPrim $ modifySTRef (mltime machine) (+ 1)
+
+            writeReg reg MLRegPC (MLVal $ pc + 1)
+
+            case inst of
+              MLINop                            -> pure (Right ())   
+              MLILoad    dest   addr            -> readReg reg addr >>= \addrval@(MLVal a) -> if 0 <= a && a < MV.length mem then readMem mem addrval >>= writeReg reg dest    >> pure (Right ()) else pure (Left (MLREMemOutOfRange a))
+              MLIStore   source addr            -> readReg reg addr >>= \addrval@(MLVal a) -> if 0 <= a && a < MV.length mem then readReg reg source  >>= writeMem mem addrval >> pure (Right ()) else pure (Left (MLREMemOutOfRange a))
+              MLIConst   dest   val             -> writeReg reg dest val >> pure (Right ())                                                            
+              MLIAddI    dest   source val      -> do v1 <- readReg reg source; writeReg reg dest (over2 (+) v1 val)                                                            >> pure (Right ())   
+              MLIAdd     dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (+)   v1 v2);                              >> pure (Right ())   
+              MLISub     dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (-)   v1 v2);                              >> pure (Right ())   
+              MLIMult    dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (*)   v1 v2);                              >> pure (Right ())   
+              MLIShift   dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 shift v1 v2);                              >> pure (Right ())   
+              MLIAnd     dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (.&.) v1 v2);                              >> pure (Right ())   
+              MLIOr      dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (.|.) v1 v2);                              >> pure (Right ())   
+              MLIXor     dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 xor   v1 v2);                              >> pure (Right ())   
+              MLIEq      dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (\a b -> if a == b then 1 else 0) v1 v2);  >> pure (Right ())   
+              MLIGt      dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (\a b -> if a >  b then 1 else 0) v1 v2);  >> pure (Right ())   
+              MLILt      dest   source1 source2 -> do v1 <- readReg reg source1; v2 <- readReg reg source2; writeReg reg dest (over2 (\a b -> if a <  b then 1 else 0) v1 v2);  >> pure (Right ())   
+              MLIInv     dest   source1         -> do v1 <- readReg reg source1;                            writeReg reg dest (over1 complement v1);                            >> pure (Right ())   
+              MLICopy    dest   source1         -> do v1 <- readReg reg source1;                            writeReg reg dest v1;                                               >> pure (Right ())   
+              MLIJump    jumpto                 -> do ja <- readReg reg jumpto; writeReg reg MLRegPC ja                                                                         >> pure (Right ())   
+              MLIIfJump  jumpto cond            -> do ja <- readReg reg jumpto; val <- readReg reg cond; when (val /= MLVal 0) (writeReg reg MLRegPC ja)                        >> pure (Right ())   
+              MLINotJump jumpto cond            -> do ja <- readReg reg jumpto; val <- readReg reg cond; when (val == MLVal 0) (writeReg reg MLRegPC ja)                        >> pure (Right ())   
             

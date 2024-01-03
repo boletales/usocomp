@@ -36,7 +36,7 @@ mliAbbrText inst =
     MLIAnd     r1 r2 r3        -> "and   " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2 <> " " <> mlregAbbrText r3
     MLIOr      r1 r2 r3        -> "or    " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2 <> " " <> mlregAbbrText r3
     MLIXor     r1 r2 r3        -> "xor   " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2 <> " " <> mlregAbbrText r3
-    MLIEq      r1 r2 r3        -> "or    " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2 <> " " <> mlregAbbrText r3
+    MLIEq      r1 r2 r3        -> "eq    " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2 <> " " <> mlregAbbrText r3
     MLIGt      r1 r2 r3        -> "gt    " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2 <> " " <> mlregAbbrText r3
     MLILt      r1 r2 r3        -> "lt    " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2 <> " " <> mlregAbbrText r3
     MLIInv     r1 r2           -> "inv   " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2
