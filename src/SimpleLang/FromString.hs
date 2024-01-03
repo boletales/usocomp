@@ -18,11 +18,11 @@ import Prelude hiding (exp)
 import qualified Data.Vector as V
 import qualified Data.List as L
 import Data.Bifunctor
-import Debug.Trace
 import Data.Maybe
 import SimpleLang.StaticCheck
 import Control.Applicative hiding (many, some)
 import Data.Set as S
+import Debug.Trace
 
 newtype SLParserError = SLParserError Text deriving (Show, Eq, Ord)
 instance ShowErrorComponent  SLParserError where
@@ -119,10 +119,10 @@ operators = [
       Prefix (SLEIndirection   <$ string "*" )
     ]
   , [
-      Prefix (SLEUnion <$ string "%" <*> parseType)
+      Prefix (SLEUnion <$ string "%%" <*> parseType)
     ]
   , [
-      --Prefix (SLECast <$ string "(" <*> parseType <* string ")")
+      Prefix (SLECast <$ string "%(" <*> parseType <* string ")")
     ]
   , [
       Prefix (SLEPrim1 SLPrim1Inv   <$ string "!" )
@@ -197,7 +197,7 @@ parseTypedExp = do
 
 parseStatement :: LocalParser SLStatement
 parseStatement = do
-  choice [
+  reportNonParserError *> choice [
       try $ SLSReturn <$ string "return" <* hspace <*> parseExp
     , try $ SLSTailCallReturn <$ string "tailcall" <* hspace <*> parseCall
     , try (do
@@ -207,12 +207,12 @@ parseStatement = do
           _ <- hspace <* string "="  <* hspace
           (t', e) <- parseTypedExp
           isFirstPath <- gets lpsFirstPath
-          when (not isFirstPath && t /= t') $ customFailure $ SLParserError $ "Type mismatch in var decl. expected: " <> prettyPrintSLType t <> " , got: " <> prettyPrintSLType t'
+          when (not isFirstPath && t /= t') $ registerCustomError $ SLParserError $ "Type mismatch in var decl. expected: " <> prettyPrintSLType t <> " , got: " <> prettyPrintSLType t'
           modify (\s -> s { lpsLocals = M.insert n t (lpsLocals s) })
           pure $ SLSInitVar n e
         )
     , try $ SLSSubst <$> parseRef  <* hspace <* string "="  <* hspace <*> parseExp
-    ] <* reportNonParserError
+    ]
 
 
 parseBlock :: LocalParser SLBlock
@@ -236,22 +236,25 @@ parseFuncName = do
         Just (fname, revm) -> pure $ SLUserFunc (T.intercalate "." (L.reverse revm)) fname
         Nothing         -> customFailure $ SLParserError $ "Invalid function name: " <> T.intercalate "." n
 
-parseFunction :: M.Map SLFuncName SLFuncSignature -> Bool -> Parser SLFuncBlock
-parseFunction fdict errorOnNonExistentFunc = do
+parseFunction :: LocalParserState -> Parser SLFuncBlock
+parseFunction initstate = do
   _ <- scn *> string "function" <* scn
   fname <- parseFuncName
   fargs <- char '(' *> sepBy (flip (,) <$> parseType <* string "$" <*> parseName) (char ',') <* char ')'
   _ <- scn
   fret  <- string "->" *> scn *> parseType
-  fbody <- runStateT parseBlock (emptyState { lpsArgs = M.fromList fargs, lpsFuncs = fdict, lpsFirstPath = errorOnNonExistentFunc, lpsSLPos = Just (SLPos fname [])})
+  fbody <- runStateT parseBlock (initstate { lpsArgs = M.fromList fargs, lpsSLPos = Just (SLPos fname [])})
   let fsig = SLFuncSignature fname (snd <$> fargs) fret
   pure $ SLFuncBlock fsig (fst <$> fargs) (fst fbody)
 
 parseFDict :: Parser (M.Map SLFuncName SLFuncSignature)
-parseFDict = (\fbs -> M.fromList $ (\fb -> ((slfsName . slfSignature) fb, slfSignature fb)) <$> fbs) <$ scn <*> many (parseFunction M.empty True) <* eof
+parseFDict = (\fbs -> M.fromList $ (\fb -> ((slfsName . slfSignature) fb, slfSignature fb)) <$> fbs) <$ scn <*> many (parseFunction (emptyState {lpsFirstPath = True})) <* eof
 
 parseSLProgram :: M.Map SLFuncName SLFuncSignature -> Parser SLProgram
-parseSLProgram fdict = (\fbs -> M.fromList $ (\fb -> ((slfsName . slfSignature) fb, fb)) <$> fbs) <$ scn <*> many (parseFunction fdict False) <* eof
+parseSLProgram fdict = (\fbs -> M.fromList $ (\fb -> ((slfsName . slfSignature) fb, fb)) <$> fbs) <$ scn <*> many (parseFunction (emptyState {lpsFuncs = fdict})) <* eof
+
+reportSLSCError :: M.Map SLFuncName SLFuncSignature -> SLSCError -> Parser ()
+reportSLSCError fdict e = scn <* many (parseFunction (emptyState {lpsFuncs = fdict, lpsReportingError = Just e})) <* eof
 
 parseEOS :: LocalParser ()
 parseEOS =
@@ -281,20 +284,12 @@ inPos newpos v = do
     modify (\s -> s {lpsSLPos = oldpos})
     pure x
 
-outPos :: LocalParser x -> LocalParser x
-outPos v = do
-    oldpos <- gets lpsSLPos
-    modify (\s -> s {lpsSLPos = popPos <$> oldpos})
-    x <- v
-    modify (\s -> s {lpsSLPos = oldpos})
-    pure x
-
 sepByIndex :: Alternative m => (Int -> m a) -> m sep -> m [a]
 sepByIndex p sep = sepBy1Index p sep <|> pure []
 {-# INLINE sepByIndex #-}
 
 sepBy1Index :: Alternative m => (Int -> m a) -> m sep -> m [a]
-sepBy1Index p sep = liftA2 (:) (p 0) (manyIndex (\i -> sep *> p i))
+sepBy1Index p sep = liftA2 (:) (p 0) (manyIndex (\i -> sep *> p (i + 1)))
 {-# INLINE sepBy1Index #-}
 
 manyIndex :: Alternative f => (Int -> f a)-> f [a]
@@ -319,17 +314,22 @@ reportNonParserError = do
       case pos of
         Nothing -> pure ()
         Just pos' -> when (arePosOnSameStatement (slscegetPos e') pos') $
-          (registerFancyFailure . S.singleton . ErrorCustom) $ SLParserError $ prettyPrintSLSCError e'
+          registerCustomError $ SLParserError $ prettyPrintSLSCError e'
+
+registerCustomError :: SLParserError -> LocalParser ()
+registerCustomError = registerFancyFailure . S.singleton . ErrorCustom
 
 arePosOnSameStatement :: SLPos -> SLPos -> Bool
-arePosOnSameStatement (SLPos f1 xs1) (SLPos f2 xs2) =
+arePosOnSameStatement (SLPos f1 xs1) (SLPos f2 xs2) = 
   if L.length xs1 < L.length xs2 then arePosOnSameStatement (SLPos f2 xs2) (SLPos f1 xs1)
   else
-    (f1 == f2 && xs2 `L.isPrefixOf` xs1) && (case L.drop (L.length xs2) xs1 of
-        [] -> True
-        (x:_) -> case x of
-          SLLPExpr _ -> True
-          _ -> False)
+    let xs1' = L.reverse xs1
+        xs2' = L.reverse xs2
+    in (f1 == f2 && xs2' `L.isPrefixOf` xs1') && (case L.drop (L.length xs2) xs1' of
+          [] -> True
+          (x:_) -> case x of
+            SLLPExpr _ -> True
+            _ -> False)
 
 
 
@@ -338,5 +338,8 @@ textToSLProgram :: Text -> Either Text SLProgram
 textToSLProgram t = do
   fdict <- first (pack . errorBundlePretty) $ parse parseFDict "main.slang" t
   program <- first (pack . errorBundlePretty) $ parse (parseSLProgram fdict) "main.slang" t
-  first prettyPrintSLSCError $ slscCheck program
-  pure program
+  case  slscCheck program of
+    Right _ -> pure program
+    Left err -> do 
+      first (pack . errorBundlePretty) $ parse (reportSLSCError fdict err) "main.slang" t
+      Left $ prettyPrintSLSCError err

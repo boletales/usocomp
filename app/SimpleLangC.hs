@@ -4,7 +4,6 @@ module SimpleLangC where
 
 import SimpleLang.Def
 import SimpleLang.FromString
-import MachineLang.FromSimpleLang
 import MachineLang.FromSimpleLang.Debugger
 import Data.Text as T
 import Data.Text.IO as TIO

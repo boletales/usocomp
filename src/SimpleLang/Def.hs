@@ -456,7 +456,7 @@ prettyPrintSLExp expr =
               otherexp -> ", " <> prettyPrintSLExp otherexp <> ") [ERROR! this should not happen]"
       in "(" <> go (SLEStructCons e1 e2)
 
-    SLEUnion t exp -> "%" <> prettyPrintSLType t <> prettyPrintSLExp exp
+    SLEUnion t exp -> "%%" <> prettyPrintSLType t <> prettyPrintSLExp exp
 
     SLEIndirection exp -> "*" <> prettyPrintSLExp exp
 
@@ -467,7 +467,7 @@ prettyPrintSLExp expr =
 
     SLEStructGet exp p -> prettyPrintSLExp exp <> "." <> pack (show p)
 
-    SLECast t exp -> "(" <> prettyPrintSLType t <> ") " <> prettyPrintSLExp exp
+    SLECast t exp -> "%(" <> prettyPrintSLType t <> ") " <> prettyPrintSLExp exp
 
 prettyPrintSLStatement :: SLStatement -> Text
 prettyPrintSLStatement stmt =
