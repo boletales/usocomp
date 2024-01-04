@@ -1,0 +1,91 @@
+
+nop                                     #main
+const r1 1                              #main
+const r2 89                             #main
+store r2 r1                             #main
+addi  r1 r1 1                           #main
+const r2 0                              #main
+store r2 r1                             #main
+const r2 0                              #main
+addi  r1 r1 1                           #main
+store r2 r1                             #main
+copy  r0 r1                             #main
+const pc 12                             #main
+addi  r1 r1 1                           #main[0].expr 100
+const r2 100                            #main[0].expr 100
+store r2 r1                             #main[0].expr 100
+addi  r1 r1 1                           #main[1].expr (200, 300, 400).expr 200
+const r2 200                            #main[1].expr (200, 300, 400).expr 200
+store r2 r1                             #main[1].expr (200, 300, 400).expr 200
+addi  r1 r1 1                           #main[1].expr (200, 300, 400).expr 300
+const r2 300                            #main[1].expr (200, 300, 400).expr 300
+store r2 r1                             #main[1].expr (200, 300, 400).expr 300
+addi  r1 r1 1                           #main[1].expr (200, 300, 400).expr 400
+const r2 400                            #main[1].expr (200, 300, 400).expr 400
+store r2 r1                             #main[1].expr (200, 300, 400).expr 400
+addi  r1 r1 1                           #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $x
+addi  r2 r0 1                           #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $x
+load  r2 r2                             #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $x
+store r2 r1                             #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $x
+addi  r2 r0 1                           #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $str.2
+addi  r2 r2 2                           #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $str.2
+addi  r1 r1 1                           #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $str.2
+addi  r2 r2 1                           #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $str.2
+load  r3 r2                             #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $str.2
+store r3 r1                             #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $str.2
+load  r3 r1                             #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2)
+addi  r1 r1 -1                          #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2)
+load  r2 r1                             #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2)
+add   r2 r2 r3                          #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2)
+store r2 r1                             #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2)
+addi  r1 r1 1                           #main[2].expr (($x + $str.2) + $x).expr $x
+addi  r2 r0 1                           #main[2].expr (($x + $str.2) + $x).expr $x
+load  r2 r2                             #main[2].expr (($x + $str.2) + $x).expr $x
+store r2 r1                             #main[2].expr (($x + $str.2) + $x).expr $x
+load  r3 r1                             #main[2].expr (($x + $str.2) + $x)
+addi  r1 r1 -1                          #main[2].expr (($x + $str.2) + $x)
+load  r2 r1                             #main[2].expr (($x + $str.2) + $x)
+add   r2 r2 r3                          #main[2].expr (($x + $str.2) + $x)
+store r2 r1                             #main[2].expr (($x + $str.2) + $x)
+addi  r1 r1 1                           #main[3].expr ($x + $y).expr $x
+addi  r2 r0 1                           #main[3].expr ($x + $y).expr $x
+load  r2 r2                             #main[3].expr ($x + $y).expr $x
+store r2 r1                             #main[3].expr ($x + $y).expr $x
+addi  r1 r1 1                           #main[3].expr ($x + $y).expr $y
+addi  r2 r0 5                           #main[3].expr ($x + $y).expr $y
+load  r2 r2                             #main[3].expr ($x + $y).expr $y
+store r2 r1                             #main[3].expr ($x + $y).expr $y
+load  r3 r1                             #main[3].expr ($x + $y)
+addi  r1 r1 -1                          #main[3].expr ($x + $y)
+load  r2 r1                             #main[3].expr ($x + $y)
+add   r2 r2 r3                          #main[3].expr ($x + $y)
+store r2 r1                             #main[3].expr ($x + $y)
+addi  r3 r0 -1                          #main[3]
+load  r3 r3                             #main[3]
+load  r2 r1                             #main[3]
+store r2 r3                             #main[3]
+addi  r1 r1 -1                          #main[3]
+addi  r3 r3 -1                          #main[3]
+copy  r2 r0                             #main[3]
+load  r0 r0                             #main[3]
+addi  r2 r2 -1                          #main[3]
+load  r1 r2                             #main[3]
+addi  r2 r2 -1                          #main[3]
+load  pc r2                             #main[3]
+addi  r1 r1 -5                          #main
+addi  r1 r1 1                           #main.forceReturn.expr 0
+const r2 0                              #main.forceReturn.expr 0
+store r2 r1                             #main.forceReturn.expr 0
+addi  r3 r0 -1                          #main.forceReturn
+load  r3 r3                             #main.forceReturn
+load  r2 r1                             #main.forceReturn
+store r2 r3                             #main.forceReturn
+addi  r1 r1 -1                          #main.forceReturn
+addi  r3 r3 -1                          #main.forceReturn
+copy  r2 r0                             #main.forceReturn
+load  r0 r0                             #main.forceReturn
+addi  r2 r2 -1                          #main.forceReturn
+load  r1 r2                             #main.forceReturn
+addi  r2 r2 -1                          #main.forceReturn
+load  pc r2                             #main.forceReturn
+nop                                     #main
