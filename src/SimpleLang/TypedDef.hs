@@ -119,21 +119,21 @@ instance (KnownType t, KnownTypes ts) => KnownTypes (t:ts) where
 
 
 data TypedSLExp (t :: SLType) where
-    TSLEConst      ::                                  SLVal                                               -> TypedSLExp 'SLTInt
-    TSLELocal      :: (KnownType t                ) => Text                                                -> TypedSLExp t
-    TSLEArg        :: (KnownType t                ) => Text                                                -> TypedSLExp t
-    TSLEAddrOf        :: (KnownType t                ) => TypedSLRef t                                        -> TypedSLExp ('SLTPtr t)
-    TSLEPushCall   :: (KnownType t                ) => TypedSLCall t                                       -> TypedSLExp t
-    TSLEFuncPtr    ::                                  TypedSLFunc args ret                                -> TypedSLExp ('SLTFuncPtr args ret)
-    TSLEPrim1      ::                                  SLPrim1 -> TypedSLExp 'SLTInt                       -> TypedSLExp 'SLTInt
-    TSLEPrim2      ::                                  SLPrim2 -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt
-    TSLEStructNil  ::                                                                                         TypedSLExp ('SLTStruct '[])
-    TSLEStructCons :: (KnownType t, KnownTypes ts ) => TypedSLExp t -> TypedSLExp ('SLTStruct ts)          -> TypedSLExp ('SLTStruct (t:ts))
-    TSLEUnion      :: (KnownType t, Member t ts   ) => TypedSLExp t                                        -> TypedSLExp ('SLTUnion     ts )
-    TSLEIndirection      :: (KnownType t                ) => TypedSLExp ('SLTPtr t)                              -> TypedSLExp t
-    TSLEPtrShift   :: (KnownType t                ) => TypedSLExp ('SLTPtr t) -> TypedSLExp 'SLTInt        -> TypedSLExp ('SLTPtr t)
-    TSLECast       :: (KnownType t, KnownType u, SLTSizeOf t ~ SLTSizeOf u ) => TypedSLExp t               -> TypedSLExp u
-    TSLEStructGet  :: (KnownType t, KnownTypes ts, StructAt i ts t, KnownNat i, KnownOffset i ts) => TypedSLExp ('SLTStruct ts) -> Proxy i -> TypedSLExp t
+    TSLEConst       ::                                  SLVal                                               -> TypedSLExp 'SLTInt
+    TSLELocal       :: (KnownType t                ) => Text                                                -> TypedSLExp t
+    TSLEArg         :: (KnownType t                ) => Text                                                -> TypedSLExp t
+    TSLEAddrOf      :: (KnownType t                ) => TypedSLRef t                                        -> TypedSLExp ('SLTPtr t)
+    TSLEPushCall    :: (KnownType t                ) => TypedSLCall t                                       -> TypedSLExp t
+    TSLEFuncPtr     ::                                  TypedSLFunc args ret                                -> TypedSLExp ('SLTFuncPtr args ret)
+    TSLEPrim1       ::                                  SLPrim1 -> TypedSLExp 'SLTInt                       -> TypedSLExp 'SLTInt
+    TSLEPrim2       ::                                  SLPrim2 -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt -> TypedSLExp 'SLTInt
+    TSLEStructNil   ::                                                                                         TypedSLExp ('SLTStruct '[])
+    TSLEStructCons  :: (KnownType t, KnownTypes ts ) => TypedSLExp t -> TypedSLExp ('SLTStruct ts)          -> TypedSLExp ('SLTStruct (t:ts))
+    TSLEUnion       :: (KnownType t, Member t ts   ) => TypedSLExp t                                        -> TypedSLExp ('SLTUnion     ts )
+    TSLEIndirection :: (KnownType t                ) => TypedSLExp ('SLTPtr t)                              -> TypedSLExp t
+    TSLEPtrShift    :: (KnownType t                ) => TypedSLExp ('SLTPtr t) -> TypedSLExp 'SLTInt        -> TypedSLExp ('SLTPtr t)
+    TSLECast        :: (KnownType t, KnownType u, SLTSizeOf t ~ SLTSizeOf u ) => TypedSLExp t               -> TypedSLExp u
+    TSLEStructGet   :: (KnownType t, KnownTypes ts, StructAt i ts t, KnownNat i, KnownOffset i ts) => TypedSLExp ('SLTStruct ts) -> Proxy i -> TypedSLExp t
 
 instance KnownType t => Show (TypedSLExp t) where
   show = show . unTypedSLExp
@@ -151,7 +151,7 @@ unTypedSLExp expr =
       TSLEConst val        -> SLEConst val
       TSLELocal i          -> SLELocal tval i
       TSLEArg i            -> SLEArg tval i
-      TSLEAddrOf ref          -> SLEAddrOf(unTypedSLRef ref)
+      TSLEAddrOf ref       -> SLEAddrOf(unTypedSLRef ref)
       TSLEPushCall call    -> SLEPushCall (unTypedSLCall call)
       TSLEFuncPtr name     -> SLEFuncPtr (unTypedSLFunc name)
       TSLEPrim1 prim e     -> SLEPrim1 prim (unTypedSLExp e)
@@ -159,7 +159,7 @@ unTypedSLExp expr =
       TSLEStructNil        -> SLEStructNil
       TSLEStructCons e es  -> SLEStructCons (unTypedSLExp e) (unTypedSLExp es)
       TSLEUnion e          -> SLEUnion tval (unTypedSLExp e)
-      TSLEIndirection e          -> SLEIndirection (unTypedSLExp e)
+      TSLEIndirection e    -> SLEIndirection (unTypedSLExp e)
       TSLEPtrShift e1 e2   -> SLEPtrShift (unTypedSLExp e1) (unTypedSLExp e2)
       TSLEStructGet e i    -> SLEStructGet (unTypedSLExp e) ((fromIntegral . natVal) i)
       TSLECast e           -> SLECast tval (unTypedSLExp e)

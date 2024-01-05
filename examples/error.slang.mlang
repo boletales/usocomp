@@ -1,7 +1,7 @@
 
 nop                                     #main
 const r1 1                              #main
-const r2 89                             #main
+const r2 71                             #main
 store r2 r1                             #main
 addi  r1 r1 1                           #main
 const r2 0                              #main
@@ -23,43 +23,25 @@ store r2 r1                             #main[1].expr (200, 300, 400).expr 300
 addi  r1 r1 1                           #main[1].expr (200, 300, 400).expr 400
 const r2 400                            #main[1].expr (200, 300, 400).expr 400
 store r2 r1                             #main[1].expr (200, 300, 400).expr 400
-addi  r1 r1 1                           #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $x
-addi  r2 r0 1                           #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $x
-load  r2 r2                             #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $x
-store r2 r1                             #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $x
-addi  r2 r0 1                           #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $str.2
-addi  r2 r2 2                           #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $str.2
-addi  r1 r1 1                           #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $str.2
-addi  r2 r2 1                           #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $str.2
-load  r3 r2                             #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $str.2
-store r3 r1                             #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2).expr $str.2
-load  r3 r1                             #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2)
-addi  r1 r1 -1                          #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2)
-load  r2 r1                             #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2)
-add   r2 r2 r3                          #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2)
-store r2 r1                             #main[2].expr (($x + $str.2) + $x).expr ($x + $str.2)
-addi  r1 r1 1                           #main[2].expr (($x + $str.2) + $x).expr $x
-addi  r2 r0 1                           #main[2].expr (($x + $str.2) + $x).expr $x
-load  r2 r2                             #main[2].expr (($x + $str.2) + $x).expr $x
-store r2 r1                             #main[2].expr (($x + $str.2) + $x).expr $x
-load  r3 r1                             #main[2].expr (($x + $str.2) + $x)
-addi  r1 r1 -1                          #main[2].expr (($x + $str.2) + $x)
-load  r2 r1                             #main[2].expr (($x + $str.2) + $x)
-add   r2 r2 r3                          #main[2].expr (($x + $str.2) + $x)
-store r2 r1                             #main[2].expr (($x + $str.2) + $x)
-addi  r1 r1 1                           #main[3].expr ($x + $y).expr $x
-addi  r2 r0 1                           #main[3].expr ($x + $y).expr $x
-load  r2 r2                             #main[3].expr ($x + $y).expr $x
-store r2 r1                             #main[3].expr ($x + $y).expr $x
-addi  r1 r1 1                           #main[3].expr ($x + $y).expr $y
-addi  r2 r0 5                           #main[3].expr ($x + $y).expr $y
-load  r2 r2                             #main[3].expr ($x + $y).expr $y
-store r2 r1                             #main[3].expr ($x + $y).expr $y
-load  r3 r1                             #main[3].expr ($x + $y)
-addi  r1 r1 -1                          #main[3].expr ($x + $y)
-load  r2 r1                             #main[3].expr ($x + $y)
-add   r2 r2 r3                          #main[3].expr ($x + $y)
-store r2 r1                             #main[3].expr ($x + $y)
+addi  r1 r1 1                           #main[2].expr ($x + $str.2).expr $x
+addi  r2 r0 1                           #main[2].expr ($x + $str.2).expr $x
+load  r2 r2                             #main[2].expr ($x + $str.2).expr $x
+store r2 r1                             #main[2].expr ($x + $str.2).expr $x
+addi  r2 r0 1                           #main[2].expr ($x + $str.2).expr $str.2
+addi  r2 r2 2                           #main[2].expr ($x + $str.2).expr $str.2
+addi  r1 r1 1                           #main[2].expr ($x + $str.2).expr $str.2
+addi  r2 r2 1                           #main[2].expr ($x + $str.2).expr $str.2
+load  r3 r2                             #main[2].expr ($x + $str.2).expr $str.2
+store r3 r1                             #main[2].expr ($x + $str.2).expr $str.2
+load  r3 r1                             #main[2].expr ($x + $str.2)
+addi  r1 r1 -1                          #main[2].expr ($x + $str.2)
+load  r2 r1                             #main[2].expr ($x + $str.2)
+add   r2 r2 r3                          #main[2].expr ($x + $str.2)
+store r2 r1                             #main[2].expr ($x + $str.2)
+addi  r1 r1 1                           #main[3].expr $y
+addi  r2 r0 5                           #main[3].expr $y
+load  r2 r2                             #main[3].expr $y
+store r2 r1                             #main[3].expr $y
 addi  r3 r0 -1                          #main[3]
 load  r3 r3                             #main[3]
 load  r2 r1                             #main[3]

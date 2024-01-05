@@ -1,0 +1,25 @@
+{
+  "name": "usocomp-simplelang-highlighting",
+  "displayName": "usocomp SimpleLang Highlighting",
+  "description": "syntax support for SimpleLang of boletales/usocomp",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "simplelang",
+      "aliases": ["SimpleLang", "simplelang"],
+      "extensions": [".slang"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "simplelang",
+      "scopeName": "source.slang",
+      "path": "./syntaxes/simplelang.tmLanguage.json"
+    }]
+  }
+}

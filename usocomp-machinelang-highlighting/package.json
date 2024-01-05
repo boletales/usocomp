@@ -1,0 +1,25 @@
+{
+  "name": "usocomp-machinelang-highlighting",
+  "displayName": "usocomp MachineLang Highlighting",
+  "description": "syntax support for MachineLang of boletales/usocomp",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "machinelang",
+      "aliases": ["MachineLang", "machinelang"],
+      "extensions": [".mlang"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "machinelang",
+      "scopeName": "source.mlang",
+      "path": "./syntaxes/machinelang.tmLanguage.json"
+    }]
+  }
+}
