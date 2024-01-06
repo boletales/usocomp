@@ -1,0 +1,165 @@
+
+nop                                     #main
+const r1 1                              #main
+const r2 163                            #main
+store r2 r1                             #main
+addi  r1 r1 1                           #main
+const r2 0                              #main
+store r2 r1                             #main
+const r2 0                              #main
+addi  r1 r1 1                           #main
+store r2 r1                             #main
+copy  r0 r1                             #main
+const pc 12                             #main
+const r2 4995                           #main
+lt    r2 r1 r2                          #main
+addi  r3 pc 6                           #main
+ijmp  r3 r2                             #main
+const r2 0                              #main
+const r3 -1000000000                    #main
+store r3 r2                             #main
+const r3 163                            #main
+jump  r3                                #main
+addi  r1 r1 1                           #main[0].expr main.loop(0)
+addi  r1 r1 1                           #main[0].expr main.loop(0).expr (0).expr 0
+const r2 0                              #main[0].expr main.loop(0).expr (0).expr 0
+store r2 r1                             #main[0].expr main.loop(0).expr (0).expr 0
+const r3 63                             #main[0].expr main.loop(0)
+addi  r1 r1 1                           #main[0].expr main.loop(0)
+addi  r2 pc 8                           #main[0].expr main.loop(0)
+store r2 r1                             #main[0].expr main.loop(0)
+addi  r1 r1 1                           #main[0].expr main.loop(0)
+addi  r2 r1 -3                          #main[0].expr main.loop(0)
+store r2 r1                             #main[0].expr main.loop(0)
+addi  r1 r1 1                           #main[0].expr main.loop(0)
+store r0 r1                             #main[0].expr main.loop(0)
+copy  r0 r1                             #main[0].expr main.loop(0)
+copy  pc r3                             #main[0].expr main.loop(0)
+addi  r3 r0 -1                          #main[0]
+load  r3 r3                             #main[0]
+load  r2 r1                             #main[0]
+store r2 r3                             #main[0]
+addi  r1 r1 -1                          #main[0]
+addi  r3 r3 -1                          #main[0]
+copy  r2 r0                             #main[0]
+load  r0 r0                             #main[0]
+addi  r2 r2 -1                          #main[0]
+load  r1 r2                             #main[0]
+addi  r2 r2 -1                          #main[0]
+load  pc r2                             #main[0]
+addi  r1 r1 1                           #main.forceReturn.expr 0
+const r2 0                              #main.forceReturn.expr 0
+store r2 r1                             #main.forceReturn.expr 0
+addi  r3 r0 -1                          #main.forceReturn
+load  r3 r3                             #main.forceReturn
+load  r2 r1                             #main.forceReturn
+store r2 r3                             #main.forceReturn
+addi  r1 r1 -1                          #main.forceReturn
+addi  r3 r3 -1                          #main.forceReturn
+copy  r2 r0                             #main.forceReturn
+load  r0 r0                             #main.forceReturn
+addi  r2 r2 -1                          #main.forceReturn
+load  r1 r2                             #main.forceReturn
+addi  r2 r2 -1                          #main.forceReturn
+load  pc r2                             #main.forceReturn
+const r2 4995                           #main.loop
+lt    r2 r1 r2                          #main.loop
+addi  r3 pc 6                           #main.loop
+ijmp  r3 r2                             #main.loop
+const r2 0                              #main.loop
+const r3 -1000000000                    #main.loop
+store r3 r2                             #main.loop
+const r3 163                            #main.loop
+jump  r3                                #main.loop
+addi  r1 r1 1                           #main.loop[0].whenCond_0.expr ($cnt < 10000).expr $cnt
+addi  r2 r0 -1                          #main.loop[0].whenCond_0.expr ($cnt < 10000).expr $cnt
+load  r2 r2                             #main.loop[0].whenCond_0.expr ($cnt < 10000).expr $cnt
+addi  r2 r2 1                           #main.loop[0].whenCond_0.expr ($cnt < 10000).expr $cnt
+load  r2 r2                             #main.loop[0].whenCond_0.expr ($cnt < 10000).expr $cnt
+store r2 r1                             #main.loop[0].whenCond_0.expr ($cnt < 10000).expr $cnt
+addi  r1 r1 1                           #main.loop[0].whenCond_0.expr ($cnt < 10000).expr 10000
+const r2 10000                          #main.loop[0].whenCond_0.expr ($cnt < 10000).expr 10000
+store r2 r1                             #main.loop[0].whenCond_0.expr ($cnt < 10000).expr 10000
+load  r3 r1                             #main.loop[0].whenCond_0.expr ($cnt < 10000)
+addi  r1 r1 -1                          #main.loop[0].whenCond_0.expr ($cnt < 10000)
+load  r2 r1                             #main.loop[0].whenCond_0.expr ($cnt < 10000)
+lt    r2 r2 r3                          #main.loop[0].whenCond_0.expr ($cnt < 10000)
+store r2 r1                             #main.loop[0].whenCond_0.expr ($cnt < 10000)
+load  r3 r1                             #main.loop[0].whenCond_0
+addi  r1 r1 -1                          #main.loop[0].whenCond_0
+addi  r2 pc 41                          #main.loop[0].whenCond_0
+njmp  r2 r3                             #main.loop[0].whenCond_0
+addi  r1 r1 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
+addi  r1 r1 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
+addi  r2 r0 -1                          #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
+load  r2 r2                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
+addi  r2 r2 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
+load  r2 r2                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
+store r2 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
+addi  r1 r1 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr 1
+const r2 1                              #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr 1
+store r2 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr 1
+load  r3 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
+addi  r1 r1 -1                          #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
+load  r2 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
+add   r2 r2 r3                          #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
+store r2 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
+const r3 63                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
+addi  r1 r1 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
+addi  r2 pc 8                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
+store r2 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
+addi  r1 r1 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
+addi  r2 r1 -3                          #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
+store r2 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
+addi  r1 r1 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
+store r0 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
+copy  r0 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
+copy  pc r3                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
+addi  r3 r0 -1                          #main.loop[0].whenBody_0[0]
+load  r3 r3                             #main.loop[0].whenBody_0[0]
+load  r2 r1                             #main.loop[0].whenBody_0[0]
+store r2 r3                             #main.loop[0].whenBody_0[0]
+addi  r1 r1 -1                          #main.loop[0].whenBody_0[0]
+addi  r3 r3 -1                          #main.loop[0].whenBody_0[0]
+copy  r2 r0                             #main.loop[0].whenBody_0[0]
+load  r0 r0                             #main.loop[0].whenBody_0[0]
+addi  r2 r2 -1                          #main.loop[0].whenBody_0[0]
+load  r1 r2                             #main.loop[0].whenBody_0[0]
+addi  r2 r2 -1                          #main.loop[0].whenBody_0[0]
+load  pc r2                             #main.loop[0].whenBody_0[0]
+addi  r2 pc 19                          #main.loop[0].whenBody_0
+jump  r2                                #main.loop[0].whenBody_0
+addi  r1 r1 1                           #main.loop[0].whenElseBody[0].expr $cnt
+addi  r2 r0 -1                          #main.loop[0].whenElseBody[0].expr $cnt
+load  r2 r2                             #main.loop[0].whenElseBody[0].expr $cnt
+addi  r2 r2 1                           #main.loop[0].whenElseBody[0].expr $cnt
+load  r2 r2                             #main.loop[0].whenElseBody[0].expr $cnt
+store r2 r1                             #main.loop[0].whenElseBody[0].expr $cnt
+addi  r3 r0 -1                          #main.loop[0].whenElseBody[0]
+load  r3 r3                             #main.loop[0].whenElseBody[0]
+load  r2 r1                             #main.loop[0].whenElseBody[0]
+store r2 r3                             #main.loop[0].whenElseBody[0]
+addi  r1 r1 -1                          #main.loop[0].whenElseBody[0]
+addi  r3 r3 -1                          #main.loop[0].whenElseBody[0]
+copy  r2 r0                             #main.loop[0].whenElseBody[0]
+load  r0 r0                             #main.loop[0].whenElseBody[0]
+addi  r2 r2 -1                          #main.loop[0].whenElseBody[0]
+load  r1 r2                             #main.loop[0].whenElseBody[0]
+addi  r2 r2 -1                          #main.loop[0].whenElseBody[0]
+load  pc r2                             #main.loop[0].whenElseBody[0]
+addi  r1 r1 1                           #main.loop.forceReturn.expr 0
+const r2 0                              #main.loop.forceReturn.expr 0
+store r2 r1                             #main.loop.forceReturn.expr 0
+addi  r3 r0 -1                          #main.loop.forceReturn
+load  r3 r3                             #main.loop.forceReturn
+load  r2 r1                             #main.loop.forceReturn
+store r2 r3                             #main.loop.forceReturn
+addi  r1 r1 -1                          #main.loop.forceReturn
+addi  r3 r3 -1                          #main.loop.forceReturn
+copy  r2 r0                             #main.loop.forceReturn
+load  r0 r0                             #main.loop.forceReturn
+addi  r2 r2 -1                          #main.loop.forceReturn
+load  r1 r2                             #main.loop.forceReturn
+addi  r2 r2 -1                          #main.loop.forceReturn
+load  pc r2                             #main.loop.forceReturn
+nop                                     #main

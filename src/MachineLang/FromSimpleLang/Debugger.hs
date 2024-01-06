@@ -12,6 +12,7 @@ module MachineLang.FromSimpleLang.Debugger (
   , mlcResultEither
   , runMLCinST
   , runMLCinST'
+  , lazyTickDebugger
 ) where
 
 
