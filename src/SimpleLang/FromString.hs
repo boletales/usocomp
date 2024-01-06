@@ -84,7 +84,7 @@ parseLocal =  unwrapspace $ do
   vdict <- gets lpsLocals
   case M.lookup n vdict of
     Just t  -> pure (t, n)
-    Nothing -> pure (SLTInt, n) <$ registerCustomError $ SLParserError $ "Local variable " <> n <> " not found"
+    Nothing -> registerCustomError (SLParserError $ "Local variable $" <> n <> " not found") >> pure (SLTInt, n)
 
 parseArg :: LocalParser (SLType, Text)
 parseArg = unwrapspace $ do
@@ -92,7 +92,7 @@ parseArg = unwrapspace $ do
   vdict <- gets lpsArgs
   case M.lookup n vdict of
     Just t  -> pure (t, n)
-    Nothing -> pure (SLTInt, n) <$ registerCustomError $ SLParserError $ "Argument " <> n <> " not found"
+    Nothing -> registerCustomError (SLParserError $ "Argument $" <> n <> " not found") >> pure (SLTInt, n)
 
 
 parseVar :: LocalParser SLExp
@@ -105,7 +105,7 @@ parseVar =  unwrapspace $ do
     Nothing ->
       case M.lookup n adict of
         Just t  -> pure (SLEArg t n)
-        Nothing -> pure (SLEConst (SLVal 0)) <$ registerCustomError $ SLParserError $ "variable " <> n <> " not found"
+        Nothing -> registerCustomError (SLParserError $ "Variable $" <> n <> " not found") >> pure (SLEConst (SLVal 0))
 
 parseRef :: LocalParser SLRef
 parseRef =
@@ -123,7 +123,7 @@ parseFuncSignature = do
   else
     case M.lookup n fdict of
       Just t  -> pure t
-      Nothing -> pure (SLFuncSignature n [] SLTInt) <$ registerCustomError $ SLParserError $ "Function " <> prettyPrintSLFuncName n <> " not found"
+      Nothing -> registerCustomError (SLParserError $ "Function " <> prettyPrintSLFuncName n <> " not found") >> pure (SLTFuncPtr [] SLTInt)
 
 parseCall :: LocalParser SLCall
 parseCall =
@@ -253,7 +253,7 @@ parseTypedExp' inexp = do
   else
     case sleTypeOf exp of
       Right t  -> pure (t, exp)
-      Left err -> pure (SLTInt, exp) <$ registerCustomError $ SLParserError $ prettyPrintSLTypeError err
+      Left err -> registerCustomError $ SLParserError $ prettyPrintSLTypeError err >> pure (SLTInt, exp)
 
 parseStatement :: LocalParser SLStatement
 parseStatement = do
@@ -387,7 +387,7 @@ textToSLProgram t = do
       _ <- case M.lookup (slscegetPos err) sourcemap of
             Just (_, offset) -> do
               first (pack . errorBundlePretty) $ parse (parseError (FancyError offset ((S.singleton . ErrorCustom . SLParserError . slsceMessage) err))) "main.slang" t
-            Nothing -> 
+            Nothing ->
               pure ()
       Left $ prettyPrintSLSCError err
 
