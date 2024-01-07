@@ -7,6 +7,7 @@ module MachineLang.FromSimpleLang (
       compileSLProgram
     , interpretReg
     , MLCReg(..)
+    , mlcOptionDefault
   ) where
 
 import MachineLang.Def

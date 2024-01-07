@@ -123,7 +123,7 @@ parseFuncSignature = do
   else
     case M.lookup n fdict of
       Just t  -> pure t
-      Nothing -> registerCustomError (SLParserError $ "Function " <> prettyPrintSLFuncName n <> " not found") >> pure (SLTFuncPtr [] SLTInt)
+      Nothing -> registerCustomError (SLParserError $ "Function " <> prettyPrintSLFuncName n <> " not found") >> pure (SLFuncSignature n [] SLTInt)
 
 parseCall :: LocalParser SLCall
 parseCall =
@@ -253,7 +253,7 @@ parseTypedExp' inexp = do
   else
     case sleTypeOf exp of
       Right t  -> pure (t, exp)
-      Left err -> registerCustomError $ SLParserError $ prettyPrintSLTypeError err >> pure (SLTInt, exp)
+      Left err -> registerCustomError (SLParserError $ prettyPrintSLTypeError err) >> pure (SLTInt, exp)
 
 parseStatement :: LocalParser SLStatement
 parseStatement = do

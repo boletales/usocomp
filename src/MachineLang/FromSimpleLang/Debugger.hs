@@ -23,6 +23,7 @@ import MachineLang.Tools
 import MachineLang.Machine
 
 import Data.Vector as V
+import Data.Vector.Unboxed as VP
 import Data.Text as T
 import qualified Data.Text.IO as TIO
 import Control.Monad.Except
@@ -42,40 +43,40 @@ slTextRep :: SLProgram -> (V.Vector Text, M.Map SLPos Int)
 slTextRep program =
 -}
 
-prettyPrintMemState :: V.Vector Int -> V.Vector Int -> Text
+prettyPrintMemState :: VP.Vector Int -> VP.Vector Int -> Text
 prettyPrintMemState regs mem =
   let regTexts =
           "Registers:\n" <>
-          "  " <> "RegPC  : " <> tshow (regs V.! fromEnum (interpretReg MLCRegPC)) <> "\n" <>
-          "  " <> "RegFPtr: " <> tshow (regs V.! fromEnum (interpretReg MLCRegFramePtr)) <> "\n" <>
-          "  " <> "RegSPtr: " <> tshow (regs V.! fromEnum (interpretReg MLCRegStackPtr)) <> "\n" <>
-          "  " <> "RegX   : " <> tshow (regs V.! fromEnum (interpretReg MLCRegX)) <> "\n" <>
-          "  " <> "RegY   : " <> tshow (regs V.! fromEnum (interpretReg MLCRegY)) <> "\n" <>
-          "  " <> "RegZ   : " <> tshow (regs V.! fromEnum (interpretReg MLCRegZ)) <> "\n"
+          "  " <> "RegPC  : " <> tshow (regs  VP.! fromEnum (interpretReg MLCRegPC)) <> "\n" <>
+          "  " <> "RegFPtr: " <> tshow (regs  VP.! fromEnum (interpretReg MLCRegFramePtr)) <> "\n" <>
+          "  " <> "RegSPtr: " <> tshow (regs  VP.! fromEnum (interpretReg MLCRegStackPtr)) <> "\n" <>
+          "  " <> "RegX   : " <> tshow (regs  VP.! fromEnum (interpretReg MLCRegX)) <> "\n" <>
+          "  " <> "RegY   : " <> tshow (regs  VP.! fromEnum (interpretReg MLCRegY)) <> "\n" <>
+          "  " <> "RegZ   : " <> tshow (regs  VP.! fromEnum (interpretReg MLCRegZ)) <> "\n"
 
-      stackTopAddr    = regs V.! fromEnum (interpretReg MLCRegStackPtr)
-      oldFramePtrAddr = regs V.! fromEnum (interpretReg MLCRegFramePtr)
+      stackTopAddr    = regs  VP.! fromEnum (interpretReg MLCRegStackPtr)
+      oldFramePtrAddr = regs  VP.! fromEnum (interpretReg MLCRegFramePtr)
 
 
       stackFrameTexts = fromMaybe "stack frame not found" (do
 
           let oldStackPtrAddr = oldFramePtrAddr - 1
           let returnAddrAddr  = oldFramePtrAddr - 2
-          stackBottomAddr <- (+ 1) <$> (mem V.!? oldStackPtrAddr)
+          stackBottomAddr <- (+ 1) <$> (mem VP.!? oldStackPtrAddr)
 
           locals <-
             Control.Monad.foldM (\t i -> do
-                v <- mem V.!? i
+                v <- mem VP.!? i
                 pure $ t <> "    " <> tshow i <> ": " <> tshow v <> "\n"
               ) "" (Prelude.reverse [oldFramePtrAddr + 1 .. stackTopAddr])
 
-          oldfptr    <- mem V.!? oldFramePtrAddr
-          oldsptr    <- mem V.!? oldStackPtrAddr
-          returnaddr <- mem V.!? returnAddrAddr
+          oldfptr    <- mem VP.!? oldFramePtrAddr
+          oldsptr    <- mem VP.!? oldStackPtrAddr
+          returnaddr <- mem VP.!? returnAddrAddr
 
           args <-
             Control.Monad.foldM (\t i -> do
-                v <- mem V.!? i
+                v <- mem VP.!? i
                 pure $ t <> "    " <> tshow i <> ": " <> tshow v <> "\n"
               ) "" (Prelude.reverse [stackBottomAddr .. returnAddrAddr - 1])
 
@@ -209,10 +210,10 @@ runMLCFast program =
     Right mlp -> do
       TIO.putStrLn "Compiled!"
       TIO.putStrLn "Running..."
-      machine <- initMLMacine (MLConfig 100000) (second (const ()) <$> mlp)
+      machine <- initMLMacineFast (MLConfig 100000) mlp
 
       let end e m = do
-            tick <- stToIO $ readSTRef $ mltime m
+            tick <- stToIO $ readSTRef $ mlftime m
             case e of
               MLRESuccess c -> TIO.putStrLn ("\rtick: " <> tshow tick <> "\n" <> "successfully terminated. code:" <> tshow c)
               _ -> TIO.putStrLn ("\rtick: " <> tshow tick <> "\n" <> "runtime error:" <> tshow e)

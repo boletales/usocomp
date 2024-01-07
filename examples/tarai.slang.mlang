@@ -1,7 +1,7 @@
 
 nop                                     #main
 const r1 1                              #main
-const r2 288                            #main
+const r2 306                            #main
 store r2 r1                             #main
 addi  r1 r1 1                           #main
 const r2 0                              #main
@@ -11,16 +11,25 @@ addi  r1 r1 1                           #main
 store r2 r1                             #main
 copy  r0 r1                             #main
 const pc 12                             #main
-addi  r1 r1 1                           #main[0].expr (12, 6, 0).expr 12
-const r2 12                             #main[0].expr (12, 6, 0).expr 12
-store r2 r1                             #main[0].expr (12, 6, 0).expr 12
-addi  r1 r1 1                           #main[0].expr (12, 6, 0).expr 6
-const r2 6                              #main[0].expr (12, 6, 0).expr 6
-store r2 r1                             #main[0].expr (12, 6, 0).expr 6
-addi  r1 r1 1                           #main[0].expr (12, 6, 0).expr 0
-const r2 0                              #main[0].expr (12, 6, 0).expr 0
-store r2 r1                             #main[0].expr (12, 6, 0).expr 0
-const r4 77                             #main[0]
+const r2 4994                           #main
+lt    r2 r1 r2                          #main
+addi  r3 pc 6                           #main
+ijmp  r3 r2                             #main
+const r2 0                              #main
+const r3 -1000000000                    #main
+store r3 r2                             #main
+const r3 306                            #main
+jump  r3                                #main
+addi  r1 r1 1                           #main[0].expr (10, 5, 0).expr 10
+const r2 10                             #main[0].expr (10, 5, 0).expr 10
+store r2 r1                             #main[0].expr (10, 5, 0).expr 10
+addi  r1 r1 1                           #main[0].expr (10, 5, 0).expr 5
+const r2 5                              #main[0].expr (10, 5, 0).expr 5
+store r2 r1                             #main[0].expr (10, 5, 0).expr 5
+addi  r1 r1 1                           #main[0].expr (10, 5, 0).expr 0
+const r2 0                              #main[0].expr (10, 5, 0).expr 0
+store r2 r1                             #main[0].expr (10, 5, 0).expr 0
+const r4 86                             #main[0]
 addi  r2 r0 -2                          #main[0]
 addi  r1 r1 1                           #main[0]
 load  r3 r2                             #main[0]
@@ -76,6 +85,15 @@ addi  r2 r2 -1                          #main.forceReturn
 load  r1 r2                             #main.forceReturn
 addi  r2 r2 -1                          #main.forceReturn
 load  pc r2                             #main.forceReturn
+const r2 4991                           #main.tarai
+lt    r2 r1 r2                          #main.tarai
+addi  r3 pc 6                           #main.tarai
+ijmp  r3 r2                             #main.tarai
+const r2 0                              #main.tarai
+const r3 -1000000000                    #main.tarai
+store r3 r2                             #main.tarai
+const r3 306                            #main.tarai
+jump  r3                                #main.tarai
 addi  r1 r1 1                           #main.tarai[0].whenCond_0.expr ($x > $y).expr $x
 addi  r2 r0 -1                          #main.tarai[0].whenCond_0.expr ($x > $y).expr $x
 load  r2 r2                             #main.tarai[0].whenCond_0.expr ($x > $y).expr $x
@@ -124,7 +142,7 @@ load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.
 addi  r2 r2 3                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
 load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
 store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
-const r3 77                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
+const r3 86                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
 addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
 addi  r2 pc 8                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
 store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
@@ -162,7 +180,7 @@ load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.
 addi  r2 r2 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
 load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
 store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
-const r3 77                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
+const r3 86                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
 addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
 addi  r2 pc 8                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
 store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
@@ -200,7 +218,7 @@ load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.
 addi  r2 r2 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
 load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
 store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
-const r3 77                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
+const r3 86                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
 addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
 addi  r2 pc 8                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
 store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
@@ -211,7 +229,7 @@ addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.
 store r0 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
 copy  r0 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
 copy  pc r3                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
-const r4 77                             #main.tarai[0].whenBody_0[0]
+const r4 86                             #main.tarai[0].whenBody_0[0]
 addi  r2 r0 -2                          #main.tarai[0].whenBody_0[0]
 addi  r1 r1 1                           #main.tarai[0].whenBody_0[0]
 load  r3 r2                             #main.tarai[0].whenBody_0[0]
