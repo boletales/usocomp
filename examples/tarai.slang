@@ -1,5 +1,5 @@
 function main() -> int {
-  tailcall tarai(12, 6, 0)
+  tailcall tarai(10, 5, 0)
 }
 
 function tarai(int $x, int $y, int $z) -> int {

@@ -11,13 +11,13 @@ import System.Environment
 import Control.Monad.Except
 import MachineLang.FromSimpleLang.Test
 import Data.Set as S
-
+import System.IO 
 data SLCOption = SLCOptionDebug deriving (Eq, Ord, Show)
 
 main :: IO ()
 main = do
   args <- getArgs
-  
+  hSetBuffering stdout NoBuffering
   let parsed = Prelude.foldl (\(filename, opts) arg -> case arg of
           "--debug" -> (filename, S.insert SLCOptionDebug opts)
           "-d" -> (filename, S.insert SLCOptionDebug opts)

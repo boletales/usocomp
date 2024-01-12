@@ -23,7 +23,7 @@ import Data.Maybe
 import SimpleLang.StaticCheck
 import Control.Applicative hiding (many, some)
 import Data.Set as S
-import Debug.Trace
+-- import Debug.Trace
 
 newtype SLParserError = SLParserError Text deriving (Show, Eq, Ord)
 instance ShowErrorComponent  SLParserError where
@@ -84,7 +84,7 @@ parseLocal =  unwrapspace $ do
   vdict <- gets lpsLocals
   case M.lookup n vdict of
     Just t  -> pure (t, n)
-    Nothing -> customFailure $ SLParserError $ "Local variable " <> n <> " not found"
+    Nothing -> registerCustomError (SLParserError $ "Local variable $" <> n <> " not found") >> pure (SLTInt, n)
 
 parseArg :: LocalParser (SLType, Text)
 parseArg = unwrapspace $ do
@@ -92,7 +92,20 @@ parseArg = unwrapspace $ do
   vdict <- gets lpsArgs
   case M.lookup n vdict of
     Just t  -> pure (t, n)
-    Nothing -> customFailure $ SLParserError $ "Argument " <> n <> " not found"
+    Nothing -> registerCustomError (SLParserError $ "Argument $" <> n <> " not found") >> pure (SLTInt, n)
+
+
+parseVar :: LocalParser SLExp
+parseVar =  unwrapspace $ do
+  n <- string "$" *> parseName
+  ldict <- gets lpsLocals
+  adict <- gets lpsArgs
+  case M.lookup n ldict of
+    Just t  -> pure (SLELocal t n)
+    Nothing ->
+      case M.lookup n adict of
+        Just t  -> pure (SLEArg t n)
+        Nothing -> registerCustomError (SLParserError $ "Variable $" <> n <> " not found") >> pure (SLEConst (SLVal 0))
 
 parseRef :: LocalParser SLRef
 parseRef =
@@ -110,12 +123,12 @@ parseFuncSignature = do
   else
     case M.lookup n fdict of
       Just t  -> pure t
-      Nothing -> customFailure $ SLParserError $ "Function " <> prettyPrintSLFuncName n <> " not found"
+      Nothing -> registerCustomError (SLParserError $ "Function " <> prettyPrintSLFuncName n <> " not found") >> pure (SLFuncSignature n [] SLTInt)
 
 parseCall :: LocalParser SLCall
 parseCall =
   choice [
-      try $ SLSolidFuncCall <$> parseFuncSignature <* hspace <*> parseExp
+      try $ SLSolidFuncCall <$> parseFuncSignature <* hspace <*> (parseExp <&> \e -> case e of SLEStructCons _ _ -> e; SLEStructNil -> e; _ -> SLEStructCons e SLEStructNil)
     , try $ SLClosureCall   <$ string "@@" <*> parseExp
     , try $ SLFuncRefCall   <$ string "@" <*> parseRef <*> parseExp
   ]
@@ -217,8 +230,7 @@ parseTerm :: LocalParser SLExp
 parseTerm = unwrapspace $
   choice [
       try $ appendExprPosMap $ SLEConst . SLVal <$> MPL.signed (pure ()) MPL.decimal
-    , try $ appendExprPosMap $ uncurry SLELocal <$> parseLocal
-    , try $ appendExprPosMap $ uncurry SLEArg   <$> parseArg
+    , try $ appendExprPosMap $ parseVar
     , try $ appendExprPosMap $ string "&" $> SLEAddrOf <*> parseRef
     , try $ appendExprPosMap $ string "&" $> SLEFuncPtr <*> parseFuncSignature
     , try $ appendExprPosMap $ SLEPushCall <$> parseCall
@@ -241,7 +253,7 @@ parseTypedExp' inexp = do
   else
     case sleTypeOf exp of
       Right t  -> pure (t, exp)
-      Left err -> customFailure $ SLParserError $ prettyPrintSLTypeError err
+      Left err -> registerCustomError (SLParserError $ prettyPrintSLTypeError err) >> pure (SLTInt, exp)
 
 parseStatement :: LocalParser SLStatement
 parseStatement = do
@@ -282,7 +294,7 @@ parseFuncName = do
     _    ->
       case L.uncons (L.reverse n) of
         Just (fname, revm) -> pure $ SLUserFunc (T.intercalate "." (L.reverse revm)) fname
-        Nothing         -> customFailure $ SLParserError $ "Invalid function name: " <> T.intercalate "." n
+        Nothing            -> customFailure $ SLParserError $ "Invalid function name: " <> T.intercalate "." n
 
 parseFunction :: LocalParserState -> Parser (SLFuncBlock, M.Map SLPos (SourcePos, Int))
 parseFunction initstate = do
@@ -375,7 +387,7 @@ textToSLProgram t = do
       _ <- case M.lookup (slscegetPos err) sourcemap of
             Just (_, offset) -> do
               first (pack . errorBundlePretty) $ parse (parseError (FancyError offset ((S.singleton . ErrorCustom . SLParserError . slsceMessage) err))) "main.slang" t
-            Nothing -> 
+            Nothing ->
               pure ()
       Left $ prettyPrintSLSCError err
 

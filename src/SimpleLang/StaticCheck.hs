@@ -75,16 +75,16 @@ slsceMessage err = case err of
   SLSCNoSuchVariable name _ -> "No such variable: " <> name
   SLSCNoSuchArgument name _ -> "No such argument: " <> name
   SLSCNoSuchFunction name _ -> "No such function: " <> name
-  SLSCWrongVariableType name t1 t2 _ -> "Wrong variable type: type of " <> name <> " expected to be" <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
-  SLSCWrongArgumentType name t1 t2 _ -> "Wrong argument type: type of " <> name <> " expected to be " <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
-  SLSCWrongFunctionType name t1 t2 _ -> "Wrong function type: type of " <> name <> " expected to be " <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
-  SLSCWrongReturnType name t1 t2 _ -> "Wrong return type: " <> name <> " expected " <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
+  SLSCWrongVariableType name t1 t2 _ -> "Wrong variable type: type of " <> name <> " is expected to be " <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
+  SLSCWrongArgumentType name t1 t2 _ -> "Wrong argument type: type of " <> name <> " is expected to be " <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
+  SLSCWrongFunctionType name t1 t2 _ -> "Wrong function type: type of " <> name <> " is expected to be " <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
+  SLSCWrongReturnType   name t1 t2 _ -> "Wrong return type: type of "   <> name <> " is expected to be " <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
   SLSCFunctionNameMismatch name1 name2 _ -> "Function name mismatch: " <> prettyPrintSLFuncName name1 <> " vs " <> prettyPrintSLFuncName name2
-  SLSCWrongArgTypeToPrim name t _ -> "Wrong argument type to prim: type of " <> name <> " expected to be" <> prettyPrintSLType SLTInt <> " but got " <> prettyPrintSLType t
-  SLSCWrongUnionType name t1 t2 _ -> "Wrong union type: type of " <> name <> " expected to be" <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
+  SLSCWrongArgTypeToPrim name t _ -> "Wrong argument type to prim: type of " <> name <> " is expected to be " <> prettyPrintSLType SLTInt <> " but got " <> prettyPrintSLType t
+  SLSCWrongUnionType name t1 t2 _ -> "Wrong union type: type of "            <> name <> " is expected to be " <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
   SLSCUnionMustBeUnion _ _ -> "Union must be union"
-  SLSCRefTypeMismatch name t1 t2 _ -> "Wrong reference type: type of " <> name <> " expected to be" <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
-  SLSCArgumentMismatch name t1 t2 _ -> "Wrong argument type: type of " <> name <> " expected to be" <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
+  SLSCRefTypeMismatch name t1 t2 _ -> "Wrong reference type: type of " <> name <> " is expected to be " <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
+  SLSCArgumentMismatch name t1 t2 _ -> "Wrong argument type: type of " <> name <> " is expected to be " <> prettyPrintSLType t1 <> " but got " <> prettyPrintSLType t2
   SLSCWrongTypeForCond t _ -> "Wrong type for condition: expected " <> prettyPrintSLType SLTInt <> " but got " <> prettyPrintSLType t
   SLSCWrongLocalArgAddr name _ -> "Wrong local argument address: " <> name
 
@@ -230,7 +230,7 @@ checkExpr exp = inPos (SLLPExpr exp) $ case exp of
       Nothing -> throwSLSCError $ SLSCNoSuchArgument (prettyPrintSLExp exp)
       Just t'
         | t == t' -> pure t
-        | otherwise -> throwSLSCError $ SLSCWrongArgumentType (prettyPrintSLExp exp) t t'
+        | otherwise -> throwSLSCError $ SLSCWrongVariableType (prettyPrintSLExp exp) t t'
   
   SLEPushCall call -> checkCall call
 

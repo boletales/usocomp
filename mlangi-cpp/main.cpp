@@ -266,6 +266,7 @@ string printInst(InstTuple inst){
 
 
 int memsize = 100000;
+ll largestaddr = 0;
 
 int runProgram(vector<InstTuple> program){
   vector<ll> mem(memsize, 0);
@@ -276,7 +277,7 @@ int runProgram(vector<InstTuple> program){
     ll pcold = reg[PC];
     if(pcold < 0 || pcold >= program.size()) {
       if (pcold == program.size()) {
-        cout << "\rtick: " << tick << "\nprogram end. code: " << mem[0] << endl;
+        cout << "\rtick: " << tick << "\nprogram end." << " largestaddr: " << largestaddr << ", code: " << mem[0] << endl;
         return mem[0];
       }else{
         cout << "\rtick: " << tick << "\npc out of range" << endl;
@@ -301,9 +302,11 @@ int runProgram(vector<InstTuple> program){
         reg[PC] = reg[get<1>(inst)];
         break;
       case Load:  
+        largestaddr = max(largestaddr, reg[get<2>(inst)]);
         reg[get<1>(inst)] = mem[reg[get<2>(inst)]];
         break;
       case Store:
+        largestaddr = max(largestaddr, reg[get<2>(inst)]);
         mem[reg[get<2>(inst)]] = reg[get<1>(inst)];
         break;  
       case Inv:

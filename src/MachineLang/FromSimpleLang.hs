@@ -7,6 +7,7 @@ module MachineLang.FromSimpleLang (
       compileSLProgram
     , interpretReg
     , MLCReg(..)
+    , mlcOptionDefault
   ) where
 
 import MachineLang.Def
@@ -102,6 +103,9 @@ data MonadMLCFuncState = MonadMLCFuncState {
     , mmlcfsVarCnt   :: Int
     , mmlcfsLocalAddrDict :: M.Map Text Int
     , mmlcfsArgAddrDict :: M.Map Text Int
+    , mmlcfsCompilerOpt :: MLCOption
+    , mmlcfsMaxStackFrameSize :: Int
+    , mmlcfsStackSizeHere     :: Int
   }
 
 newtype MonadMLCFunc x =
@@ -147,10 +151,10 @@ stateWriteFromFlagment v2 = MonadMLCFunc (do
   )
 
 
-execMonadMLCFunc :: MonadMLCFunc () -> SLPos -> M.Map Text Int -> M.Map Text Int -> Either MLCError MLCFlagment
-execMonadMLCFunc v lineinfo ldict adict =
-  (flip execStateT (MonadMLCFuncState VB.empty lineinfo 0 ldict adict)
-    >>> fmap mmlcfsFlagment) (unMonadMLCFunc v)
+execMonadMLCFunc :: MonadMLCFunc () -> SLPos -> M.Map Text Int -> M.Map Text Int -> MLCOption -> Int -> Int -> Either MLCError (MLCFlagment, Int)
+execMonadMLCFunc v lineinfo ldict adict opt maxstackframesize stacksizehere =
+  (flip execStateT (MonadMLCFuncState VB.empty lineinfo 0 ldict adict opt maxstackframesize stacksizehere)
+    >>> fmap (\s -> (mmlcfsFlagment s, mmlcfsMaxStackFrameSize s))) (unMonadMLCFunc v)
 
 -- ソースマップの情報を覚えたままコード片を抽出
 clipBlockFlagment :: MonadMLCFunc () -> MonadMLCFunc MLCFlagment
@@ -158,12 +162,32 @@ clipBlockFlagment v = MonadMLCFunc $ do
   lineinfo <- gets mmlcfsLineInfo
   ldict    <- gets mmlcfsLocalAddrDict
   adict    <- gets mmlcfsArgAddrDict
-  case execMonadMLCFunc v lineinfo ldict adict of
+  opt      <- gets mmlcfsCompilerOpt
+  maxstackframesize <- gets mmlcfsMaxStackFrameSize
+  stacksizehere <- gets mmlcfsStackSizeHere
+  case execMonadMLCFunc v lineinfo ldict adict opt maxstackframesize stacksizehere of
     Left  err      -> throwError err
-    Right flagment -> pure flagment
+    Right (flagment, sfsize) -> do
+      S.modify (\s -> s {mmlcfsMaxStackFrameSize = max (mmlcfsMaxStackFrameSize s) sfsize})
+      pure flagment
 
 getFlagmentSize :: MLCFlagment -> Int
 getFlagmentSize = VB.size
+
+useStackSize :: Int -> MonadMLCFunc a -> MonadMLCFunc a
+useStackSize s x = MonadMLCFunc (do
+    sizenow <- gets mmlcfsStackSizeHere
+    S.modify (\st -> st {mmlcfsMaxStackFrameSize = max (sizenow + s) (mmlcfsMaxStackFrameSize st), mmlcfsStackSizeHere = sizenow + s})
+    result <- unMonadMLCFunc x
+    S.modify (\st -> st {mmlcfsStackSizeHere = sizenow})
+    pure result
+  )
+
+addStackSize :: Int -> MonadMLCFunc ()
+addStackSize s = MonadMLCFunc (do
+    sizenow <- gets mmlcfsStackSizeHere
+    S.modify (\st -> st {mmlcfsMaxStackFrameSize = max (sizenow + s) (mmlcfsMaxStackFrameSize st), mmlcfsStackSizeHere = sizenow + s})
+  )
 
 {-
 getLength :: MonadMLCFunc Int
@@ -245,21 +269,23 @@ slSolidCallToMLC funcsig args = do
   stateWriteFromList [
       MLIConst MLCRegY (MLCValJumpDestFunc (slfsName funcsig))
     ]
-
-  stateWriteFromList (pushCallToRegYSnippet argsize)
+  
+  useStackSize (argsize + sltSizeOf SLTInt * 3) $ stateWriteFromList (pushCallToRegYSnippet argsize)
 
 slPtrCallToMLC :: SLRef -> SLExp -> MonadMLCFunc ()
 slPtrCallToMLC ref args = do
-  argsize <- liftTypeError $ sleSizeOf args
 
   slPushToMLC (slRefToPtr ref)
   slPushToMLC args
+
+  argsize <- liftTypeError $ sleSizeOf args
+
   stateWriteFromList [
         MLIAddI   MLCRegY          MLCRegStackPtr (MLCValConst (negate argsize))
       , MLILoad   MLCRegY          MLCRegY
     ]
 
-  stateWriteFromList (pushCallToRegYSnippet argsize)
+  useStackSize (argsize + sltSizeOf SLTInt * 3) $ stateWriteFromList (pushCallToRegYSnippet argsize)
 
 
 slClosureCallToMLC :: SLExp -> MonadMLCFunc ()
@@ -274,7 +300,7 @@ slClosureCallToMLC cls = do
       , MLILoad   MLCRegY          MLCRegY
     ]
 
-  stateWriteFromList (pushCallToRegYSnippet argsize)
+  useStackSize (argsize + sltSizeOf SLTInt * 3) $ stateWriteFromList (pushCallToRegYSnippet argsize)
 
 
 tailCallToRegZSnippet :: Int -> [MLInst' MLCReg MLCVal]
@@ -327,7 +353,7 @@ slSolidTailCallReturnToMLC funcsig args = do
       MLIConst MLCRegZ (MLCValJumpDestFunc (slfsName funcsig))
     ]
 
-  stateWriteFromList (tailCallToRegZSnippet argsize)
+  useStackSize (argsize + sltSizeOf SLTInt * 3) $ stateWriteFromList (tailCallToRegZSnippet argsize)
 
 slPtrTailCallReturnToMLC :: SLRef -> SLExp -> MonadMLCFunc ()
 slPtrTailCallReturnToMLC ref args = do
@@ -340,14 +366,13 @@ slPtrTailCallReturnToMLC ref args = do
       , MLILoad   MLCRegZ          MLCRegZ
     ]
 
-  stateWriteFromList (tailCallToRegZSnippet argsize)
+  useStackSize (argsize + sltSizeOf SLTInt * 3) $ stateWriteFromList (tailCallToRegZSnippet argsize)
 
 
 slClosureTailCallReturnToMLC :: SLExp -> MonadMLCFunc ()
 slClosureTailCallReturnToMLC cls = do
   clssize <- liftTypeError $ sleSizeOf cls
   let argsize = clssize - 1
-
 
   slPushToMLC cls
 
@@ -356,27 +381,43 @@ slClosureTailCallReturnToMLC cls = do
       , MLILoad   MLCRegZ          MLCRegZ
     ]
 
-  stateWriteFromList (tailCallToRegZSnippet argsize)
+  useStackSize (argsize + sltSizeOf SLTInt * 3) $ stateWriteFromList (tailCallToRegZSnippet argsize)
 
+mlcCheckStackOverflow :: Int -> MonadMLCFunc ()
+mlcCheckStackOverflow sizeToBeUsed = do
+  limit <- MonadMLCFunc (gets (mmlcfsCompilerOpt >>> mlcoptStackSize))
+  stateWriteFromList [
+        MLIConst  MLCRegX (MLCValConst (limit - sizeToBeUsed))
+      , MLILt     MLCRegX MLCRegStackPtr MLCRegX
+
+      , MLIAddI   MLCRegY MLCRegPC (MLCValConst 6)
+
+      , MLIIfJump MLCRegY MLCRegX
+      , MLIConst  MLCRegX (MLCValConst 0)
+      , MLIConst  MLCRegY (MLCValConst (mlcSpecialCode MLCREStackOverflow))
+      , MLIStore  MLCRegY MLCRegX
+      , MLIConst  MLCRegY MLCValJumpDestEnd
+      , MLIJump   MLCRegY
+    ]
 
 slPushToMLC :: SLExp -> MonadMLCFunc ()
 slPushToMLC expr = inPos (SLLPExpr expr) $ do
   case expr of
-    SLEConst (SLVal v) ->
+    SLEConst (SLVal v) -> useStackSize (sltSizeOf SLTInt) $
       stateWriteFromList [
             MLIAddI   MLCRegStackPtr   MLCRegStackPtr incr
           , MLIConst  MLCRegX         (MLCValConst v)
           , MLIStore  MLCRegX          MLCRegStackPtr
         ]
 
-    SLEFuncPtr fsig ->
+    SLEFuncPtr fsig -> useStackSize (sltSizeOf SLTInt) $
       stateWriteFromList [
             MLIAddI   MLCRegStackPtr   MLCRegStackPtr incr
           , MLIConst  MLCRegX         (MLCValJumpDestFunc (slfsName fsig))
           , MLIStore  MLCRegX          MLCRegStackPtr
         ]
 
-    SLELocal t vname -> do
+    SLELocal t vname -> useStackSize (sltSizeOf SLTInt) $ do
       v <- getVarAddr vname
       Control.Monad.forM_ [0 .. (sltSizeOf t - 1)] (\i ->
           stateWriteFromList [
@@ -387,7 +428,7 @@ slPushToMLC expr = inPos (SLLPExpr expr) $ do
             ]
         )
 
-    SLEArg t aname -> do
+    SLEArg t aname -> useStackSize (sltSizeOf SLTInt) $ do
       a <- getArgAddr aname
       Control.Monad.forM_ [0 .. (sltSizeOf t - 1)] (\i ->
           stateWriteFromList [
@@ -405,14 +446,15 @@ slPushToMLC expr = inPos (SLLPExpr expr) $ do
       stateWriteFromList [
           MLIAddI   MLCRegStackPtr   MLCRegStackPtr (MLCValConst exprsize)
         ] -- 返り値のためにスタックを高くしておく
-      case call of
-        SLSolidFuncCall fname args -> slSolidCallToMLC fname args
-        SLFuncRefCall   fref  args -> slPtrCallToMLC   fref  args
-        SLClosureCall   closure    -> slClosureCallToMLC closure
+      useStackSize exprsize $ 
+        case call of
+          SLSolidFuncCall fname args -> slSolidCallToMLC fname args
+          SLFuncRefCall   fref  args -> slPtrCallToMLC   fref  args
+          SLClosureCall   closure    -> slClosureCallToMLC closure
 
-    SLEPrim1 prim exp1       -> slPrim1ToMLC prim exp1
+    SLEPrim1 prim exp1       -> useStackSize (sltSizeOf SLTInt) $ slPrim1ToMLC prim exp1
 
-    SLEPrim2 prim exp1 exp2  -> slPrim2ToMLC prim exp1 exp2
+    SLEPrim2 prim exp1 exp2  -> useStackSize (sltSizeOf SLTInt) $ slPrim2ToMLC prim exp1 exp2
 
 
     SLEStructNil       -> pure ()
@@ -421,7 +463,11 @@ slPushToMLC expr = inPos (SLLPExpr expr) $ do
       (case slpLocalPos pos of
           _ : SLLPExpr (SLEStructCons _ _) : _ -> outPos
           _ -> id
-        ) (slPushToMLC e >> slPushToMLC es)
+        ) (do
+          slPushToMLC e
+          exprsize <- liftTypeError $ sleSizeOf e
+          useStackSize exprsize $ slPushToMLC es
+        )
 
     SLEUnion t inner -> do
       innersize <- liftTypeError $ sleSizeOf inner
@@ -439,7 +485,7 @@ slPushToMLC expr = inPos (SLLPExpr expr) $ do
           , MLIStore  MLCRegX          MLCRegStackPtr
         ] -- expr'の評価先を再利用
 
-    SLEAddrOf ref ->
+    SLEAddrOf ref -> useStackSize (sltSizeOf SLTInt) $
       case ref of
         SLRefLocal _ vname -> do
           v <- getVarAddr vname
@@ -452,13 +498,14 @@ slPushToMLC expr = inPos (SLLPExpr expr) $ do
         SLRefPtr _ ptr ->
           slPushToMLC ptr
 
-    SLEPtrShift ptr shift -> do
+    SLEPtrShift ptr shift -> useStackSize (sltSizeOf SLTInt) $ do
       ptrtype <- liftTypeError $ sleTypeOf ptr
       slPrim2ToMLC SLPrim2Add ptr (SLECast ptrtype shift)
 
     SLEStructGet str p -> do
       exprsize <- liftTypeError $ sleSizeOf expr
-      slStructGetToMLC str exprsize p
+      useStackSize exprsize $
+        slStructGetToMLC str exprsize p
 
     SLECast _ expr' -> slPushToMLC expr'
 
@@ -649,7 +696,7 @@ slSingleToMLC statement =
     SLSInitVar vname expr -> do
       exprsize <- liftTypeError $ sleSizeOf expr
       --trace ("SLSInitVar: " <> show t <> " " <> show exprsize <> " " <> show expr) $ pure ()
-      slPushToMLC expr >> mlcInternalAddVar vname >> mlcInternalShiftVarCnt exprsize
+      slPushToMLC expr >> mlcInternalAddVar vname >> mlcInternalShiftVarCnt exprsize >> addStackSize exprsize
     SLSSubst ref expr ->
       case ref of
         SLRefPtr   _ ptr -> slSubstPtrToMLC ptr expr
@@ -749,11 +796,19 @@ initializer = do
     ]
 
 
-compileSLFunc :: SLFuncBlock -> Either MLCError MLCFlagment
-compileSLFunc slfunc =
+
+compileSLFunc :: MLCOption -> SLFuncBlock -> Either MLCError MLCFlagment
+compileSLFunc opt slfunc =
   let argdict =
         fst $ L.foldl (\(dict, pos) (argname, argtype) -> (M.insert argname pos dict, pos + sltSizeOf argtype)) (M.empty, 0) (L.zip (slfArgs slfunc) (slfsArgs (slfSignature slfunc)))
-  in  execMonadMLCFunc (slBlockToMLC (slfBlock slfunc) >> inPos SLLPForceReturn (slReturnToMLC (SLEConst (SLVal 0)))) (SLPos (slfsName (slfSignature slfunc)) []) M.empty argdict
+  in do
+    (_, ssize) <- execMonadMLCFunc 
+                            (slBlockToMLC (slfBlock slfunc) >> inPos SLLPForceReturn (slReturnToMLC (SLEConst (SLVal 0))))
+                            (SLPos (slfsName (slfSignature slfunc)) []) M.empty argdict opt 0 0
+    (path2, _) <- execMonadMLCFunc 
+                            (mlcCheckStackOverflow ssize >>  slBlockToMLC (slfBlock slfunc) >> inPos SLLPForceReturn (slReturnToMLC (SLEConst (SLVal 0))))
+                            (SLPos (slfsName (slfSignature slfunc)) []) M.empty argdict opt 0 0
+    pure path2
 
 
 
@@ -771,13 +826,27 @@ interpretReg = \case
 -}
 
 compileSLProgram :: SLProgram -> Either MLCError (V.Vector (MLInst, SLPos))
-compileSLProgram program =
+compileSLProgram = compileSLProgram' mlcOptionDefault
+
+data MLCOption = MLCOption {
+      mlcoptDebug :: Bool
+    , mlcoptStackSize :: Int
+  }
+
+mlcOptionDefault :: MLCOption
+mlcOptionDefault = MLCOption {
+      mlcoptDebug = False
+    , mlcoptStackSize = 5000
+  }
+
+compileSLProgram' :: MLCOption -> SLProgram -> Either MLCError (V.Vector (MLInst, SLPos))
+compileSLProgram' opt program =
   case M.lookup SLFuncMain program of
     Nothing -> Left MLCENoMain
     Just fmain -> do
-      initcode <- execMonadMLCFunc initializer (SLPos SLFuncMain []) M.empty M.empty
+      (initcode, _) <- execMonadMLCFunc initializer (SLPos SLFuncMain []) M.empty M.empty opt 0 0
       (mlccode, mlcfuncmap) <- Control.Monad.foldM (\(code, funcmap) slfunc -> do
-              code' <- compileSLFunc slfunc
+              code' <- compileSLFunc opt slfunc
               pure (code <> code' , M.insert (slfsName (slfSignature slfunc)) (VB.size code) funcmap)
             ) (initcode, M.empty) (fmain : (M.toList >>> fmap snd) (M.delete SLFuncMain program))
 
@@ -791,3 +860,10 @@ compileSLProgram program =
                 ) inst
             ) (VB.build (mlccode <> VB.singleton (MLINop, SLPos SLFuncMain [])))
 
+data MLCRuntimeException =
+  MLCREStackOverflow
+  deriving (Show, Eq)
+
+mlcSpecialCode :: MLCRuntimeException -> Int
+mlcSpecialCode = \case
+  MLCREStackOverflow -> -1000000000
