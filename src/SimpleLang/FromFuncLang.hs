@@ -6,6 +6,9 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
+{-# OPTIONS_GHC -Wno-unused-local-binds #-}
+{-# OPTIONS_GHC -Wno-unused-matches #-}
+{-# OPTIONS_GHC -Wno-missing-export-lists #-}
 
 module SimpleLang.FromFuncLang where
 
@@ -434,7 +437,7 @@ interpretFLC (FLCProgram decls) =
                         | Right t == flcieTypeOf x' -> evalUntilStop dict (FLCIEcls ta' tr funid (args <> [x']))
                         | otherwise -> Left "Type missmatch"
                       Nothing -> Left "Too many arguments"
-                  _ -> Left $ "Not a function"
+                  _ -> Left  "Not a function"
 
               {-
               FLCELet letdecls body -> do

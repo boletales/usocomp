@@ -1,5 +1,5 @@
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-missing-export-lists #-}
 module SimpleLangC where
 
 import SimpleLang.Def

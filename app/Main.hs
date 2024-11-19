@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
@@ -48,7 +47,7 @@ tailRecTest =
                 pure ()
               )
           ]) (do
-            slmTailCall fibonacci (steps `_sub` _const 1) (b) (a `_add` b)
+            slmTailCall fibonacci (steps `_sub` _const 1) b (a `_add` b)
           )
         pure ()
       )

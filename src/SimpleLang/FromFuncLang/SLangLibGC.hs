@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-unused-imports #-}
+{-# OPTIONS_GHC -Wno-missing-export-lists #-}
 module SimpleLang.FromFuncLang.SLangLibGC where
 
 import SimpleLang.Def

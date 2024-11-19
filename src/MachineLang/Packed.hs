@@ -1,5 +1,3 @@
-{-# LANGUAGE UnboxedTuples #-}
-
 module MachineLang.Packed (
     MLInstPacked,
     packMLInst,
@@ -7,7 +5,6 @@ module MachineLang.Packed (
 ) where
 
 import MachineLang.Def
-import Data.Text (unpack)
 
 type MLInstPacked = (Int, Int, Int, Int)
 

@@ -85,15 +85,6 @@ parseLocal =  unwrapspace $ do
     Just t  -> pure (t, n)
     Nothing -> registerCustomError (SLParserError $ "Local variable $" <> n <> " not found") >> pure (SLTInt, n)
 
-parseArg :: LocalParser (SLType, Text)
-parseArg = unwrapspace $ do
-  n <- string "$" *> parseName
-  vdict <- gets lpsArgs
-  case M.lookup n vdict of
-    Just t  -> pure (t, n)
-    Nothing -> registerCustomError (SLParserError $ "Argument $" <> n <> " not found") >> pure (SLTInt, n)
-
-
 parseVar :: LocalParser SLExp
 parseVar =  unwrapspace $ do
   n <- string "$" *> parseName
@@ -229,7 +220,7 @@ parseTerm :: LocalParser SLExp
 parseTerm = unwrapspace $
   choice [
       try $ appendExprPosMap $ SLEConst . SLVal <$> MPL.signed (pure ()) MPL.decimal
-    , try $ appendExprPosMap $ parseVar
+    , try $ appendExprPosMap   parseVar
     , try $ appendExprPosMap $ string "&" $> SLEAddrOf <*> parseRef
     , try $ appendExprPosMap $ string "&" $> SLEFuncPtr <*> parseFuncSignature
     , try $ appendExprPosMap $ SLEPushCall <$> parseCall
