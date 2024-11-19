@@ -23,7 +23,6 @@ import Data.Maybe
 import SimpleLang.StaticCheck
 import Control.Applicative hiding (many, some)
 import Data.Set as S
--- import Debug.Trace
 
 newtype SLParserError = SLParserError Text deriving (Show, Eq, Ord)
 instance ShowErrorComponent  SLParserError where
@@ -305,13 +304,19 @@ parseFunction initstate = do
   fret  <- string "->" *> scn *> parseType
   (fbody, LocalParserState {lpsSourceMap = smap}) <- runStateT parseBlock (initstate { lpsArgs = M.fromList fargs, lpsSLPos = Just (SLPos fname [])})
   let fsig = SLFuncSignature fname (snd <$> fargs) fret
-  pure $ (SLFuncBlock fsig (fst <$> fargs) fbody, smap)
+  pure (SLFuncBlock fsig (fst <$> fargs) fbody, smap)
 
 parseFDict :: Parser (M.Map SLFuncName SLFuncSignature)
-parseFDict = (\fbs -> M.fromList $ (\(fb, _) -> ((slfsName . slfSignature) fb, slfSignature fb)) <$> fbs) <$ scn <*> many (parseFunction (emptyState {lpsFirstPath = True})) <* eof
+parseFDict = 
+  (\fblocks -> 
+    M.fromList $ (\(fblock, _) -> ((slfsName . slfSignature) fblock, slfSignature fblock)) <$> fblocks
+  ) <$ scn <*> many (parseFunction (emptyState {lpsFirstPath = True})) <* eof
 
 parseSLProgram :: M.Map SLFuncName SLFuncSignature -> Parser (SLProgram, M.Map SLPos (SourcePos, Int))
-parseSLProgram fdict = (\fbs -> (M.fromList $ (\(fb, _) -> ((slfsName . slfSignature) fb, fb)) <$> fbs, L.foldl (<>) M.empty (snd <$> fbs))) <$ scn <*> many (parseFunction (emptyState {lpsFuncs = fdict})) <* eof
+parseSLProgram fdict = 
+  (\fblocks -> 
+    (M.fromList $ (\(fblock, _) -> ((slfsName . slfSignature) fblock, fblock)) <$> fblocks, L.foldl (<>) M.empty (snd <$> fblocks))
+  ) <$ scn <*> many (parseFunction (emptyState {lpsFuncs = fdict})) <* eof
 
 parseEOS :: LocalParser ()
 parseEOS =

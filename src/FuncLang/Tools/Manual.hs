@@ -1,4 +1,4 @@
-module FuncLang.Tools.Manual where
+module FuncLang.Tools.Manual (flmLam, flmDecl, flmApp, runFLM) where
 
 import FuncLang.Def
 import Data.Text as T

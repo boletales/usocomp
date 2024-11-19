@@ -19,7 +19,8 @@
     - コンパイル元のコードの対応する位置を表示
     - 生メモリのかわりにスタックフレームの構造を表示
     - 位置情報が変わるまでスキップできる
-    - ```
+    - 
+```
 ===============================
 Tick: 1834
 
@@ -58,10 +59,10 @@ Stack Frame:
   === frame bottom ===
 
 ===============================
-      ```
+```
   - SimpleLangの抽象構文木を手で書きたくないため、SimpleLangを生成するライブラリ（SimpleLang.Tools.Manual）
     - SimpleLang.Tools.Manualを使ったコードの例（フィボナッチ数列の計算）：
-      - ```hs
+```hs
 tailRecTest :: SLProgram
 tailRecTest =
   runSLMFuncsM $ do
@@ -86,9 +87,10 @@ tailRecTest =
       )
 
     pure ()
-          ```
+```
       - ……から生成されるASTを、人間に読みやすく書き下したもの:
-        - ```
+        - 
+```
 function #main ($A0)
 {
   var $L0 = #main.fibonacci(20, 0, 1)
@@ -106,7 +108,7 @@ function #main.fibonacci ($A0, $A1, $A2, $A3)
     tailcall #main.fibonacci(($A0 - 1), $A2, ($A1 + $A2))
   }
 }
-          ```
+```
       - ……を入力すると、同様の構文木を出力するパーサ
 
 - なにをがんばった

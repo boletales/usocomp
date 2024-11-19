@@ -5,6 +5,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# OPTIONS_GHC -Wno-unused-imports #-}
 
 module SimpleLang.FromFuncLang where
 
@@ -358,7 +359,7 @@ flcRenameAndLift program =
 
 
 prettyPrintFLCVarDecl :: FLCVarDecl -> Text
-prettyPrintFLCVarDecl (FLCVarDecl v t e) = T.pack (show v) <> " = " <> prettyPrintFLCExp e
+prettyPrintFLCVarDecl (FLCVarDecl v _ e) = T.pack (show v) <> " = " <> prettyPrintFLCExp e
 
 
 prettyPrintFLCExp :: FLCExp -> Text
@@ -366,7 +367,7 @@ prettyPrintFLCExp e =
     case e of
       (FLCEValI i)      -> tshow i
       (FLCEValB b)      -> tshow b
-      (FLCEVar v t)     -> tshow v -- <> " :: " <> tshow t
+      (FLCEVar v _)     -> tshow v -- <> " :: " <> tshow t
       (FLCEApp e1 e2)   -> "(" <>   prettyPrintFLCExp e1 <> " " <> prettyPrintFLCExp e2 <> ")"
       --(FLCELet decls b) -> "(let " <> T.intercalate "; " (prettyPrintFLCVarDecl <$> decls) <> " in " <> prettyPrintFLCExp b <> ")"
 
@@ -457,6 +458,9 @@ interpretFLC (FLCProgram decls) =
       Nothing -> Left "No main function"
 
 -- 2
+
+-- todo: クロージャのサイズは実行時までわからないので、ヒープ上に確保する必要がある？
+--       これに際して、アロケーションとGCを行うライブラリを実装する必要がある！
 flcCompileProgram :: FLCProgram -> Either Text SLProgram
 flcCompileProgram program =
   let toSLName :: FLCUniqueIdentifier -> SLFuncName

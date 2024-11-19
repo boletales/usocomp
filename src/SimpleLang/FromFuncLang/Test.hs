@@ -6,7 +6,8 @@
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
-module SimpleLang.FromFuncLang.Test where
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
+module SimpleLang.FromFuncLang.Test () where
 
 import SimpleLang.FromFuncLang
 import SimpleLang.Def
