@@ -14,7 +14,7 @@ import Control.Category
 import Prelude hiding ((.), id)
 import Data.Proxy
 import Data.Kind
-import Data.Map qualified as M
+import Data.Map.Strict qualified as M
 import SimpleLang.TypedDef
 import Data.Text as T
 import qualified Data.List as L

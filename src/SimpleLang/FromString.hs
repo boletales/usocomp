@@ -4,6 +4,8 @@
 module SimpleLang.FromString (
     textToSLProgram
   , textToSourcemap
+  , textToSLParseResult
+  , SourcePosRange(..)
 ) where
 
 import SimpleLang.Def
@@ -14,7 +16,7 @@ import Text.Megaparsec.Char as MP
 import qualified Text.Megaparsec.Char.Lexer as MPL
 import Control.Monad.Combinators.Expr
 import Data.Functor
-import Data.Map as M
+import Data.Map.Strict as M
 import Control.Monad.State
 import Prelude hiding (exp)
 import qualified Data.Vector as V
@@ -31,7 +33,7 @@ instance ShowErrorComponent  SLParserError where
 
 type Parser = Parsec SLParserError Text
 
-data SourcePosRange = 
+data SourcePosRange =
   SourcePosRange {
     sprFrom :: SourcePos
   , sprTo   :: SourcePos
@@ -129,12 +131,12 @@ parseFuncSignature = do
       Just t  -> pure t
       Nothing -> registerCustomError (SLParserError $ "Function " <> prettyPrintSLFuncName n <> " not found") >> pure (SLFuncSignature n [] SLTInt)
 
-parseCall :: LocalParser SLCall
-parseCall =
+parseCall :: LocalParser SLExp -> LocalParser SLCall
+parseCall pexp =
   choice [
-      try $ SLSolidFuncCall <$> parseFuncSignature <* hspace <*> (parseExp <&> \e -> case e of SLEStructCons _ _ -> e; SLEStructNil -> e; _ -> SLEStructCons e SLEStructNil)
-    , try $ SLClosureCall   <$ string "@@" <*> parseExp
-    , try $ SLFuncRefCall   <$ string "@" <*> parseRef <*> parseExp
+      try $ SLSolidFuncCall <$> parseFuncSignature <* hspace <*> (pexp <&> \e -> case e of SLEStructCons _ _ -> e; SLEStructNil -> e; _ -> SLEStructCons e SLEStructNil)
+    , try $ SLClosureCall   <$ string "@@" <*> pexp
+    , try $ SLFuncRefCall   <$ string "@" <*> parseRef <*> pexp
   ]
 
 operators :: [[Operator LocalParser SLExp]]
@@ -235,11 +237,11 @@ parseExp = do
 parseTerm :: LocalParser SLExp
 parseTerm = unwrapspace $
   choice [
-      try $ appendExprPosMap $ SLEConst . SLVal <$> MPL.signed (pure ()) MPL.decimal
-    , try $ appendExprPosMap   parseVar
-    , try $ appendExprPosMap $ string "&" $> SLEAddrOf <*> parseRef
-    , try $ appendExprPosMap $ string "&" $> SLEFuncPtr <*> parseFuncSignature
-    , try $ appendExprPosMap $ SLEPushCall <$> parseCall
+      try $ SLEConst . SLVal <$> MPL.signed (pure ()) MPL.decimal
+    , try   parseVar
+    , try $ string "&" $> SLEAddrOf <*> parseRef
+    , try $ string "&" $> SLEFuncPtr <*> parseFuncSignature
+    , try $ SLEPushCall <$> parseCall parseExpInExp
     , try parseParensExpr
     , try $ L.foldr SLEStructCons SLEStructNil <$> (char '(' *> sepBy parseExpInExp (char ',') <* char ')')
     , try $ some alphaNumChar $> SLELocal SLTInt "dummy" <* registerCustomError (SLParserError "Invalid expression (forgot to put $?)")
@@ -265,7 +267,7 @@ parseStatement :: LocalParser SLStatement
 parseStatement = do
   withSourceMap $ choice [
       try $ SLSReturn <$ string "return" <* hspace <*> parseExp
-    , try $ SLSTailCallReturn <$ string "tailcall" <* hspace <*> parseCall
+    , try $ SLSTailCallReturn <$ string "tailcall" <* hspace <*> parseCall parseExp
     , try (do
           t <- parseType
           _ <- hspace <* string "$"
@@ -314,14 +316,14 @@ parseFunction initstate = do
   pure (SLFuncBlock fsig (fst <$> fargs) fbody, smap)
 
 parseFDict :: Parser (M.Map SLFuncName SLFuncSignature)
-parseFDict = 
-  (\fblocks -> 
+parseFDict =
+  (\fblocks ->
     M.fromList $ (\(fblock, _) -> ((slfsName . slfSignature) fblock, slfSignature fblock)) <$> fblocks
   ) <$ scn <*> many (parseFunction (emptyState {lpsFirstPath = True})) <* eof
 
 parseSLProgram :: M.Map SLFuncName SLFuncSignature -> Parser (SLProgram, M.Map SLPos SourcePosRange)
-parseSLProgram fdict = 
-  (\fblocks -> 
+parseSLProgram fdict =
+  (\fblocks ->
     (M.fromList $ (\(fblock, _) -> ((slfsName . slfSignature) fblock, fblock)) <$> fblocks, L.foldl (<>) M.empty (snd <$> fblocks))
   ) <$ scn <*> many (parseFunction (emptyState {lpsFuncs = fdict})) <* eof
 
@@ -392,12 +394,12 @@ withSourceMap parser = do
       pure result
 
 
-textToSLProgram :: Text -> Either Text SLProgram
-textToSLProgram t = do
+textToSLParseResult :: Text -> Either Text (SLProgram, Map SLPos SourcePosRange)
+textToSLParseResult t = do
   fdict <- first (pack . errorBundlePretty) $ parse parseFDict "main.slang" t
   (program, sourcemap) <- first (pack . errorBundlePretty) $ parse (parseSLProgram fdict) "main.slang" t
   case  slscCheck program of
-    Right _ -> pure program
+    Right _ -> pure (program, sourcemap)
     Left err -> do
       _ <- case M.lookup (slscegetPos err) sourcemap of
             Just (SourcePosRange _ _ offset) -> do
@@ -407,11 +409,8 @@ textToSLProgram t = do
       Left $ prettyPrintSLSCError err
 
 
+textToSLProgram :: Text -> Either Text SLProgram
+textToSLProgram t = fst <$> textToSLParseResult t
+
 textToSourcemap :: Text -> Text
-textToSourcemap t = either id id $ do
-  fdict <- first (pack . errorBundlePretty) $ parse parseFDict "main.slang" t
-  (program, sourcemap) <- first (pack . errorBundlePretty) $ parse (parseSLProgram fdict) "main.slang" t
-  case  slscCheck program of
-    Right _ -> pure $ T.unlines $ (\(p, s) -> pack (show s) <> "\t" <> prettyPrintSLPos p) <$> M.assocs sourcemap
-    Left err -> do
-      Left $ prettyPrintSLSCError err
+textToSourcemap t = either id (\(_, sourcemap) -> T.unlines $ (\(p, s) -> pack (show s) <> "\t" <> prettyPrintSLPos p) <$> M.assocs sourcemap) (textToSLParseResult t)

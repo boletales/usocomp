@@ -3,7 +3,7 @@ module FuncLang.Tools.Manual (flmLam, flmDecl, flmApp, runFLM) where
 import FuncLang.Def
 import Data.Text as T
 import Prelude hiding ((.), id)
-import Data.Map as M
+import Data.Map.Strict as M
 import Control.Monad.State
 import Control.Monad.Identity
 

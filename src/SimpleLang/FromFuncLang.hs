@@ -19,7 +19,7 @@ import SimpleLang.Tools.Manual
 import Data.Text as T
 import Control.Category
 import Prelude hiding ((.), id)
-import Data.Map as M
+import Data.Map.Strict as M
 import Data.Foldable as F
 import qualified Data.List as L
 import Control.Monad

@@ -14,7 +14,7 @@ import Control.Monad
 import Data.Text as T hiding (
     words
   )
-import Data.Map as M
+import Data.Map.Strict as M
 import Control.Monad.State as S
 import Control.Monad.Except
 --import Data.Foldable as F

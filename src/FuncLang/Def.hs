@@ -12,7 +12,7 @@ module FuncLang.Def (
     , flTypeOf
   ) where
 
-import Data.Map as M
+import Data.Map.Strict as M
 import Data.Kind
 import Data.Text as T
 import Data.Proxy

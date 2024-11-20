@@ -1,6 +1,6 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.35.2.
+-- This file has been generated from package.yaml by hpack version 0.37.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -73,6 +73,7 @@ executable slangc
   main-is: SimpleLangC.hs
   other-modules:
       Main
+      SimpleLangDemo
       Paths_usocomp
   autogen-modules:
       Paths_usocomp
@@ -95,10 +96,38 @@ executable slangc
     , vector-builder
   default-language: GHC2021
 
+executable slangdemo
+  main-is: SimpleLangDemo.hs
+  other-modules:
+      Main
+      SimpleLangC
+      Paths_usocomp
+  autogen-modules:
+      Paths_usocomp
+  hs-source-dirs:
+      app
+  default-extensions:
+      StrictData
+      DataKinds
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -main-is SimpleLangDemo -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , megaparsec
+    , mtl
+    , parser-combinators
+    , primitive
+    , text
+    , usocomp
+    , vector
+    , vector-builder
+  default-language: GHC2021
+
 executable usocomp-exe
   main-is: Main.hs
   other-modules:
       SimpleLangC
+      SimpleLangDemo
       Paths_usocomp
   autogen-modules:
       Paths_usocomp
