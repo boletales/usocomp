@@ -85,21 +85,32 @@ testPrintParsePrint program =
 
 
 -- >>> error $ T.unpack $ textToSourcemap $ prettyPrintSLProgram $ mlctTest (mlctTests !! 5)
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 4, sourceColumn = Pos 3}	main[0]
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 5, sourceColumn = Pos 3}	main[1]
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 6, sourceColumn = Pos 3}	main[2]
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 4, sourceColumn = Pos 65}	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (100, 200, 300).expr 100
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 4, sourceColumn = Pos 70}	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (100, 200, 300).expr 200
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 4, sourceColumn = Pos 75}	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (100, 200, 300).expr 300
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 4, sourceColumn = Pos 83}	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (1000, 2000, 3000).expr 1000
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 4, sourceColumn = Pos 89}	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (1000, 2000, 3000).expr 2000
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 4, sourceColumn = Pos 95}	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (1000, 2000, 3000).expr 3000
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 4, sourceColumn = Pos 104}	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (10000, 20000, 30000).expr 10000
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 4, sourceColumn = Pos 111}	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (10000, 20000, 30000).expr 20000
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 4, sourceColumn = Pos 118}	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (10000, 20000, 30000).expr 30000
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 6, sourceColumn = Pos 12}	main[2].expr $9
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 4, sourceColumn = Pos 76}	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (100, 200, 300)
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 4, sourceColumn = Pos 96}	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (1000, 2000, 3000)
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 4, sourceColumn = Pos 119}	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (10000, 20000, 30000)
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 4, sourceColumn = Pos 120}	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000))
--- SourcePos {sourceName = "main.slang", sourceLine = Pos 5, sourceColumn = Pos 18}	main[1].expr $0.1.1
+-- main.slang:4:3 - main.slang:4:120	main[0]
+-- main.slang:5:3 - main.slang:5:18	main[1]
+-- main.slang:6:3 - main.slang:6:12	main[2]
+-- main.slang:4:62 - main.slang:4:65	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (100, 200, 300).expr 100.expr 100
+-- main.slang:4:62 - main.slang:4:65	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (100, 200, 300).expr 100
+-- main.slang:4:67 - main.slang:4:70	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (100, 200, 300).expr 200.expr 200
+-- main.slang:4:67 - main.slang:4:70	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (100, 200, 300).expr 200
+-- main.slang:4:72 - main.slang:4:75	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (100, 200, 300).expr 300.expr 300
+-- main.slang:4:72 - main.slang:4:75	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (100, 200, 300).expr 300
+-- main.slang:4:79 - main.slang:4:83	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (1000, 2000, 3000).expr 1000.expr 1000
+-- main.slang:4:79 - main.slang:4:83	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (1000, 2000, 3000).expr 1000
+-- main.slang:4:85 - main.slang:4:89	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (1000, 2000, 3000).expr 2000.expr 2000
+-- main.slang:4:85 - main.slang:4:89	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (1000, 2000, 3000).expr 2000
+-- main.slang:4:91 - main.slang:4:95	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (1000, 2000, 3000).expr 3000.expr 3000
+-- main.slang:4:91 - main.slang:4:95	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (1000, 2000, 3000).expr 3000
+-- main.slang:4:99 - main.slang:4:104	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (10000, 20000, 30000).expr 10000.expr 10000
+-- main.slang:4:99 - main.slang:4:104	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (10000, 20000, 30000).expr 10000
+-- main.slang:4:106 - main.slang:4:111	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (10000, 20000, 30000).expr 20000.expr 20000
+-- main.slang:4:106 - main.slang:4:111	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (10000, 20000, 30000).expr 20000
+-- main.slang:4:113 - main.slang:4:118	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (10000, 20000, 30000).expr 30000.expr 30000
+-- main.slang:4:113 - main.slang:4:118	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (10000, 20000, 30000).expr 30000
+-- main.slang:6:10 - main.slang:6:12	main[2].expr $9
+-- main.slang:6:10 - main.slang:6:12	main[2].expr $9.expr $9
+-- main.slang:5:12 - main.slang:5:14	main[1].expr $0.1.1.expr $0
+-- main.slang:4:61 - main.slang:4:76	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (100, 200, 300)
+-- main.slang:4:78 - main.slang:4:96	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (1000, 2000, 3000)
+-- main.slang:4:98 - main.slang:4:119	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000)).expr (10000, 20000, 30000)
+-- main.slang:4:60 - main.slang:4:120	main[0].expr ((100, 200, 300), (1000, 2000, 3000), (10000, 20000, 30000))
+-- main.slang:5:12 - main.slang:5:18	main[1].expr $0.1.1

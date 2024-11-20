@@ -32,7 +32,6 @@ import Control.Monad
 import Control.Monad.ST
 import Control.Monad.Primitive
 import Data.STRef (readSTRef)
-import Data.Bifunctor (Bifunctor(second))
 
 
 tshow :: Show a => a -> Text

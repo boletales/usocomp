@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module SimpleLang.FromString (
     textToSLProgram
@@ -30,14 +31,27 @@ instance ShowErrorComponent  SLParserError where
 
 type Parser = Parsec SLParserError Text
 
+data SourcePosRange = 
+  SourcePosRange {
+    sprFrom :: SourcePos
+  , sprTo   :: SourcePos
+  , sprOffset :: Int
+  } deriving (Eq, Ord)
+
+
+fancySourcePos :: SourcePos -> String
+fancySourcePos pos = sourceName pos <> ":" <> show (unPos (sourceLine pos)) <> ":" <> show (unPos (sourceColumn pos))
+instance Show SourcePosRange where
+  show (SourcePosRange from to _) = fancySourcePos from <> " - " <> fancySourcePos to
+
 data LocalParserState = LocalParserState {
     lpsLocals :: M.Map Text SLType
   , lpsArgs   :: M.Map Text SLType
   , lpsFuncs  :: M.Map SLFuncName SLFuncSignature
   , lpsFirstPath :: Bool
   , lpsSLPos  :: Maybe SLPos
-  , lpsExprPosMap :: M.Map [SLLocalPos] (SourcePos, Int)
-  , lpsSourceMap :: M.Map SLPos (SourcePos, Int)
+  , lpsExprPosMap :: M.Map [SLLocalPos] SourcePosRange
+  , lpsSourceMap  :: M.Map SLPos        SourcePosRange
   } deriving (Show)
 
 emptyState :: LocalParserState
@@ -184,21 +198,23 @@ parseExpInExp :: LocalParser SLExp
 parseExpInExp = unwrapspace $ do
   exprposmapext <- gets lpsExprPosMap
   modify (\s -> s {lpsExprPosMap = M.empty})
-  sourcepos <- getSourcePos
+  sourceposFrom <- getSourcePos
   offset <- getOffset
   expr <- choice [
         makeExprParser parseTerm operators
     ]
-  exprposmap <- gets (M.mapKeys (SLLPExpr expr :) . M.insert [] (sourcepos, offset) . lpsExprPosMap)
+  sourceposTo <- getSourcePos
+  exprposmap  <- gets (M.mapKeys (SLLPExpr expr :) . M.insert [] (SourcePosRange sourceposFrom sourceposTo offset) . lpsExprPosMap)
   modify (\s -> s {lpsExprPosMap = exprposmapext <> exprposmap})
   pure expr
 
 appendExprPosMap :: LocalParser SLExp -> LocalParser SLExp
 appendExprPosMap p = do
-  sourcepos <- getSourcePos
+  sourceposFrom <- getSourcePos
   offset <- getOffset
   expr <- p
-  exprposmap <- gets (M.insert [SLLPExpr expr] (sourcepos, offset) . lpsExprPosMap)
+  sourceposTo <- getSourcePos
+  exprposmap  <- gets (M.insert [SLLPExpr expr] (SourcePosRange sourceposFrom sourceposTo offset) . lpsExprPosMap)
   modify (\s -> s {lpsExprPosMap = exprposmap})
   pure expr
 
@@ -247,7 +263,7 @@ parseTypedExp' inexp = do
 
 parseStatement :: LocalParser SLStatement
 parseStatement = do
-  appendSourceMapHere *> choice [
+  withSourceMap $ choice [
       try $ SLSReturn <$ string "return" <* hspace <*> parseExp
     , try $ SLSTailCallReturn <$ string "tailcall" <* hspace <*> parseCall
     , try (do
@@ -286,7 +302,7 @@ parseFuncName = do
         Just (fname, revm) -> pure $ SLUserFunc (T.intercalate "." (L.reverse revm)) fname
         Nothing            -> customFailure $ SLParserError $ "Invalid function name: " <> T.intercalate "." n
 
-parseFunction :: LocalParserState -> Parser (SLFuncBlock, M.Map SLPos (SourcePos, Int))
+parseFunction :: LocalParserState -> Parser (SLFuncBlock, M.Map SLPos SourcePosRange)
 parseFunction initstate = do
   _ <- scn *> string "function" <* scn
   fname <- parseFuncName
@@ -303,7 +319,7 @@ parseFDict =
     M.fromList $ (\(fblock, _) -> ((slfsName . slfSignature) fblock, slfSignature fblock)) <$> fblocks
   ) <$ scn <*> many (parseFunction (emptyState {lpsFirstPath = True})) <* eof
 
-parseSLProgram :: M.Map SLFuncName SLFuncSignature -> Parser (SLProgram, M.Map SLPos (SourcePos, Int))
+parseSLProgram :: M.Map SLFuncName SLFuncSignature -> Parser (SLProgram, M.Map SLPos SourcePosRange)
 parseSLProgram fdict = 
   (\fblocks -> 
     (M.fromList $ (\(fblock, _) -> ((slfsName . slfSignature) fblock, fblock)) <$> fblocks, L.foldl (<>) M.empty (snd <$> fblocks))
@@ -361,16 +377,19 @@ registerCustomError :: SLParserError -> LocalParser ()
 registerCustomError = registerFancyFailure . S.singleton . ErrorCustom
 
 
-appendSourceMapHere :: LocalParser ()
-appendSourceMapHere = do
+withSourceMap :: LocalParser x -> LocalParser x
+withSourceMap parser = do
   pos <- gets lpsSLPos
   case pos of
-    Nothing -> pure ()
+    Nothing -> parser
     Just pos' -> do
-      sourceMap <- gets lpsSourceMap
-      spos <- getSourcePos
+      sposFrom <- getSourcePos
       offset <- getOffset
-      modify (\s -> s {lpsSourceMap = M.insert pos' (spos, offset) sourceMap})
+      result <- parser
+      sposTo <- getSourcePos
+      sourceMap <- gets lpsSourceMap
+      modify (\s -> s {lpsSourceMap = M.insert pos' (SourcePosRange sposFrom sposTo offset) sourceMap})
+      pure result
 
 
 textToSLProgram :: Text -> Either Text SLProgram
@@ -381,7 +400,7 @@ textToSLProgram t = do
     Right _ -> pure program
     Left err -> do
       _ <- case M.lookup (slscegetPos err) sourcemap of
-            Just (_, offset) -> do
+            Just (SourcePosRange _ _ offset) -> do
               first (pack . errorBundlePretty) $ parse (parseError (FancyError offset ((S.singleton . ErrorCustom . SLParserError . slsceMessage) err))) "main.slang" t
             Nothing ->
               pure ()
