@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 
 module SimpleLang.FromString (
@@ -7,6 +6,8 @@ module SimpleLang.FromString (
   , textToSLParseResult
   , SourcePosRange(..)
 ) where
+
+import MyPrelude
 
 import SimpleLang.Def
 import SimpleLang.Tools
@@ -18,7 +19,6 @@ import Control.Monad.Combinators.Expr
 import Data.Functor
 import Data.Map.Strict as M
 import Control.Monad.State
-import Prelude hiding (exp)
 import qualified Data.Vector as V
 import qualified Data.List as L
 import Data.Bifunctor
@@ -196,20 +196,6 @@ operators = [
 parseParensExpr :: LocalParser SLExp
 parseParensExpr = char '(' *> parseExpInExp <* char ')'
 
-parseExpInExp :: LocalParser SLExp
-parseExpInExp = unwrapspace $ do
-  exprposmapext <- gets lpsExprPosMap
-  modify (\s -> s {lpsExprPosMap = M.empty})
-  sourceposFrom <- getSourcePos
-  offset <- getOffset
-  expr <- choice [
-        makeExprParser parseTerm operators
-    ]
-  sourceposTo <- getSourcePos
-  exprposmap  <- gets (M.mapKeys (SLLPExpr expr :) . M.insert [] (SourcePosRange sourceposFrom sourceposTo offset) . lpsExprPosMap)
-  modify (\s -> s {lpsExprPosMap = exprposmapext <> exprposmap})
-  pure expr
-
 appendExprPosMap :: LocalParser SLExp -> LocalParser SLExp
 appendExprPosMap p = do
   sourceposFrom <- getSourcePos
@@ -220,6 +206,23 @@ appendExprPosMap p = do
   modify (\s -> s {lpsExprPosMap = exprposmap})
   pure expr
 
+consSquash :: Eq a => a -> [a] -> [a]
+consSquash x (y:ys) | x == y = y:ys
+consSquash x ys = x:ys
+
+parseExpInExp :: LocalParser SLExp
+parseExpInExp = unwrapspace $ do
+  exprposmapext <- gets lpsExprPosMap
+  modify (\s -> s {lpsExprPosMap = M.empty})
+  sourceposFrom <- getSourcePos
+  offset <- getOffset
+  expr <- choice [
+        makeExprParser parseTerm operators
+    ]
+  sourceposTo <- getSourcePos
+  exprposmap  <- gets (M.mapKeys (SLLPExpr expr `consSquash`) . M.insert [] (SourcePosRange sourceposFrom sourceposTo offset) . lpsExprPosMap)
+  modify (\s -> s {lpsExprPosMap = exprposmapext <> exprposmap})
+  pure expr
 
 
 parseExp :: LocalParser SLExp
@@ -235,7 +238,7 @@ parseExp = do
   pure expr
 
 parseTerm :: LocalParser SLExp
-parseTerm = unwrapspace $
+parseTerm = unwrapspace $ appendExprPosMap $
   choice [
       try $ SLEConst . SLVal <$> MPL.signed (pure ()) MPL.decimal
     , try   parseVar

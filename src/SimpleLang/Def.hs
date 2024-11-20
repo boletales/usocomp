@@ -1,8 +1,6 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE GADTs #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
@@ -47,10 +45,11 @@ module SimpleLang.Def (
     , prettyPrintSLFuncSignature
   ) where
 
+import MyPrelude
+
 import Data.Vector as V
 import Data.Map.Strict as M
 import Data.Text as T
-import Prelude hiding ((.), id, exp)
 import Control.Category
 import qualified Data.List as L
 

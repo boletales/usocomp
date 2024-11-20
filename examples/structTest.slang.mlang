@@ -1,7 +1,7 @@
 
 nop                                     #main
 const r1 1                              #main
-const r2 62                             #main
+const r2 71                             #main
 store r2 r1                             #main
 addi  r1 r1 1                           #main
 const r2 0                              #main
@@ -11,6 +11,15 @@ addi  r1 r1 1                           #main
 store r2 r1                             #main
 copy  r0 r1                             #main
 const pc 12                             #main
+const r2 4994                           #main
+lt    r2 r1 r2                          #main
+addi  r3 pc 6                           #main
+ijmp  r3 r2                             #main
+const r2 0                              #main
+const r3 -1000000000                    #main
+store r3 r2                             #main
+const r3 71                             #main
+jump  r3                                #main
 addi  r1 r1 1                           #main[0].expr 100
 const r2 100                            #main[0].expr 100
 store r2 r1                             #main[0].expr 100

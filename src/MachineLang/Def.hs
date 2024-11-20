@@ -7,6 +7,8 @@ module MachineLang.Def (
     MLInst,
   ) where
 
+import MyPrelude
+
 import Data.Bifunctor
 import Data.Bitraversable
 import Data.Bifoldable
@@ -50,7 +52,7 @@ data MLInst' r v =
   | MLIJump    r     --
   | MLIIfJump  r r   --
   | MLINotJump r r   --
-  deriving (Show, Eq)
+  deriving (Show, Eq, Functor)
 
 instance Bifunctor MLInst' where
   bimap :: (a -> b) -> (c -> d) -> MLInst' a c -> MLInst' b d

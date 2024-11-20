@@ -1,5 +1,4 @@
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DataKinds #-}
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 --{-# OPTIONS_GHC -Wno-unused-top-binds #-}
@@ -10,6 +9,8 @@ module MachineLang.FromSimpleLang.Test (
     , mlctUnitTest
     , MLCTUnit (..)
   ) where
+
+import MyPrelude
 
 import SimpleLang.TypedDef
 import SimpleLang.Tools.Manual

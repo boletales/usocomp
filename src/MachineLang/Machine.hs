@@ -17,6 +17,8 @@ module MachineLang.Machine (
   , runMLMachine1Fast
  ) where
 
+import MyPrelude
+
 import Data.Vector as V
 import Data.Vector.Mutable as MV
 import Data.Vector.Unboxed as VP

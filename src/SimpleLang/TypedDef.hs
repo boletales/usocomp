@@ -46,6 +46,8 @@ module SimpleLang.TypedDef (
   , prettyPrintSLProgram
 ) where
 
+import MyPrelude
+
 import SimpleLang.Def
 
 import Data.Vector as V
@@ -53,7 +55,6 @@ import GHC.TypeNats
 import Data.Type.Bool
 import Data.Proxy
 import Data.Kind
-import Prelude hiding ((.), id, exp)
 import Control.Category
 import Data.Bifunctor
 import Data.Text as T

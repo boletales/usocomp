@@ -1,7 +1,7 @@
 
 nop                                     #main
 const r1 1                              #main
-const r2 178                            #main
+const r2 205                            #main
 store r2 r1                             #main
 addi  r1 r1 1                           #main
 const r2 0                              #main
@@ -11,15 +11,24 @@ addi  r1 r1 1                           #main
 store r2 r1                             #main
 copy  r0 r1                             #main
 const pc 12                             #main
+const r2 4994                           #main
+lt    r2 r1 r2                          #main
+addi  r3 pc 6                           #main
+ijmp  r3 r2                             #main
+const r2 0                              #main
+const r3 -1000000000                    #main
+store r3 r2                             #main
+const r3 205                            #main
+jump  r3                                #main
 addi  r1 r1 1                           #main[0].expr @@(&main.func1, 12345, &main.func2)
 addi  r1 r1 1                           #main[0].expr @@(&main.func1, 12345, &main.func2).expr (&main.func1, 12345, &main.func2).expr &main.func1
-const r2 61                             #main[0].expr @@(&main.func1, 12345, &main.func2).expr (&main.func1, 12345, &main.func2).expr &main.func1
+const r2 70                             #main[0].expr @@(&main.func1, 12345, &main.func2).expr (&main.func1, 12345, &main.func2).expr &main.func1
 store r2 r1                             #main[0].expr @@(&main.func1, 12345, &main.func2).expr (&main.func1, 12345, &main.func2).expr &main.func1
 addi  r1 r1 1                           #main[0].expr @@(&main.func1, 12345, &main.func2).expr (&main.func1, 12345, &main.func2).expr 12345
 const r2 12345                          #main[0].expr @@(&main.func1, 12345, &main.func2).expr (&main.func1, 12345, &main.func2).expr 12345
 store r2 r1                             #main[0].expr @@(&main.func1, 12345, &main.func2).expr (&main.func1, 12345, &main.func2).expr 12345
 addi  r1 r1 1                           #main[0].expr @@(&main.func1, 12345, &main.func2).expr (&main.func1, 12345, &main.func2).expr &main.func2
-const r2 134                            #main[0].expr @@(&main.func1, 12345, &main.func2).expr (&main.func1, 12345, &main.func2).expr &main.func2
+const r2 152                            #main[0].expr @@(&main.func1, 12345, &main.func2).expr (&main.func1, 12345, &main.func2).expr &main.func2
 store r2 r1                             #main[0].expr @@(&main.func1, 12345, &main.func2).expr (&main.func1, 12345, &main.func2).expr &main.func2
 addi  r3 r1 -2                          #main[0].expr @@(&main.func1, 12345, &main.func2)
 load  r3 r3                             #main[0].expr @@(&main.func1, 12345, &main.func2)
@@ -60,6 +69,15 @@ addi  r2 r2 -1                          #main.forceReturn
 load  r1 r2                             #main.forceReturn
 addi  r2 r2 -1                          #main.forceReturn
 load  pc r2                             #main.forceReturn
+const r2 4994                           #main.func1
+lt    r2 r1 r2                          #main.func1
+addi  r3 pc 6                           #main.func1
+ijmp  r3 r2                             #main.func1
+const r2 0                              #main.func1
+const r3 -1000000000                    #main.func1
+store r3 r2                             #main.func1
+const r3 205                            #main.func1
+jump  r3                                #main.func1
 addi  r1 r1 1                           #main.func1[0].expr 2345
 const r2 2345                           #main.func1[0].expr 2345
 store r2 r1                             #main.func1[0].expr 2345
@@ -133,6 +151,15 @@ addi  r2 r2 -1                          #main.func1.forceReturn
 load  r1 r2                             #main.func1.forceReturn
 addi  r2 r2 -1                          #main.func1.forceReturn
 load  pc r2                             #main.func1.forceReturn
+const r2 4998                           #main.func2
+lt    r2 r1 r2                          #main.func2
+addi  r3 pc 6                           #main.func2
+ijmp  r3 r2                             #main.func2
+const r2 0                              #main.func2
+const r3 -1000000000                    #main.func2
+store r3 r2                             #main.func2
+const r3 205                            #main.func2
+jump  r3                                #main.func2
 addi  r1 r1 1                           #main.func2[0].expr ($A0 - $A1).expr $A0
 addi  r2 r0 -1                          #main.func2[0].expr ($A0 - $A1).expr $A0
 load  r2 r2                             #main.func2[0].expr ($A0 - $A1).expr $A0

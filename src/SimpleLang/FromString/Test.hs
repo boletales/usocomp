@@ -1,7 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
 module SimpleLang.FromString.Test where
+
+import MyPrelude
 
 import MachineLang.FromSimpleLang.Test
 import SimpleLang.FromString

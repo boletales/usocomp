@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE LambdaCase #-}
 {-|
   Module      : MachineLang.FromSimpleLang.Debugger
   Description : MachineLang.FromSimpleLangのデバッガ
@@ -15,6 +13,7 @@ module MachineLang.FromSimpleLang.Debugger (
   , lazyTickDebugger
 ) where
 
+import MyPrelude
 
 import SimpleLang.Def
 import MachineLang.FromSimpleLang
@@ -32,10 +31,8 @@ import Control.Monad
 import Control.Monad.ST
 import Control.Monad.Primitive
 import Data.STRef (readSTRef)
-
-
-tshow :: Show a => a -> Text
-tshow = T.pack . show
+import Control.Monad.Trans.Class (lift)
+import qualified Data.List as L
 
 {-
 slTextRep :: SLProgram -> (V.Vector Text, M.Map SLPos Int)
@@ -67,7 +64,7 @@ prettyPrintMemState regs mem =
             Control.Monad.foldM (\t i -> do
                 v <- mem VP.!? i
                 pure $ t <> "    " <> tshow i <> ": " <> tshow v <> "\n"
-              ) "" (Prelude.reverse [oldFramePtrAddr + 1 .. stackTopAddr])
+              ) "" (L.reverse [oldFramePtrAddr + 1 .. stackTopAddr])
 
           oldfptr    <- mem VP.!? oldFramePtrAddr
           oldsptr    <- mem VP.!? oldStackPtrAddr
@@ -77,7 +74,7 @@ prettyPrintMemState regs mem =
             Control.Monad.foldM (\t i -> do
                 v <- mem VP.!? i
                 pure $ t <> "    " <> tshow i <> ": " <> tshow v <> "\n"
-              ) "" (Prelude.reverse [stackBottomAddr .. returnAddrAddr - 1])
+              ) "" (L.reverse [stackBottomAddr .. returnAddrAddr - 1])
 
           pure $
 

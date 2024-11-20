@@ -1,5 +1,4 @@
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module SimpleLang.FromFuncLang.Lib (
     FLPrimAny(..)
@@ -10,12 +9,14 @@ module SimpleLang.FromFuncLang.Lib (
   , libFLCClsMap
 ) where
 
+import MyPrelude
+
 import FuncLang.Def
 import SimpleLang.Def
 import SimpleLang.Tools.Manual
 
 import Data.Text as T
-import Prelude hiding ((.), id)
+import qualified Data.List as L
 
 type (->>) = FLTLambda
 
@@ -49,7 +50,7 @@ libFLCFLNames = flpname <$> [
   ]
 
 libFLCSigMap :: [(Text, SLFuncSignature)]
-libFLCSigMap = Prelude.zip libFLCFLNames libFLCSLFuncSigs
+libFLCSigMap = L.zip libFLCFLNames libFLCSLFuncSigs
 
 libFLCClss :: [([FLType], FLType)]
 libFLCClss = flpclstype <$> [
@@ -63,7 +64,7 @@ libFLCClss = flpclstype <$> [
   ]
 
 libFLCClsMap :: [(Text, ([FLType], FLType))]
-libFLCClsMap = Prelude.zip libFLCFLNames libFLCClss
+libFLCClsMap = L.zip libFLCFLNames libFLCClss
 
 class FLPrim t a | a -> t where
   flpname   :: a -> Text

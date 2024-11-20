@@ -35,6 +35,7 @@ library
       MachineLang.Machine
       MachineLang.Packed
       MachineLang.Tools
+      MyPrelude
       SimpleLang.Def
       SimpleLang.FromFuncLang
       SimpleLang.FromFuncLang.Lib
@@ -47,6 +48,7 @@ library
       SimpleLang.Tools.Manual
       SimpleLang.Tools.Manual.Internal
       SimpleLang.TypedDef
+      Tools.SimpleLangC
   other-modules:
       Paths_usocomp
   autogen-modules:
@@ -56,15 +58,21 @@ library
   default-extensions:
       StrictData
       DataKinds
+      NoImplicitPrelude
+      OverloadedStrings
+      GADTs
+      LambdaCase
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
     , containers
+    , directory
     , megaparsec
     , mtl
     , parser-combinators
     , primitive
     , text
+    , transformers
     , vector
     , vector-builder
   default-language: GHC2021
@@ -82,15 +90,21 @@ executable slangc
   default-extensions:
       StrictData
       DataKinds
+      NoImplicitPrelude
+      OverloadedStrings
+      GADTs
+      LambdaCase
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -main-is SimpleLangC -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , containers
+    , directory
     , megaparsec
     , mtl
     , parser-combinators
     , primitive
     , text
+    , transformers
     , usocomp
     , vector
     , vector-builder
@@ -109,15 +123,21 @@ executable slangdemo
   default-extensions:
       StrictData
       DataKinds
+      NoImplicitPrelude
+      OverloadedStrings
+      GADTs
+      LambdaCase
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -main-is SimpleLangDemo -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , containers
+    , directory
     , megaparsec
     , mtl
     , parser-combinators
     , primitive
     , text
+    , transformers
     , usocomp
     , vector
     , vector-builder
@@ -136,15 +156,21 @@ executable usocomp-exe
   default-extensions:
       StrictData
       DataKinds
+      NoImplicitPrelude
+      OverloadedStrings
+      GADTs
+      LambdaCase
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , containers
+    , directory
     , megaparsec
     , mtl
     , parser-combinators
     , primitive
     , text
+    , transformers
     , usocomp
     , vector
     , vector-builder
@@ -162,16 +188,22 @@ test-suite usocomp-test
   default-extensions:
       StrictData
       DataKinds
+      NoImplicitPrelude
+      OverloadedStrings
+      GADTs
+      LambdaCase
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , containers
+    , directory
     , hspec
     , megaparsec
     , mtl
     , parser-combinators
     , primitive
     , text
+    , transformers
     , usocomp
     , vector
     , vector-builder

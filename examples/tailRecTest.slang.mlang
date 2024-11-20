@@ -1,7 +1,7 @@
 
 nop                                     #main
 const r1 1                              #main
-const r2 196                            #main
+const r2 214                            #main
 store r2 r1                             #main
 addi  r1 r1 1                           #main
 const r2 0                              #main
@@ -11,6 +11,15 @@ addi  r1 r1 1                           #main
 store r2 r1                             #main
 copy  r0 r1                             #main
 const pc 12                             #main
+const r2 4993                           #main
+lt    r2 r1 r2                          #main
+addi  r3 pc 6                           #main
+ijmp  r3 r2                             #main
+const r2 0                              #main
+const r3 -1000000000                    #main
+store r3 r2                             #main
+const r3 214                            #main
+jump  r3                                #main
 addi  r1 r1 1                           #main[0].expr main.fibonacci(20, 0, 1)
 addi  r1 r1 1                           #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 20
 const r2 20                             #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 20
@@ -21,7 +30,7 @@ store r2 r1                             #main[0].expr main.fibonacci(20, 0, 1).e
 addi  r1 r1 1                           #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 1
 const r2 1                              #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 1
 store r2 r1                             #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 1
-const r3 65                             #main[0].expr main.fibonacci(20, 0, 1)
+const r3 74                             #main[0].expr main.fibonacci(20, 0, 1)
 addi  r1 r1 1                           #main[0].expr main.fibonacci(20, 0, 1)
 addi  r2 pc 8                           #main[0].expr main.fibonacci(20, 0, 1)
 store r2 r1                             #main[0].expr main.fibonacci(20, 0, 1)
@@ -64,6 +73,15 @@ addi  r2 r2 -1                          #main.forceReturn
 load  r1 r2                             #main.forceReturn
 addi  r2 r2 -1                          #main.forceReturn
 load  pc r2                             #main.forceReturn
+const r2 4994                           #main.fibonacci
+lt    r2 r1 r2                          #main.fibonacci
+addi  r3 pc 6                           #main.fibonacci
+ijmp  r3 r2                             #main.fibonacci
+const r2 0                              #main.fibonacci
+const r3 -1000000000                    #main.fibonacci
+store r3 r2                             #main.fibonacci
+const r3 214                            #main.fibonacci
+jump  r3                                #main.fibonacci
 addi  r1 r1 1                           #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
 addi  r2 r0 -1                          #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
 load  r2 r2                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
@@ -139,7 +157,7 @@ addi  r1 r1 -1                          #main.fibonacci[0].whenElseBody[0].expr 
 load  r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
 add   r2 r2 r3                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
 store r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
-const r4 65                             #main.fibonacci[0].whenElseBody[0]
+const r4 74                             #main.fibonacci[0].whenElseBody[0]
 addi  r2 r0 -2                          #main.fibonacci[0].whenElseBody[0]
 addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0]
 load  r3 r2                             #main.fibonacci[0].whenElseBody[0]

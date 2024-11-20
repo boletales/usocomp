@@ -2,6 +2,8 @@
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
 module SimpleLang.FromFuncLang.SLangLibGC where
 
+import MyPrelude
+
 import SimpleLang.Def
 import SimpleLang.Tools.Manual
 import Data.Vector as V

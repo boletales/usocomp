@@ -1,6 +1,3 @@
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE OverloadedStrings #-}
-
 module FuncLang.Def (
       FLType(..)
     , FLVar(..)
@@ -11,6 +8,8 @@ module FuncLang.Def (
     , SomeFLType(..)
     , flTypeOf
   ) where
+
+import MyPrelude
 
 import Data.Map.Strict as M
 import Data.Kind
@@ -97,18 +96,15 @@ instance Show tag => Show (FLExp tag t) where
 
 prettyPrintFLExp :: Show tag => FLExp tag t -> Text
 prettyPrintFLExp e = 
-  let tshow :: Show a => a -> Text
-      tshow = T.pack . show
-  in
-    case e of
-      (FLEValI i)      -> tshow i
-      (FLEValB b)      -> tshow b
-      (FLEVar v)       -> tshow v
-      (FLELambda v b)  -> "(\\" <> tshow v <> " -> " <> prettyPrintFLExp b <> ")"
-      (FLEApp e1 e2)   -> "(" <>   prettyPrintFLExp e1 <> " " <> prettyPrintFLExp e2 <> ")"
-      (FLELet decls b) -> "(let " <> T.intercalate "; " (prettyPrintFLVarDecl <$> decls) <> " in " <> prettyPrintFLExp b <> ")"
-      --(FLEPrim p)      -> p
-      --(UnsafeFLECast t e) -> prettyPrintFLExp e --"(" <> prettyPrintFLExp e <> " :: " <> tshow t <> ")"
+  case e of
+    (FLEValI i)      -> tshow i
+    (FLEValB b)      -> tshow b
+    (FLEVar v)       -> tshow v
+    (FLELambda v b)  -> "(\\" <> tshow v <> " -> " <> prettyPrintFLExp b <> ")"
+    (FLEApp e1 e2)   -> "(" <>   prettyPrintFLExp e1 <> " " <> prettyPrintFLExp e2 <> ")"
+    (FLELet decls b) -> "(let " <> T.intercalate "; " (prettyPrintFLVarDecl <$> decls) <> " in " <> prettyPrintFLExp b <> ")"
+    --(FLEPrim p)      -> p
+    --(UnsafeFLECast t e) -> prettyPrintFLExp e --"(" <> prettyPrintFLExp e <> " :: " <> tshow t <> ")"
 data FLProgram (tag :: Type) = FLProgram {
       flpTopLevelVars :: M.Map tag (FLVarDecl tag)
   }

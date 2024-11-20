@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE MonoLocalBinds #-}
 
 module SimpleLang.Tools (
@@ -11,9 +10,10 @@ module SimpleLang.Tools (
   , rootsSLPos
   ) where
 
+import MyPrelude
+
 import SimpleLang.Def
 import Data.Text as T
-import Prelude hiding (exp)
 import qualified Data.List as L
 
 data SLLocalPos =

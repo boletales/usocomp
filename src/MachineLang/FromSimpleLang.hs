@@ -1,5 +1,4 @@
 {-# LANGUAGE NegativeLiterals #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE MonoLocalBinds #-}
 
@@ -11,6 +10,8 @@ module MachineLang.FromSimpleLang (
     , generateSourceMap
   ) where
 
+import MyPrelude
+
 import MachineLang.Def
 import SimpleLang.Def
 import SimpleLang.Tools
@@ -19,7 +20,6 @@ import Data.Vector as V
 import Data.Map.Strict as M
 import qualified Data.List as L
 import Control.Category
-import Prelude hiding ((.), id)
 
 import Control.Monad.State as S
 import Control.Monad
@@ -864,7 +864,7 @@ compileSLProgram' opt program =
 
 generateSourceMap :: V.Vector (a, SLPos) -> M.Map SLPos (Int, Int)
 generateSourceMap = V.ifoldl' (\m i (_, pos) ->
-      Prelude.foldl (flip (M.alter (maybe (Just (i+1,i+1)) (\(s,_) -> Just (s,i+1))))) m (rootsSLPos pos)
+      L.foldl (flip (M.alter (maybe (Just (i+1,i+1)) (\(s,_) -> Just (s,i+1))))) m (rootsSLPos pos)
     ) M.empty
 
 data MLCRuntimeException =

@@ -1,9 +1,10 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-# OPTIONS_GHC -Wno-unused-matches #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
 module Main (main) where
+
+import MyPrelude
 
 import SimpleLang.Def
 import SimpleLang.Tools
@@ -11,7 +12,6 @@ import SimpleLang.Tools.Manual
 import MachineLang.FromSimpleLang.Debugger
 import Data.Text as T ()
 import Data.Text.IO as TIO
-import Prelude hiding (exp)
 import Data.Vector as V
 
 main :: IO ()

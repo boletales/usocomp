@@ -53,13 +53,14 @@ module SimpleLang.Tools.Manual (
   , type (!-->)
 ) where
 
+import MyPrelude
+
 import SimpleLang.Tools.Manual.Internal
 import SimpleLang.Def
 import SimpleLang.TypedDef
 import Data.Vector as V
 import Control.Monad.State
 import Control.Category
-import Prelude hiding ((.), id, exp)
 import Data.Proxy
 import Data.Text as T
 

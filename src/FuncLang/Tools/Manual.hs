@@ -1,8 +1,9 @@
 module FuncLang.Tools.Manual (flmLam, flmDecl, flmApp, runFLM) where
 
+import MyPrelude
+
 import FuncLang.Def
 import Data.Text as T
-import Prelude hiding ((.), id)
 import Data.Map.Strict as M
 import Control.Monad.State
 import Control.Monad.Identity

@@ -1,7 +1,7 @@
 
 nop                                     #main
 const r1 1                              #main
-const r2 226                            #main
+const r2 244                            #main
 store r2 r1                             #main
 addi  r1 r1 1                           #main
 const r2 0                              #main
@@ -11,6 +11,15 @@ addi  r1 r1 1                           #main
 store r2 r1                             #main
 copy  r0 r1                             #main
 const pc 12                             #main
+const r2 4986                           #main
+lt    r2 r1 r2                          #main
+addi  r3 pc 6                           #main
+ijmp  r3 r2                             #main
+const r2 0                              #main
+const r3 -1000000000                    #main
+store r3 r2                             #main
+const r3 244                            #main
+jump  r3                                #main
 addi  r1 r1 1                           #main[0].expr (100, 200).expr 100
 const r2 100                            #main[0].expr (100, 200).expr 100
 store r2 r1                             #main[0].expr (100, 200).expr 100
@@ -43,7 +52,7 @@ addi  r1 r1 1                           #main[3].expr main.complexProd($0, $2).e
 addi  r2 r0 4                           #main[3].expr main.complexProd($0, $2).expr ($0, $2).expr $2
 load  r2 r2                             #main[3].expr main.complexProd($0, $2).expr ($0, $2).expr $2
 store r2 r1                             #main[3].expr main.complexProd($0, $2).expr ($0, $2).expr $2
-const r3 92                             #main[3].expr main.complexProd($0, $2)
+const r3 101                            #main[3].expr main.complexProd($0, $2)
 addi  r1 r1 1                           #main[3].expr main.complexProd($0, $2)
 addi  r2 pc 8                           #main[3].expr main.complexProd($0, $2)
 store r2 r1                             #main[3].expr main.complexProd($0, $2)
@@ -91,6 +100,15 @@ addi  r2 r2 -1                          #main.forceReturn
 load  r1 r2                             #main.forceReturn
 addi  r2 r2 -1                          #main.forceReturn
 load  pc r2                             #main.forceReturn
+const r2 4992                           #main.complexProd
+lt    r2 r1 r2                          #main.complexProd
+addi  r3 pc 6                           #main.complexProd
+ijmp  r3 r2                             #main.complexProd
+const r2 0                              #main.complexProd
+const r3 -1000000000                    #main.complexProd
+store r3 r2                             #main.complexProd
+const r3 244                            #main.complexProd
+jump  r3                                #main.complexProd
 addi  r3 r0 -1                          #main.complexProd[0].expr $A0.0
 load  r3 r3                             #main.complexProd[0].expr $A0.0
 addi  r2 r3 0                           #main.complexProd[0].expr $A0.0

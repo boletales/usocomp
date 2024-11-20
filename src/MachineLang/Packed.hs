@@ -4,6 +4,8 @@ module MachineLang.Packed (
     unpackMLInst
 ) where
 
+import MyPrelude
+
 import MachineLang.Def
 
 type MLInstPacked = (Int, Int, Int, Int)

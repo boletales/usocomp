@@ -1,4 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Avoid lambda" #-}
 {-# HLINT ignore "Use const" #-}
@@ -8,6 +7,8 @@
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 module SimpleLang.FromFuncLang.Test () where
+
+import MyPrelude
 
 import SimpleLang.FromFuncLang
 import SimpleLang.Def

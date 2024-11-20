@@ -5,11 +5,12 @@
 
 module Internal.MyNat where
 
+import MyPrelude
+
 import Data.Kind
 import GHC.TypeNats hiding (natVal)
 import Data.Proxy
 import Control.Category
-import Prelude hiding ((.), id)
 import Data.List qualified as L
 
 

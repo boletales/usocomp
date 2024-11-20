@@ -5,6 +5,8 @@ module MachineLang.Tools (
   , mliAbbrText
   ) where
 
+import MyPrelude
+
 import MachineLang.Def
 import Data.Text
 

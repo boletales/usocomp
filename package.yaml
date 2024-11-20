@@ -29,10 +29,16 @@ dependencies:
 - primitive
 - megaparsec
 - parser-combinators
+- directory
+- transformers
 
 default-extensions:
 - StrictData
 - DataKinds
+- NoImplicitPrelude
+- OverloadedStrings
+- GADTs
+- LambdaCase
 
 language: GHC2021
 

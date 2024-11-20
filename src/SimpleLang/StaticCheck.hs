@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module SimpleLang.StaticCheck (
     SLSCError(..)
   , slscCheck
@@ -8,9 +6,10 @@ module SimpleLang.StaticCheck (
   , prettyPrintSLSCError
 ) where
 
+import MyPrelude
+
 import SimpleLang.Def
 import SimpleLang.Tools
-import Control.Monad
 import Data.Text as T hiding (
     words
   )
@@ -20,14 +19,6 @@ import Control.Monad.Except
 --import Data.Foldable as F
 import Data.Vector as V hiding (forM_)
 import qualified Data.List as L
-import Prelude hiding (
-    id
-  , (.)
-  , lookup
-  , foldl
-  , words
-  , exp
-  )
 
 data SLSCError =
     SLSCTypeError SLTypeError SLPos

@@ -1,6 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
 module SimpleLangC where
+
+import MyPrelude
 
 import SimpleLang.Def
 import SimpleLang.FromString
@@ -12,13 +13,20 @@ import Control.Monad.Except
 import MachineLang.FromSimpleLang.Test
 import Data.Set as S
 import System.IO 
+import Control.Monad
+import Control.Monad.IO.Class
+import Tools.SimpleLangC
+import qualified Data.List as L
+import Data.Maybe
+import System.Directory
+
 data SLCOption = SLCOptionDebug deriving (Eq, Ord, Show)
 
 main :: IO ()
 main = do
   args <- getArgs
   hSetBuffering stdout NoBuffering
-  let parsed = Prelude.foldl (\(filename, opts) arg -> case arg of
+  let parsed = L.foldl (\(filename, opts) arg -> case arg of
           "--debug" -> (filename, S.insert SLCOptionDebug opts)
           "-d" -> (filename, S.insert SLCOptionDebug opts)
           f -> (Just f, opts)
@@ -58,3 +66,18 @@ genExampleFiles =
     let title   = mlctName test
     TIO.writeFile ("./examples/" <> T.unpack title <> ".slang") (prettyPrintSLProgram program)
     TIO.writeFile ("./examples/" <> T.unpack title <> ".slang.mlang") (mlcResultText program)
+
+
+folderToJSON :: IO ()
+folderToJSON = do
+  files <- listDirectory "./examples"
+  result <- Control.Monad.forM files $ \file -> do
+    -- check if file is a .slang file
+    if (".slang" `L.isSuffixOf` file) then do
+      text <- TIO.readFile ("./examples/" <> file)
+      pure $ Just $ objToJSON [
+            ("name", tshow (pack file))
+          , ("result", compileToJSON text)
+        ] <> "\n"
+    else pure Nothing
+  TIO.writeFile "./docs/results.json" $ listToJSON $ Data.Maybe.catMaybes result

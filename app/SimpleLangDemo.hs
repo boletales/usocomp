@@ -1,14 +1,15 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# OPTIONS_GHC -Wno-missing-export-lists #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 module SimpleLangDemo where
 
+import MyPrelude
 
 import SimpleLang.FromString
 import SimpleLang.Tools
 import MachineLang.FromSimpleLang
 import MachineLang.Def
 import MachineLang.Tools
+import MachineLang.FromSimpleLang.Debugger
 
 import Data.Text as T
 import Data.Text.IO as TIO
@@ -18,77 +19,20 @@ import Data.Maybe
 import qualified Data.List as L
 import Data.Vector as V
 import Text.Megaparsec.Pos
+import Control.Monad
 
 import MachineLang.FromSimpleLang.Test
 import SimpleLang.Def
+import System.Directory
 import Debug.Trace
+import Tools.SimpleLangC
 
-
-data ASMMapRow = ASMMapRow {
-  asmmrSourceStart :: (Int, Int),
-  asmmrSourceEnd :: (Int, Int),
-  asmmrASMStart :: Int,
-  asmmrASMEnd :: Int,
-  asmmrSLPos :: SLPos
-} deriving Eq
-
-instance Ord ASMMapRow where
-  compare (ASMMapRow _ _ asmStart1 asmEnd1 _) (ASMMapRow _ _ asmStart2 asmEnd2 _) =
-    compare (Down asmStart1, asmEnd1) (Down asmStart2, asmEnd2)
-
-sourceMapToJSON :: ASMMapRow -> Text
-sourceMapToJSON (ASMMapRow (lstart, cstart) (lend, cend) asmStart asmEnd slPos) =
-    objToJSON [
-      ("sourcestart", objToJSON [("line", tshow lstart), ("col", tshow cstart)]),
-      ("sourceend"  , objToJSON [("line", tshow lend  ), ("col", tshow cend)]),
-      ("asmstart"   , tshow asmStart),
-      ("asmend"     , tshow asmEnd),
-      ("slpos"      , tshow $ tshow slPos)
-    ]
-
-tshow :: Show a => a -> Text
-tshow = T.pack . show
-
-objToJSON :: [(Text,Text)] -> Text
-objToJSON obj = "{" <> T.intercalate ", " (Prelude.map (\(k,v) -> "\"" <> k <> "\": " <> v) obj) <> "}"
-
-listToJSON :: [Text] -> Text
-listToJSON list = "[" <> T.intercalate ", " list <> "]"
-
-sourcePosToTuple :: SourcePos -> (Int, Int)
-sourcePosToTuple (SourcePos _ l c) = (unPos l, unPos c)
-
-combineSourceMaps :: M.Map SLPos SourcePosRange -> V.Vector (MLInst, SLPos) -> [ASMMapRow]
-combineSourceMaps sourcemap asm =
-  let
-    asmMap = generateSourceMap asm
-    rows   = Data.Maybe.mapMaybe (\slpos -> (\(SourcePosRange srcFrom srcTo _) (asmFrom, asmTo) -> ASMMapRow (sourcePosToTuple srcFrom) (sourcePosToTuple srcTo) asmFrom asmTo slpos) <$> M.lookup slpos sourcemap <*> M.lookup slpos asmMap) (M.keys sourcemap)
-  in L.sort rows
-
-mlToText :: V.Vector (MLInst, SLPos) -> Text
-mlToText ml =
-  T.unlines $ Prelude.map (\(inst, _) -> mliAbbrText inst) $ V.toList ml
-
-compileToJSON :: Text -> Text
-compileToJSON text =
-  case textToSLParseResult text of
-    Left err -> objToJSON [("error", tshow (show err))]
-    Right (program, sourcemap) ->
-      case compileSLProgram program of
-        Left err -> objToJSON [("error", tshow (show err))]
-        Right compiled ->
-          objToJSON [
-              ("src", tshow text),
-              ("asm", tshow $ mlToText compiled),
-              ("sourcemap", listToJSON $ sourceMapToJSON <$> combineSourceMaps sourcemap compiled)
-            ]
 
 
 main :: IO ()
 main = do
   text <- TIO.getContents
   TIO.putStrLn $ compileToJSON text
-
 
 showAsmMap :: M.Map SLPos (Int, Int) -> Text
 showAsmMap m = T.unlines $ (\(p, s) -> pack (show s) <> "\t" <> prettyPrintSLPos p) <$> M.assocs m
@@ -118,35 +62,35 @@ showAsmMap m = T.unlines $ (\(p, s) -> pack (show s) <> "\t" <> prettyPrintSLPos
 -- main.slang:15:28 - main.slang:15:57	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2))
 
 -- >>> error $ either show T.unpack $ (showAsmMap . generateSourceMap) <$> (compileSLProgram (mlctTest (mlctTests !! 7)))
--- (0,214)	main
--- (21,41)	main[0]
--- (42,57)	main[1]
--- (59,73)	main.forceReturn
--- (59,61)	main.forceReturn.expr 0
--- (25,27)	main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 0
--- (28,30)	main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 1
--- (22,24)	main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 20
--- (42,45)	main[1].expr $0
--- (21,41)	main[0].expr main.fibonacci(20, 0, 1)
--- (22,30)	main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1)
--- (74,213)	main.fibonacci
--- (83,198)	main.fibonacci[0]
--- (101,118)	main.fibonacci[0].whenBody_0[0]
--- (121,198)	main.fibonacci[0].whenElseBody[0]
--- (83,100)	main.fibonacci[0].whenCond_0
--- (101,120)	main.fibonacci[0].whenBody_0
--- (121,198)	main.fibonacci[0].whenElseBody
--- (199,213)	main.fibonacci.forceReturn
--- (199,201)	main.fibonacci.forceReturn.expr 0
--- (89,91)	main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr 0
--- (127,129)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr 1
--- (121,126)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
--- (83,88)	main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
--- (141,146)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
--- (101,106)	main.fibonacci[0].whenBody_0[0].expr $A2
--- (147,152)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
--- (135,140)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
--- (141,157)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
--- (121,134)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1)
--- (83,96)	main.fibonacci[0].whenCond_0.expr ($A0 == 0)
--- (121,157)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2))
+-- (1,215)	main
+-- (22,42)	main[0]
+-- (43,58)	main[1]
+-- (60,74)	main.forceReturn
+-- (60,62)	main.forceReturn.expr 0
+-- (26,28)	main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 0
+-- (29,31)	main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 1
+-- (23,25)	main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 20
+-- (43,46)	main[1].expr $0
+-- (22,42)	main[0].expr main.fibonacci(20, 0, 1)
+-- (23,31)	main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1)
+-- (75,214)	main.fibonacci
+-- (84,199)	main.fibonacci[0]
+-- (102,119)	main.fibonacci[0].whenBody_0[0]
+-- (122,199)	main.fibonacci[0].whenElseBody[0]
+-- (84,101)	main.fibonacci[0].whenCond_0
+-- (102,121)	main.fibonacci[0].whenBody_0
+-- (122,199)	main.fibonacci[0].whenElseBody
+-- (200,214)	main.fibonacci.forceReturn
+-- (200,202)	main.fibonacci.forceReturn.expr 0
+-- (90,92)	main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr 0
+-- (128,130)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr 1
+-- (122,127)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
+-- (84,89)	main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
+-- (142,147)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
+-- (102,107)	main.fibonacci[0].whenBody_0[0].expr $A2
+-- (148,153)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
+-- (136,141)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
+-- (142,158)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
+-- (122,135)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1)
+-- (84,97)	main.fibonacci[0].whenCond_0.expr ($A0 == 0)
+-- (122,158)	main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2))

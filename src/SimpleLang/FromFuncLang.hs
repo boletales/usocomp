@@ -2,7 +2,6 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
@@ -12,13 +11,13 @@
 
 module SimpleLang.FromFuncLang where
 
+import MyPrelude
 
 import FuncLang.Def
 import SimpleLang.Def
 import SimpleLang.Tools.Manual
 import Data.Text as T
 import Control.Category
-import Prelude hiding ((.), id)
 import Data.Map.Strict as M
 import Data.Foldable as F
 import qualified Data.List as L
@@ -32,9 +31,6 @@ import Data.Maybe
 import Debug.Trace
 import SimpleLang.FromFuncLang.Lib
 import qualified Data.Vector as V
-
-tshow :: Show a => a -> Text
-tshow = T.pack . show
 
 type family FLTypeToSLType (t :: FLType) :: SLType where
     FLTypeToSLType 'FLTInt  = 'SLTInt
