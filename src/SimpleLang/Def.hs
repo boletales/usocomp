@@ -48,7 +48,7 @@ module SimpleLang.Def (
   ) where
 
 import Data.Vector as V
-import Data.Map as M
+import Data.Map.Strict as M
 import Data.Text as T
 import Prelude hiding ((.), id, exp)
 import Control.Category
@@ -505,10 +505,10 @@ prettyPrintSLBlock indent block =
 
 prettyPrintSLProgram :: SLProgram -> Text
 prettyPrintSLProgram program =
-  T.intercalate "\n" $
+  T.intercalate "\n\n" $
     (\(name, SLFuncBlock sig args block) ->
-          ("\nfunction "
+          T.intercalate "\n" $ ("function "
               <> prettyPrintSLFuncName name
               <> "(" <> T.intercalate ", " ((\(t, i) -> pack (show t) <> " $" <> i) <$> L.zip (slfsArgs sig) args) <> ")" <> " -> " <> (show >>> T.pack) (slfsRet sig))
            : V.toList (prettyPrintSLBlock 0 block)
-      ) =<< M.assocs program
+      ) <$> M.assocs program

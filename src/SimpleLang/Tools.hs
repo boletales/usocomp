@@ -8,11 +8,13 @@ module SimpleLang.Tools (
   , popPos
   , slPosAbbrText
   , prettyPrintSLPos
+  , rootsSLPos
   ) where
 
 import SimpleLang.Def
 import Data.Text as T
 import Prelude hiding (exp)
+import qualified Data.List as L
 
 data SLLocalPos =
         SLLPMulti Int
@@ -45,12 +47,22 @@ prettyPrintSLLocalPos p =
 data SLPos = SLPos {
     slpFuncName :: SLFuncName
   , slpLocalPos :: [SLLocalPos]
- } deriving (Show, Eq, Ord)
+ } deriving (Eq, Ord)
+
+instance Show SLPos where
+  show = T.unpack . prettyPrintSLPos
+
+rootsSLPos :: SLPos -> [SLPos]
+rootsSLPos (SLPos f xs) = 
+  SLPos f <$> L.tails xs
+
+-- >>> rootsSLPos (SLPos SLFuncMain [SLLPMulti 1, SLLPCaseCond 2, SLLPCaseBody 3])
+-- [main.whenBody_3.whenCond_2[1],main.whenBody_3.whenCond_2,main.whenBody_3,main]
 
 prettyPrintSLPos :: SLPos -> Text
 prettyPrintSLPos pos =
   let SLPos f xs = pos
-  in prettyPrintSLFuncName f <> intercalate "" (Prelude.map prettyPrintSLLocalPos (Prelude.reverse xs))
+  in prettyPrintSLFuncName f <> intercalate "" (L.map prettyPrintSLLocalPos (L.reverse xs))
 
 pushPos :: SLLocalPos -> SLPos -> SLPos
 pushPos x (SLPos f xs) = SLPos f (x:xs)
@@ -62,4 +74,4 @@ popPos (SLPos f [])     = SLPos f []
 slPosAbbrText :: SLPos -> Text
 slPosAbbrText pos =
   let SLPos f xs = pos
-  in (pack . show) f <> intercalate "" (Prelude.map (pack . show) (Prelude.reverse xs))
+  in (pack . show) f <> intercalate "" (L.map (pack . show) (L.reverse xs))

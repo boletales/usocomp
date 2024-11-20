@@ -71,6 +71,17 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - usocomp
+  
+  slangdemo:
+    main:                SimpleLangDemo.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is SimpleLangDemo
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - usocomp
 
 tests:
   usocomp-test:

@@ -8,6 +8,7 @@ module MachineLang.FromSimpleLang (
     , interpretReg
     , MLCReg(..)
     , mlcOptionDefault
+    , generateSourceMap
   ) where
 
 import MachineLang.Def
@@ -15,7 +16,7 @@ import SimpleLang.Def
 import SimpleLang.Tools
 
 import Data.Vector as V
-import Data.Map as M
+import Data.Map.Strict as M
 import qualified Data.List as L
 import Control.Category
 import Prelude hiding ((.), id)
@@ -269,7 +270,7 @@ slSolidCallToMLC funcsig args = do
   stateWriteFromList [
       MLIConst MLCRegY (MLCValJumpDestFunc (slfsName funcsig))
     ]
-  
+
   useStackSize (argsize + sltSizeOf SLTInt * 3) $ stateWriteFromList (pushCallToRegYSnippet argsize)
 
 slPtrCallToMLC :: SLRef -> SLExp -> MonadMLCFunc ()
@@ -446,7 +447,7 @@ slPushToMLC expr = inPos (SLLPExpr expr) $ do
       stateWriteFromList [
           MLIAddI   MLCRegStackPtr   MLCRegStackPtr (MLCValConst exprsize)
         ] -- 返り値のためにスタックを高くしておく
-      useStackSize exprsize $ 
+      useStackSize exprsize $
         case call of
           SLSolidFuncCall fname args -> slSolidCallToMLC fname args
           SLFuncRefCall   fref  args -> slPtrCallToMLC   fref  args
@@ -636,7 +637,7 @@ mlcVarScope v =do
       when (varcnt > oldvarcnt) $ do
         slPopnToMLC (varcnt - oldvarcnt)
         mlcInternalShiftVarCnt (-(varcnt - oldvarcnt))
-    
+
       mlcInternalSetVarDict oldvdict
 
 slPopnToMLC :: Int -> MonadMLCFunc ()
@@ -802,10 +803,10 @@ compileSLFunc opt slfunc =
   let argdict =
         fst $ L.foldl (\(dict, pos) (argname, argtype) -> (M.insert argname pos dict, pos + sltSizeOf argtype)) (M.empty, 0) (L.zip (slfArgs slfunc) (slfsArgs (slfSignature slfunc)))
   in do
-    (_, ssize) <- execMonadMLCFunc 
+    (_, ssize) <- execMonadMLCFunc
                             (slBlockToMLC (slfBlock slfunc) >> inPos SLLPForceReturn (slReturnToMLC (SLEConst (SLVal 0))))
                             (SLPos (slfsName (slfSignature slfunc)) []) M.empty argdict opt 0 0
-    (path2, _) <- execMonadMLCFunc 
+    (path2, _) <- execMonadMLCFunc
                             (mlcCheckStackOverflow ssize >>  slBlockToMLC (slfBlock slfunc) >> inPos SLLPForceReturn (slReturnToMLC (SLEConst (SLVal 0))))
                             (SLPos (slfsName (slfSignature slfunc)) []) M.empty argdict opt 0 0
     pure path2
@@ -859,6 +860,12 @@ compileSLProgram' opt program =
                   MLCValJumpDestEnd        -> pure $ MLVal (VB.size mlccode)
                 ) inst
             ) (VB.build (mlccode <> VB.singleton (MLINop, SLPos SLFuncMain [])))
+
+
+generateSourceMap :: V.Vector (a, SLPos) -> M.Map SLPos (Int, Int)
+generateSourceMap = V.ifoldl' (\m i (_, pos) ->
+      Prelude.foldl (flip (M.alter (maybe (Just (i,i)) (\(s,_) -> Just (s,i))))) m (rootsSLPos pos)
+    ) M.empty
 
 data MLCRuntimeException =
   MLCREStackOverflow
