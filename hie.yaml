@@ -9,6 +9,9 @@ cradle:
     - path: "./app/Main.hs"
       component: "usocomp:exe:slangc"
 
+    - path: "./appwasm/SimpleLangDemo.hs"
+      component: "usocomp:exe:slangdemo"
+
     - path: "./app/Main.hs"
       component: "usocomp:exe:usocomp-exe"
 

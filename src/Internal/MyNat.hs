@@ -10,7 +10,6 @@ import MyPrelude
 import Data.Kind
 import GHC.TypeNats hiding (natVal)
 import Data.Proxy
-import Control.Category
 import Data.List qualified as L
 
 

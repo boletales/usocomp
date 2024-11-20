@@ -11,14 +11,12 @@ import MyPrelude
 import SimpleLang.Def
 import Data.Vector as V
 import Control.Monad.State as S
-import Control.Category
 import Data.Proxy
 import Data.Kind
 import Data.Map.Strict qualified as M
 import SimpleLang.TypedDef
 import Data.Text as T
 import qualified Data.List as L
-import Control.Monad (void)
 
 newtype SLMVar (t :: SLType) = SLMVar Text deriving (Show, Eq, Ord)
 

@@ -60,7 +60,6 @@ import SimpleLang.Def
 import SimpleLang.TypedDef
 import Data.Vector as V
 import Control.Monad.State
-import Control.Category
 import Data.Proxy
 import Data.Text as T
 

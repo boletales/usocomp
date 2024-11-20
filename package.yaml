@@ -8,7 +8,6 @@ copyright:           "2023 Author name here"
 
 extra-source-files:
 - README.md
-- CHANGELOG.md
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -57,35 +56,9 @@ library:
   source-dirs: src
 
 executables:
-  usocomp-exe:
+  slangc:
     main:                Main.hs
     source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - usocomp
-  
-  slangc:
-    main:                SimpleLangC.hs
-    source-dirs:         app
-    ghc-options:
-    - -main-is SimpleLangC
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - usocomp
-  
-  slangdemo:
-    main:                SimpleLangDemo.hs
-    source-dirs:         app
-    ghc-options:
-    - -main-is SimpleLangDemo
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
     dependencies:
     - usocomp
 

@@ -50,7 +50,6 @@ import MyPrelude
 import Data.Vector as V
 import Data.Map.Strict as M
 import Data.Text as T
-import Control.Category
 import qualified Data.List as L
 
 -- 接頭辞 SL: SimpleLang に関連するものの型

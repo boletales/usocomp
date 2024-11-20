@@ -13,10 +13,8 @@ import SimpleLang.Tools
 import MachineLang.FromSimpleLang
 import MachineLang.Def
 import MachineLang.Tools
-import MachineLang.FromSimpleLang.Debugger
 
 import Data.Text as T
-import Data.Text.IO as TIO
 import Data.Map.Strict as M
 import Data.Ord
 import Data.Maybe
@@ -24,12 +22,6 @@ import qualified Data.List as L
 import Data.Vector as V
 import Text.Megaparsec.Pos
 import Control.Monad
-
-import MachineLang.FromSimpleLang.Test
-import SimpleLang.Def
-import System.Directory
-import Debug.Trace
-
 
 data ASMMapRow = ASMMapRow {
   asmmrSourceStart :: (Int, Int),

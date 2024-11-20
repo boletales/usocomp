@@ -19,7 +19,6 @@ import SimpleLang.Tools
 import Data.Vector as V
 import Data.Map.Strict as M
 import qualified Data.List as L
-import Control.Category
 
 import Control.Monad.State as S
 import Control.Monad

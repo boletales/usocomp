@@ -2,3 +2,5 @@
 *.prof
 *.exe
 *~
+dist-newstyle/
+ghc-wasm-meta

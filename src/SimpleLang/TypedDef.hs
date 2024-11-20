@@ -55,7 +55,6 @@ import GHC.TypeNats
 import Data.Type.Bool
 import Data.Proxy
 import Data.Kind
-import Control.Category
 import Data.Bifunctor
 import Data.Text as T
 
