@@ -864,7 +864,7 @@ compileSLProgram' opt program =
 
 generateSourceMap :: V.Vector (a, SLPos) -> M.Map SLPos (Int, Int)
 generateSourceMap = V.ifoldl' (\m i (_, pos) ->
-      Prelude.foldl (flip (M.alter (maybe (Just (i,i)) (\(s,_) -> Just (s,i))))) m (rootsSLPos pos)
+      Prelude.foldl (flip (M.alter (maybe (Just (i+1,i+1)) (\(s,_) -> Just (s,i+1))))) m (rootsSLPos pos)
     ) M.empty
 
 data MLCRuntimeException =
