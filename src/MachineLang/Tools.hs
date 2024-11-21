@@ -44,5 +44,5 @@ mliAbbrText inst =
     MLIInv     r1 r2           -> "inv   " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2
     MLICopy    r1 r2           -> "copy  " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2
     MLIJump    r1              -> "jump  " <> mlregAbbrText r1
-    MLIIfJump  r1 r2           -> "jz    " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2
-    MLINotJump r1 r2           -> "jnz   " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2
+    MLIIfJump  r1 r2           -> "jnz   " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2
+    MLINotJump r1 r2           -> "jz    " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2

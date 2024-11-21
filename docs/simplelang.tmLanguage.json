@@ -1,0 +1,67 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "SimpleLang",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		},
+		{
+			"include": "#comments"
+		},
+		{
+			"include": "#terms"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.simplelang",
+				"match": "\\b(when|else|tailcall|while|return|function)\\b"
+			},
+			{
+				"name": "keyword.types.simplelang",
+				"match": "\\b(int|float|bool|string|void)\\b"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.simplelang",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.simplelang",
+					"match": "\\\\."
+				}
+			]
+		},
+		"comments": {
+			"patterns": [
+				{
+					"name": "comment.line.double-slash.simplelang",
+					"match": "//.*$"
+				},
+				{
+					"name": "comment.block.simplelang",
+					"begin": "/\\*",
+					"end": "\\*/"
+				}
+			]
+		},
+		"terms": {
+			"patterns": [
+				{
+					"name": "variable.parameter.simplelang",
+					"match": "\\$[a-zA-Z0-9_]+"
+				},
+				{
+					"name": "constant.numeric.simplelang",
+					"match": "\\b-?[0-9]+\\b"
+				}
+			]
+		}
+	},
+	"scopeName": "source.slang"
+}

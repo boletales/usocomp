@@ -1,0 +1,30 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "MachineLang",
+	"patterns": [
+		{
+			"include": "#keywords"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.machinelang",
+				"match": "\\b(nop|const|addi|load|store|add|sub|mult|shift|and|or|xor|eq|gt|lt|inv|copy|jump|jnz|jz)\\b"
+			},
+			{
+				"name": "variable.parameter.registers.machinelang",
+				"match": "\\b(r[0-7]|pc)\\b"
+			},
+			{
+				"name": "constant.numeric.machinelang",
+				"match": "\\b-?[0-9]+\\b"
+			},
+			{
+				"name": "comment.line.machinelang",
+				"match": "#.*$"
+			}]
+		}
+	},
+	"scopeName": "source.mlang"
+}

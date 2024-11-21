@@ -14,7 +14,7 @@ const pc 12                             #main
 const r2 4986                           #main
 lt    r2 r1 r2                          #main
 addi  r3 pc 6                           #main
-jz    r3 r2                             #main
+jnz   r3 r2                             #main
 const r2 0                              #main
 const r3 -1000000000                    #main
 store r3 r2                             #main
@@ -103,7 +103,7 @@ load  pc r2                             #main.forceReturn
 const r2 4992                           #main.complexProd
 lt    r2 r1 r2                          #main.complexProd
 addi  r3 pc 6                           #main.complexProd
-jz    r3 r2                             #main.complexProd
+jnz   r3 r2                             #main.complexProd
 const r2 0                              #main.complexProd
 const r3 -1000000000                    #main.complexProd
 store r3 r2                             #main.complexProd

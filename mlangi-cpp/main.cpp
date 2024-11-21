@@ -95,8 +95,8 @@ enum Instruction getInst(string inststr) {
   if(inststr == "store") return Store;
   if(inststr == "inv") return Inv;
   if(inststr == "copy") return Copy;
-  if(inststr == "jz  ") return IfJump;
-  if(inststr == "jnz ") return NotJump;
+  if(inststr == "jnz  ") return IfJump;
+  if(inststr == "jz ") return NotJump;
   if(inststr == "add") return Add;
   if(inststr == "sub") return Sub;
   if(inststr == "mult") return Mult;
@@ -127,7 +127,7 @@ enum Register getReg(string regstr) {
 
 regex reg_inst_   (R"(^\s*(nop).*$)");
 regex reg_inst_r  (R"(^\s*(jump)\s+(r[0-7]|pc).*$)");
-regex reg_inst_rr (R"(^\s*(load|store|inv|copy|jz  |jnz )\s+(r[0-7]|pc)\s+(r[0-7]|pc).*$)");
+regex reg_inst_rr (R"(^\s*(load|store|inv|copy|jnz  |jz )\s+(r[0-7]|pc)\s+(r[0-7]|pc).*$)");
 regex reg_inst_rrr(R"(^\s*(add|sub|mult|shift|and|or|xor|eq|gt|lt)\s+(r[0-7]|pc)\s+(r[0-7]|pc)\s+(r[0-7]|pc).*$)");
 regex reg_inst_ri (R"(^\s*(const)\s+(r[0-7]|pc)\s+(-?[0-9]+).*$)");
 regex reg_inst_rri(R"(^\s*(addi)\s+(r[0-7]|pc)\s+(r[0-7]|pc)\s+(-?[0-9]+).*$)");
@@ -210,10 +210,10 @@ string printInst(InstTuple inst){
       inststr = "copy";
       break;
     case IfJump:
-      inststr = "jz  ";
+      inststr = "jnz  ";
       break;
     case NotJump:
-      inststr = "jnz ";
+      inststr = "jz ";
       break;
     case Add:
       inststr = "add";

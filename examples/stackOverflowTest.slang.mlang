@@ -14,7 +14,7 @@ const pc 12                             #main
 const r2 4995                           #main
 lt    r2 r1 r2                          #main
 addi  r3 pc 6                           #main
-jz    r3 r2                             #main
+jnz    r3 r2                             #main
 const r2 0                              #main
 const r3 -1000000000                    #main
 store r3 r2                             #main
@@ -65,7 +65,7 @@ load  pc r2                             #main.forceReturn
 const r2 4995                           #main.loop
 lt    r2 r1 r2                          #main.loop
 addi  r3 pc 6                           #main.loop
-jz    r3 r2                             #main.loop
+jnz    r3 r2                             #main.loop
 const r2 0                              #main.loop
 const r3 -1000000000                    #main.loop
 store r3 r2                             #main.loop
@@ -88,7 +88,7 @@ store r2 r1                             #main.loop[0].whenCond_0.expr ($cnt < 10
 load  r3 r1                             #main.loop[0].whenCond_0
 addi  r1 r1 -1                          #main.loop[0].whenCond_0
 addi  r2 pc 41                          #main.loop[0].whenCond_0
-jnz   r2 r3                             #main.loop[0].whenCond_0
+jz   r2 r3                             #main.loop[0].whenCond_0
 addi  r1 r1 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
 addi  r1 r1 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
 addi  r2 r0 -1                          #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt

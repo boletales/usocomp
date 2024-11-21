@@ -131,12 +131,16 @@ function #main.fibonacci ($A0, $A1, $A2, $A3)
   
 ### WASM版について
 - 以下の流れ：
-  - (https://www.haskell.org/ghcup/guide/#ghc-wasm-cross-bindists-experimental) に従って、GHCのWASM backendをインストール
+  - https://www.haskell.org/ghcup/guide/#ghc-wasm-cross-bindists-experimental に従って、GHCのWASM backendをインストール
   - `web/build.sh`
-    - (https://ghc.gitlab.haskell.org/ghc/doc/users_guide/wasm.html#using-the-ghc-wasm-backend-to-compile-link-code) の指示に従ってcabalに`--with-compiler=`, `--with-hc-pkg=`, `--with-hsc2hs=` オプションを渡してコンパイル
+    - https://ghc.gitlab.haskell.org/ghc/doc/users_guide/wasm.html#using-the-ghc-wasm-backend-to-compile-link-code の指示に従ってcabalに`--with-compiler=`, `--with-hc-pkg=`, `--with-hsc2hs=` オプションを渡してコンパイル
     - `$(wasm32-wasi-ghc --print-libdir)/post-link.mjs -i bin/slangcweb.wasm -o bin/ghc_wasm_jsffi_raw.js` でグルーコードを生成
-    - (https://github.com/bytecodealliance/wizer)[wizer] で初期化済みWASMを生成
+    - [wizer](https://github.com/bytecodealliance/wizer) で初期化済みWASMを生成
     - `wasm-opt` と `wasm-strip` (要wabt)で最適化
     - `docs/` にコピー
   - `ghc_wasm_jsffi_raw.js` の `await import("node:timers")` がブラウザだと落ちるのでコメントアウト (`ghc_wasm_jsffi.js`)
-  - (https://github.com/tweag/ghc-wasm-miso-examples/blob/main/frontend/index.js) を参考に、モジュールを読み込み (`loadslangc.js`)
+- シンタックスハイライトは以下を利用：
+  - `tmlanguage.json`: `usocomp-highlighting` からコピー
+  - VSCodeのシンタックスハイライトは monaco に直接対応していないため、以下を使用：
+    - `monaco-editor-textmate`
+    - `monaco-vscode-textmate-theme-converter`

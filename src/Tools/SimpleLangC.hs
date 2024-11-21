@@ -69,10 +69,10 @@ mlToText ml =
 compileToJSON :: Text -> Text
 compileToJSON text =
   case textToSLParseResult text of
-    Left err -> objToJSON [("error", tshow (show err))]
+    Left err -> objToJSON [("error", tshow err)]
     Right (program, sourcemap) ->
       case compileSLProgram program of
-        Left err -> objToJSON [("error", tshow (show err))]
+        Left err -> objToJSON [("error", tshow err)]
         Right compiled ->
           objToJSON [
               ("src", tshow text),

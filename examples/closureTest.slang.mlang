@@ -14,7 +14,7 @@ const pc 12                             #main
 const r2 4994                           #main
 lt    r2 r1 r2                          #main
 addi  r3 pc 6                           #main
-jz    r3 r2                             #main
+jnz   r3 r2                             #main
 const r2 0                              #main
 const r3 -1000000000                    #main
 store r3 r2                             #main
@@ -72,7 +72,7 @@ load  pc r2                             #main.forceReturn
 const r2 4994                           #main.func1
 lt    r2 r1 r2                          #main.func1
 addi  r3 pc 6                           #main.func1
-jz    r3 r2                             #main.func1
+jnz   r3 r2                             #main.func1
 const r2 0                              #main.func1
 const r3 -1000000000                    #main.func1
 store r3 r2                             #main.func1
@@ -154,7 +154,7 @@ load  pc r2                             #main.func1.forceReturn
 const r2 4998                           #main.func2
 lt    r2 r1 r2                          #main.func2
 addi  r3 pc 6                           #main.func2
-jz    r3 r2                             #main.func2
+jnz   r3 r2                             #main.func2
 const r2 0                              #main.func2
 const r3 -1000000000                    #main.func2
 store r3 r2                             #main.func2

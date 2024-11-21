@@ -163,7 +163,7 @@ mlctWhileTest = MLCTUnit {
   }
 
 -- >>> runMLCinST whileTest
--- "(549 ticks) successfully terminated. code:1024"
+-- "(22 ticks) successfully terminated. code:-1000000000"
 
 smallTest :: SLProgram
 smallTest =

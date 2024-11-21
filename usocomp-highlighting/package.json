@@ -14,12 +14,23 @@
       "id": "machinelang",
       "aliases": ["MachineLang", "machinelang"],
       "extensions": [".mlang"],
-      "configuration": "./language-configuration.json"
+      "configuration": "./mlang.json"
+    },
+    {
+      "id": "simplelang",
+      "aliases": ["SimpleLang", "simplelang"],
+      "extensions": [".slang"],
+      "configuration": "./slang.json"
     }],
     "grammars": [{
       "language": "machinelang",
       "scopeName": "source.mlang",
       "path": "./syntaxes/machinelang.tmLanguage.json"
+    },
+    {
+      "language": "simplelang",
+      "scopeName": "source.slang",
+      "path": "./syntaxes/simplelang.tmLanguage.json"
     }]
   }
 }

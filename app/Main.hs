@@ -84,7 +84,7 @@ folderToJSON = do
   files <- listDirectory "./examples"
   result <- Control.Monad.forM files $ \file -> do
     -- check if file is a .slang file
-    if (".slang" `L.isSuffixOf` file) then do
+    if ".slang" `L.isSuffixOf` file then do
       text <- TIO.readFile ("./examples/" <> file)
       pure $ Just $ objToJSON [
             ("name", tshow (pack file))

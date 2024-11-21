@@ -20,5 +20,5 @@ Object.assign(instance_exports, instance.exports);
 
 wasi.initialize(instance);
 
-const compile = instance_exports.compile;
+const compile = (text) => instance_exports.compile(text).then((result) => JSON.parse(result));
 export { compile };

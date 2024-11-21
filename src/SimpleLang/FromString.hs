@@ -102,7 +102,7 @@ parseLocal =  unwrapspace $ do
     Nothing -> registerCustomError (SLParserError $ "Local variable $" <> n <> " not found") >> pure (SLTInt, n)
 
 parseVar :: LocalParser SLExp
-parseVar =  unwrapspace $ do
+parseVar = do
   n <- string "$" *> parseName
   ldict <- gets lpsLocals
   adict <- gets lpsArgs
@@ -316,6 +316,7 @@ parseFunction initstate = do
   fret  <- string "->" *> scn *> parseType
   (fbody, LocalParserState {lpsSourceMap = smap}) <- runStateT parseBlock (initstate { lpsArgs = M.fromList fargs, lpsSLPos = Just (SLPos fname [])})
   let fsig = SLFuncSignature fname (snd <$> fargs) fret
+  _ <- scn
   pure (SLFuncBlock fsig (fst <$> fargs) fbody, smap)
 
 parseFDict :: Parser (M.Map SLFuncName SLFuncSignature)
