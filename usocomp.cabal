@@ -22,6 +22,10 @@ source-repository head
   type: git
   location: https://github.com/githubuser/usocomp
 
+flag web
+  manual: True
+  default: False
+
 library
   exposed-modules:
       FuncLang.Def
@@ -65,7 +69,6 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
-    , directory
     , megaparsec
     , mtl
     , parser-combinators
@@ -73,7 +76,6 @@ library
     , text
     , transformers
     , vector
-    , vector-builder
   default-language: GHC2021
 
 executable slangc
@@ -91,7 +93,7 @@ executable slangc
       OverloadedStrings
       GADTs
       LambdaCase
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
     , containers
@@ -104,8 +106,45 @@ executable slangc
     , transformers
     , usocomp
     , vector
-    , vector-builder
   default-language: GHC2021
+  if flag(web)
+    buildable: False
+  else
+    buildable: True
+
+executable slangcweb
+  main-is: Main.hs
+  other-modules:
+      Paths_usocomp
+  autogen-modules:
+      Paths_usocomp
+  hs-source-dirs:
+      app
+  default-extensions:
+      StrictData
+      DataKinds
+      NoImplicitPrelude
+      OverloadedStrings
+      GADTs
+      LambdaCase
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -no-hs-main -optl-Wl,--export=hs_init,--export=compile -optl-mexec-model=reactor
+  build-depends:
+      base >=4.7 && <5
+    , containers
+    , ghc-experimental
+    , megaparsec
+    , mtl
+    , parser-combinators
+    , primitive
+    , text
+    , transformers
+    , usocomp
+    , vector
+  default-language: GHC2021
+  if flag(web)
+    buildable: True
+  else
+    buildable: False
 
 test-suite usocomp-test
   type: exitcode-stdio-1.0
@@ -127,7 +166,6 @@ test-suite usocomp-test
   build-depends:
       base >=4.7 && <5
     , containers
-    , directory
     , hspec
     , megaparsec
     , mtl
@@ -137,5 +175,4 @@ test-suite usocomp-test
     , transformers
     , usocomp
     , vector
-    , vector-builder
   default-language: GHC2021

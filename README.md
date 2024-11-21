@@ -128,3 +128,15 @@ function #main.fibonacci ($A0, $A1, $A2, $A3)
     - ASTの直書きは苦行そのものであるため、SimpleLangのコードをより楽な形で書き下したい
     - SimpleLangの関数を書く際には、Haskellのラムダ式をそのまま利用できると楽である
     - 型レベル自然数と複数の型族を濫用し、任意のnについてHaskellのn変数関数からSimpleLangのn変数関数を生成できるようにした
+  
+### WASM版について
+- 以下の流れ：
+  - (https://www.haskell.org/ghcup/guide/#ghc-wasm-cross-bindists-experimental) に従って、GHCのWASM backendをインストール
+  - `web/build.sh`
+    - (https://ghc.gitlab.haskell.org/ghc/doc/users_guide/wasm.html#using-the-ghc-wasm-backend-to-compile-link-code) の指示に従ってcabalに`--with-compiler=`, `--with-hc-pkg=`, `--with-hsc2hs=` オプションを渡してコンパイル
+    - `$(wasm32-wasi-ghc --print-libdir)/post-link.mjs -i bin/slangcweb.wasm -o bin/ghc_wasm_jsffi_raw.js` でグルーコードを生成
+    - (https://github.com/bytecodealliance/wizer)[wizer] で初期化済みWASMを生成
+    - `wasm-opt` と `wasm-strip` (要wabt)で最適化
+    - `docs/` にコピー
+  - `ghc_wasm_jsffi_raw.js` の `await import("node:timers")` がブラウザだと落ちるのでコメントアウト (`ghc_wasm_jsffi.js`)
+  - (https://github.com/tweag/ghc-wasm-miso-examples/blob/main/frontend/index.js) を参考に、モジュールを読み込み (`loadslangc.js`)

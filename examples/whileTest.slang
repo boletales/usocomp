@@ -1,4 +1,3 @@
-
 function main() -> int
 {
   int $0 = 1

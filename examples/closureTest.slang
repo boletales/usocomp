@@ -1,4 +1,3 @@
-
 function main() -> int
 {
   return @@(&main.func1, 12345, &main.func2)

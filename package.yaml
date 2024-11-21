@@ -23,12 +23,10 @@ dependencies:
 - vector
 - mtl
 - containers
-- vector-builder
 - text
 - primitive
 - megaparsec
 - parser-combinators
-- directory
 - transformers
 
 default-extensions:
@@ -55,12 +53,44 @@ ghc-options:
 library:
   source-dirs: src
 
+flags:
+  web:
+    default: false
+    manual: true
+
 executables:
   slangc:
     main:                Main.hs
     source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
     dependencies:
     - usocomp
+    - directory
+    when:
+      condition: "flag(web)"
+      then:
+        buildable: false
+      else:
+        buildable: true
+  slangcweb:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -no-hs-main
+    - -optl-Wl,--export=hs_init,--export=compile
+    - -optl-mexec-model=reactor
+    dependencies:
+    - usocomp
+    - ghc-experimental
+    when:
+      condition: "flag(web)"
+      then:
+        buildable: true
+      else:
+        buildable: false
 
 tests:
   usocomp-test:

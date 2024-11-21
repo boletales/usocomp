@@ -14,7 +14,7 @@ const pc 12                             #main
 const r2 4994                           #main
 lt    r2 r1 r2                          #main
 addi  r3 pc 6                           #main
-ijmp  r3 r2                             #main
+jz    r3 r2                             #main
 const r2 0                              #main
 const r3 -1000000000                    #main
 store r3 r2                             #main
@@ -88,7 +88,7 @@ load  pc r2                             #main.forceReturn
 const r2 4991                           #main.tarai
 lt    r2 r1 r2                          #main.tarai
 addi  r3 pc 6                           #main.tarai
-ijmp  r3 r2                             #main.tarai
+jz    r3 r2                             #main.tarai
 const r2 0                              #main.tarai
 const r3 -1000000000                    #main.tarai
 store r3 r2                             #main.tarai
@@ -114,7 +114,7 @@ store r2 r1                             #main.tarai[0].whenCond_0.expr ($x > $y)
 load  r3 r1                             #main.tarai[0].whenCond_0
 addi  r1 r1 -1                          #main.tarai[0].whenCond_0
 addi  r2 pc 158                         #main.tarai[0].whenCond_0
-njmp  r2 r3                             #main.tarai[0].whenCond_0
+jnz   r2 r3                             #main.tarai[0].whenCond_0
 addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
 addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr $x
 addi  r2 r0 -1                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr $x

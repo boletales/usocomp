@@ -1,4 +1,3 @@
-
 function main() -> int
 {
   int $0 = main.fibonacci(20, 0, 1)

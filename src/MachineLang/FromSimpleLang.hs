@@ -22,8 +22,6 @@ import qualified Data.List as L
 
 import Control.Monad.State as S
 import Control.Monad
-import VectorBuilder.Builder as VB
-import VectorBuilder.Vector as VB
 import Data.Bitraversable (Bitraversable(bitraverse))
 import Control.Monad.Except
 import Data.Text as T
@@ -70,7 +68,7 @@ data MLCReg =
 type MLCInst = MLInst' MLCReg MLCVal
 
 {-| コンパイル中のMachineLangコード片 -}
-type MLCFlagment = VB.Builder (MLCInst, SLPos)
+type MLCFlagment = V.Vector (MLCInst, SLPos)
 
 data MLCError =
         MLCENoMain
@@ -142,7 +140,7 @@ outPos (MonadMLCFunc v) = MonadMLCFunc (do
 stateWriteFromList :: [MLCInst] -> MonadMLCFunc ()
 stateWriteFromList v2 = MonadMLCFunc (do
     lineinfo <- gets mmlcfsLineInfo
-    S.modify (\s -> s {mmlcfsFlagment = mmlcfsFlagment s <> VB.foldable ((, lineinfo) <$> v2)})
+    S.modify (\s -> s {mmlcfsFlagment = mmlcfsFlagment s <> V.fromList ((, lineinfo) <$> v2)})
   )
 
 stateWriteFromFlagment :: MLCFlagment -> MonadMLCFunc ()
@@ -153,7 +151,7 @@ stateWriteFromFlagment v2 = MonadMLCFunc (do
 
 execMonadMLCFunc :: MonadMLCFunc () -> SLPos -> M.Map Text Int -> M.Map Text Int -> MLCOption -> Int -> Int -> Either MLCError (MLCFlagment, Int)
 execMonadMLCFunc v lineinfo ldict adict opt maxstackframesize stacksizehere =
-  (flip execStateT (MonadMLCFuncState VB.empty lineinfo 0 ldict adict opt maxstackframesize stacksizehere)
+  (flip execStateT (MonadMLCFuncState V.empty lineinfo 0 ldict adict opt maxstackframesize stacksizehere)
     >>> fmap (\s -> (mmlcfsFlagment s, mmlcfsMaxStackFrameSize s))) (unMonadMLCFunc v)
 
 -- ソースマップの情報を覚えたままコード片を抽出
@@ -172,7 +170,7 @@ clipBlockFlagment v = MonadMLCFunc $ do
       pure flagment
 
 getFlagmentSize :: MLCFlagment -> Int
-getFlagmentSize = VB.size
+getFlagmentSize = V.length
 
 useStackSize :: Int -> MonadMLCFunc a -> MonadMLCFunc a
 useStackSize s x = MonadMLCFunc (do
@@ -847,7 +845,7 @@ compileSLProgram' opt program =
       (initcode, _) <- execMonadMLCFunc initializer (SLPos SLFuncMain []) M.empty M.empty opt 0 0
       (mlccode, mlcfuncmap) <- Control.Monad.foldM (\(code, funcmap) slfunc -> do
               code' <- compileSLFunc opt slfunc
-              pure (code <> code' , M.insert (slfsName (slfSignature slfunc)) (VB.size code) funcmap)
+              pure (code <> code' , M.insert (slfsName (slfSignature slfunc)) (V.length code) funcmap)
             ) (initcode, M.empty) (fmain : (M.toList >>> fmap snd) (M.delete SLFuncMain program))
 
       V.mapM (\(inst :: MLCInst, pos) ->
@@ -856,9 +854,9 @@ compileSLProgram' opt program =
                   MLCValConst v            -> pure $ MLVal v
                   MLCValJumpDestLocal v    -> pure $ MLVal v
                   MLCValJumpDestFunc fname -> maybe (Left (MLCNoSuchFunc fname   pos)) (MLVal >>> Right) (M.lookup fname mlcfuncmap)
-                  MLCValJumpDestEnd        -> pure $ MLVal (VB.size mlccode)
+                  MLCValJumpDestEnd        -> pure $ MLVal (V.length mlccode)
                 ) inst
-            ) (VB.build (mlccode <> VB.singleton (MLINop, SLPos SLFuncMain [])))
+            ) (mlccode <> V.singleton (MLINop, SLPos SLFuncMain []))
 
 
 generateSourceMap :: V.Vector (a, SLPos) -> M.Map SLPos (Int, Int)
