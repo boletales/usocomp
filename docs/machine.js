@@ -202,7 +202,7 @@ class Machine {
     if (stackBottomAddr < 0 || stackBottomAddr >= this.memory.length) {
       return {"error": "stackBottomAddr out of bounds: " + stackBottomAddr};
     }
-    let localsaddr = Array.from({length: stackTopAddr - oldFramePtrAddr - 1}, (_, i) => oldFramePtrAddr + 1 + i);
+    let localsaddr = Array.from({length: stackTopAddr - oldFramePtrAddr}, (_, i) => oldFramePtrAddr + 1 + i);
     let argsaddr   = Array.from({length: returnAddrAddr - stackBottomAddr}, (_, i) => stackBottomAddr + i);
 
     let oldfptr    = this.memory[oldFramePtrAddr];
@@ -223,6 +223,16 @@ class Machine {
     let text_args   = argsaddr.concat().reverse().map(addr => `${addr}: ${this.memory[addr]}`);
     
     let text_stack = [
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
+      "",
       "=== stack top ===",
       "local vars:",
       text_locals.map(l => `  ${l}`).join("\n"),

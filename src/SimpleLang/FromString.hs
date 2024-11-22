@@ -244,7 +244,7 @@ parseTerm = unwrapspace $ appendExprPosMap $
     , try   parseVar
     , try $ string "&" $> SLEAddrOf <*> parseRef
     , try $ string "&" $> SLEFuncPtr <*> parseFuncSignature
-    , try $ SLEPushCall <$> parseCall parseExpInExp
+    , try $ SLEPushCall <$> parseCall parseTerm
     , try parseParensExpr
     , try $ L.foldr SLEStructCons SLEStructNil <$> (char '(' *> sepBy parseExpInExp (char ',') <* char ')')
     , try $ some alphaNumChar $> SLELocal SLTInt "dummy" <* registerCustomError (SLParserError "Invalid expression (forgot to put $?)")
@@ -271,6 +271,7 @@ parseStatement = do
   withSourceMap $ choice [
       try $ SLSReturn <$ string "return" <* hspace <*> parseExp
     , try $ SLSTailCallReturn <$ string "tailcall" <* hspace <*> parseCall parseExp
+    , try $ SLSReturn <$ string "tailcall" <* hspace <* parseExp <*> pure (SLELocal SLTInt "dummy") <* registerCustomError (SLParserError "tailcall cannot return an expression (use return instead)")
     , try (do
           t <- parseType
           _ <- hspace <* string "$"

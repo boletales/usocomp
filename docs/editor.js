@@ -11,8 +11,8 @@ class Editor {
     this.asmdeco = [];
     this.editor_src   = monaco.editor.create(document.getElementById('div_src')     , {value: "", smoothScrolling:true, language: "slang", theme: "mytheme"});
     this.editor_asm   = monaco.editor.create(document.getElementById('div_asm')     , {value: "", smoothScrolling:true, language: "mlang", theme: "mytheme", readOnly: true});
-    this.editor_sinfo = monaco.editor.create(document.getElementById('stack_info')  , {value: "", smoothScrolling:true, theme: "mytheme", readOnly: true});
-    this.editor_minfo = monaco.editor.create(document.getElementById('machine_info'), {value: "", smoothScrolling:true, theme: "mytheme", readOnly: true});
+    this.editor_sinfo = monaco.editor.create(document.getElementById('stack_info')  , {value: "", smoothScrolling:true, theme: "mytheme", readOnly: true, lineNumbers: "off", minimap: {enabled: false}});
+    this.editor_minfo = monaco.editor.create(document.getElementById('machine_info'), {value: "", smoothScrolling:true, theme: "mytheme", readOnly: true, lineNumbers: "off", minimap: {enabled: false}});
     this.editing = true; // disable hover* when editing
 
     this.editor_src.onDidChangeCursorPosition(e => this.hoverSrc(e.position.lineNumber, e.position.column));
@@ -37,6 +37,8 @@ class Editor {
   setInfo(sinfo, minfo){
     this.editor_sinfo.getModel().setValue(sinfo);
     this.editor_minfo.getModel().setValue(minfo);
+
+    this.editor_sinfo.revealLineNearTop(this.editor_sinfo.getModel().getLineCount() - 7, 1);
   }
 
   loadResultJSON(result){

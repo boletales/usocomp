@@ -104,6 +104,7 @@ data MonadMLCFuncState = MonadMLCFuncState {
     , mmlcfsCompilerOpt :: MLCOption
     , mmlcfsMaxStackFrameSize :: Int
     , mmlcfsStackSizeHere     :: Int
+    , mmlcfsArgSize           :: Int
   }
 
 newtype MonadMLCFunc x =
@@ -149,9 +150,9 @@ stateWriteFromFlagment v2 = MonadMLCFunc (do
   )
 
 
-execMonadMLCFunc :: MonadMLCFunc () -> SLPos -> M.Map Text Int -> M.Map Text Int -> MLCOption -> Int -> Int -> Either MLCError (MLCFlagment, Int)
-execMonadMLCFunc v lineinfo ldict adict opt maxstackframesize stacksizehere =
-  (flip execStateT (MonadMLCFuncState V.empty lineinfo 0 ldict adict opt maxstackframesize stacksizehere)
+execMonadMLCFunc :: MonadMLCFunc () -> SLPos -> M.Map Text Int -> M.Map Text Int -> MLCOption -> Int -> Int -> Int -> Either MLCError (MLCFlagment, Int)
+execMonadMLCFunc v lineinfo ldict adict opt maxstackframesize stacksizehere argsize =
+  (flip execStateT (MonadMLCFuncState V.empty lineinfo 0 ldict adict opt maxstackframesize stacksizehere argsize)
     >>> fmap (\s -> (mmlcfsFlagment s, mmlcfsMaxStackFrameSize s))) (unMonadMLCFunc v)
 
 -- ソースマップの情報を覚えたままコード片を抽出
@@ -163,7 +164,8 @@ clipBlockFlagment v = MonadMLCFunc $ do
   opt      <- gets mmlcfsCompilerOpt
   maxstackframesize <- gets mmlcfsMaxStackFrameSize
   stacksizehere <- gets mmlcfsStackSizeHere
-  case execMonadMLCFunc v lineinfo ldict adict opt maxstackframesize stacksizehere of
+  argsize <- gets mmlcfsArgSize
+  case execMonadMLCFunc v lineinfo ldict adict opt maxstackframesize stacksizehere argsize of
     Left  err      -> throwError err
     Right (flagment, sfsize) -> do
       S.modify (\s -> s {mmlcfsMaxStackFrameSize = max (mmlcfsMaxStackFrameSize s) sfsize})
@@ -340,6 +342,33 @@ tailCallToRegZSnippet argsize =
         MLICopy MLCRegPC MLCRegZ
     ]
 
+tailLoopToRegZSnippet :: Int -> [MLInst' MLCReg MLCVal]
+tailLoopToRegZSnippet argsize =
+    [
+        MLIAddI  MLCRegX         MLCRegStackPtr (MLCValConst (1 - argsize)) -- 引っ越し元開始位置: ↑で評価した引数の一番下
+
+      , MLIAddI  MLCRegY         MLCRegFramePtr (MLCValConst (-1))
+      , MLILoad  MLCRegStackPtr  MLCRegY
+      , MLIAddI  MLCRegStackPtr  MLCRegStackPtr incr  -- 引っ越し先開始位置: スタックフレームの底
+    ]
+
+  <> L.intercalate [
+        MLIAddI  MLCRegX        MLCRegX        incr
+      , MLIAddI  MLCRegStackPtr MLCRegStackPtr incr
+      ] (L.replicate argsize [
+        MLILoad  MLCRegY        MLCRegX
+      , MLIStore MLCRegY        MLCRegStackPtr
+    ]) -- 引っ越し
+
+  <> [
+        MLIAddI MLCRegStackPtr MLCRegStackPtr (MLCValConst 3) -- スタックポインタが引数の一番上なので、正しい位置に戻す
+      , MLICopy MLCRegPC MLCRegZ
+    ]
+
+tailCallOrLoopToRegZSnippet :: Int -> MonadMLCFunc [MLInst' MLCReg MLCVal]
+tailCallOrLoopToRegZSnippet argsize = do
+  oldargsize <- MonadMLCFunc (gets mmlcfsArgSize)
+  pure $ if oldargsize == argsize then tailLoopToRegZSnippet argsize else tailCallToRegZSnippet argsize
 
 slSolidTailCallReturnToMLC :: SLFuncSignature -> SLExp -> MonadMLCFunc ()
 slSolidTailCallReturnToMLC funcsig args = do
@@ -351,7 +380,8 @@ slSolidTailCallReturnToMLC funcsig args = do
       MLIConst MLCRegZ (MLCValJumpDestFunc (slfsName funcsig))
     ]
 
-  useStackSize (argsize + sltSizeOf SLTInt * 3) $ stateWriteFromList (tailCallToRegZSnippet argsize)
+  tco <- tailCallOrLoopToRegZSnippet argsize
+  useStackSize (argsize + sltSizeOf SLTInt * 3) $ stateWriteFromList tco
 
 slPtrTailCallReturnToMLC :: SLRef -> SLExp -> MonadMLCFunc ()
 slPtrTailCallReturnToMLC ref args = do
@@ -364,7 +394,8 @@ slPtrTailCallReturnToMLC ref args = do
       , MLILoad   MLCRegZ          MLCRegZ
     ]
 
-  useStackSize (argsize + sltSizeOf SLTInt * 3) $ stateWriteFromList (tailCallToRegZSnippet argsize)
+  tco <- tailCallOrLoopToRegZSnippet argsize
+  useStackSize (argsize + sltSizeOf SLTInt * 3) $ stateWriteFromList tco
 
 
 slClosureTailCallReturnToMLC :: SLExp -> MonadMLCFunc ()
@@ -379,7 +410,12 @@ slClosureTailCallReturnToMLC cls = do
       , MLILoad   MLCRegZ          MLCRegZ
     ]
 
-  useStackSize (argsize + sltSizeOf SLTInt * 3) $ stateWriteFromList (tailCallToRegZSnippet argsize)
+  tco <- tailCallOrLoopToRegZSnippet argsize
+  useStackSize (argsize + sltSizeOf SLTInt * 3) $ stateWriteFromList tco
+
+
+
+
 
 mlcCheckStackOverflow :: Int -> MonadMLCFunc ()
 mlcCheckStackOverflow sizeToBeUsed = do
@@ -806,13 +842,14 @@ compileSLFunc :: MLCOption -> SLFuncBlock -> Either MLCError MLCFlagment
 compileSLFunc opt slfunc =
   let argdict =
         fst $ L.foldl (\(dict, pos) (argname, argtype) -> (M.insert argname pos dict, pos + sltSizeOf argtype)) (M.empty, 0) (L.zip (slfArgs slfunc) (slfsArgs (slfSignature slfunc)))
+      argsize = L.sum $ sltSizeOf <$> (slfsArgs (slfSignature slfunc))
   in do
     (_, ssize) <- execMonadMLCFunc
                             (slBlockToMLC (slfBlock slfunc) >> inPos SLLPForceReturn (slReturnToMLC (SLEConst (SLVal 0))))
-                            (SLPos (slfsName (slfSignature slfunc)) []) M.empty argdict opt 0 0
+                            (SLPos (slfsName (slfSignature slfunc)) []) M.empty argdict opt 0 0 argsize
     (path2, _) <- execMonadMLCFunc
                             (mlcCheckStackOverflow ssize >>  slBlockToMLC (slfBlock slfunc) >> inPos SLLPForceReturn (slReturnToMLC (SLEConst (SLVal 0))))
-                            (SLPos (slfsName (slfSignature slfunc)) []) M.empty argdict opt 0 0
+                            (SLPos (slfsName (slfSignature slfunc)) []) M.empty argdict opt 0 0 argsize
     pure path2
 
 
@@ -849,7 +886,7 @@ compileSLProgram' opt program =
   case M.lookup SLFuncMain program of
     Nothing -> Left MLCENoMain
     Just fmain -> do
-      (initcode, _) <- execMonadMLCFunc initializer (SLPos SLFuncMain []) M.empty M.empty opt 0 0
+      (initcode, _) <- execMonadMLCFunc initializer (SLPos SLFuncMain []) M.empty M.empty opt 0 0 0
       (mlccode, mlcfuncmap) <- Control.Monad.foldM (\(code, funcmap) slfunc -> do
               code' <- compileSLFunc opt slfunc
               pure (code <> code' , M.insert (slfsName (slfSignature slfunc)) (V.length code) funcmap)
