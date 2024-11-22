@@ -283,6 +283,7 @@ parseStatement = do
           pure $ SLSInitVar n e
         )
     , try $ SLSSubst <$> parseRef  <* hspace <* string "="  <* hspace <*> parseExp
+    , try $ SLSSubstDump <$> parseExp
     ]
 
 

@@ -198,6 +198,8 @@ checkStmt stmt = case stmt of
     t' <- checkRef ref
     when (t /= t') $ throwSLSCError $ SLSCRefTypeMismatch (prettyPrintSLStatement stmt) t t'
   
+  SLSSubstDump _ -> pure ()
+  
   SLSInitVar i exp -> do
     t <- checkExpr exp
     vars <- gets slscsVars

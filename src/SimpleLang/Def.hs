@@ -140,6 +140,7 @@ instance Show SLRef where
 
 data SLStatement =
     SLSInitVar        Text   SLExp
+  | SLSSubstDump      SLExp
   | SLSSubst          SLRef  SLExp
   | SLSReturn         SLExp
   | SLSTailCallReturn SLCall
@@ -471,6 +472,7 @@ prettyPrintSLStatement :: SLStatement -> Text
 prettyPrintSLStatement stmt =
   case stmt of
     SLSInitVar varid exp -> either (\err -> "[" <> prettyPrintSLTypeError err <> "]") prettyPrintSLType (sleTypeOf exp) <> " $" <> varid <> " = " <> prettyPrintSLExp exp
+    SLSSubstDump exp -> prettyPrintSLExp exp
     SLSSubst ref exp -> prettyPrintSLRef ref <> " = " <> prettyPrintSLExp exp
     SLSReturn exp          -> "return "   <> prettyPrintSLExp exp
     SLSTailCallReturn call -> "tailcall " <> prettyPrintSLCall call

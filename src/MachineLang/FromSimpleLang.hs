@@ -644,6 +644,12 @@ slPopnToMLC n = do
     ]
 
 
+slSubstDumpToMLC :: SLExp -> MonadMLCFunc ()
+slSubstDumpToMLC expr = do
+  slPushToMLC expr
+  exprsize <- liftTypeError $ sleSizeOf expr
+  slPopnToMLC exprsize
+
 slSubstVarToMLC :: Text -> SLExp -> MonadMLCFunc ()
 slSubstVarToMLC vname expr = do
   var <- getVarAddr vname
@@ -699,6 +705,7 @@ slSingleToMLC statement =
       case ref of
         SLRefPtr   _ ptr -> slSubstPtrToMLC ptr expr
         SLRefLocal _ var -> slSubstVarToMLC var expr
+    SLSSubstDump expr -> slSubstDumpToMLC expr
     SLSReturn expr  -> slReturnToMLC expr
     SLSTailCallReturn call ->
       case call of

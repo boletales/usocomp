@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-unused-top-binds #-}
 module Tools.SimpleLangC (
     compileToJSON
   , showAsmMap
@@ -21,7 +22,6 @@ import Data.Maybe
 import qualified Data.List as L
 import Data.Vector as V
 import Text.Megaparsec.Pos
-import Control.Monad
 
 data ASMMapRow = ASMMapRow {
   asmmrSourceStart :: (Int, Int),
@@ -64,7 +64,7 @@ combineSourceMaps sourcemap asm =
 
 mlToText :: V.Vector (MLInst, SLPos) -> Text
 mlToText ml =
-  T.unlines $ fmap (\(inst, _) -> mliAbbrText inst) $ V.toList ml
+  T.unlines ((\(inst, _) -> mliAbbrText inst) <$> V.toList ml)
 
 compileToJSON :: Text -> Text
 compileToJSON text =
