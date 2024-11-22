@@ -15,5 +15,4 @@ function main.fibonacci(int $A0, int $A1, int $A2) -> int
     // change "tailcall" to "return" and see the difference!
     tailcall main.fibonacci(($A0 - 1), $A2, ($A1 + $A2))
   }
-
 }
