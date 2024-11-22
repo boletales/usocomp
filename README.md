@@ -1,10 +1,9 @@
 # usocomp
 
 - あそびかた
-  - app/SimpleLangC.hs に、コマンドライン引数で examples/*.slang を渡してみよう！
-  - コンパイルと実行ができます
-  - -d オプションでデバッガも起動できます
-- これはなに
+  - [Wasm版](https://boletales.github.io/usocomp/) で遊べます
+  - 好きなコードをコンパイルして実行しよう！
+- これはなんですか
   - 嘘の機械語(MachineLang)を吐く、嘘の中間言語(SimpleLang)のコンパイラ(app/SimpleLangC.hs)とそのツール群です
   - MachineLang
     - RISC風味の機械語
@@ -19,7 +18,6 @@
     - コンパイル元のコードの対応する位置を表示
     - 生メモリのかわりにスタックフレームの構造を表示
     - 位置情報が変わるまでスキップできる
-    - 
 ```
 ===============================
 Tick: 1834
@@ -88,16 +86,16 @@ tailRecTest =
 
     pure ()
 ```
-      - ……から生成されるASTを、人間に読みやすく書き下したもの:
-        - 
+  - ……から生成されるASTを、人間に読みやすく書き下したもの:
+    - 
 ```
-function #main ($A0)
+function main() -> int
 {
-  var $L0 = #main.fibonacci(20, 0, 1)
-  return $L0
+  int $0 = main.fibonacci(20, 0, 1)
+  return $0
 }
 
-function #main.fibonacci ($A0, $A1, $A2, $A3)
+function main.fibonacci(int $A0, int $A1, int $A2) -> int
 {
   when ($A0 == 0)
   {
@@ -105,31 +103,31 @@ function #main.fibonacci ($A0, $A1, $A2, $A3)
   }
   else
   {
-    tailcall #main.fibonacci(($A0 - 1), $A2, ($A1 + $A2))
+    tailcall main.fibonacci(($A0 - 1), $A2, ($A1 + $A2))
   }
 }
 ```
-      - ……を入力すると、同様の構文木を出力するパーサ
+  - ……を入力すると、同様の構文木を出力するパーサ
 
-- なにをがんばった
+- アピールポイント
   - 課題の分割
     - MachineLang.FromSimpleLangで、制御構文や式の翻訳をほぼ「決まった命令を順番に出力するだけ」になる単位まで分割した
     - 結果、特に問題の起こりやすい関数呼び出し・リターン・末尾再帰などの操作について、効率的にデバッグすることができた
-  - デバッグツールの制作
+  - デバッグツール
     - SimpleLangをMachineLangにコンパイルする際に、MachineLangの命令がSimpleLangのどの位置に由来するのか逐一計算した
     - スタックフレームの構造を表示できるデバッガを実装した
     - MachineLangとSimpleLangについて、可読な文字列表現を実装した
     - 結果、コンパイル後のプログラムの挙動・コンパイル生成物のMachineLang・FromSimpleLangのコードのうち生成を行った部分の対応を理解しながらデバッグすることが容易になった
-  - モナドの活用
+  - DSL
     - 関数型プログラミングを強く推奨する言語で開発を行っているため、関数型プログラミングを主にすべきことは明らかである
     - 一方で、コード生成や構文木生成は手続き的に書く方が見通しがよい
     - MonadStateやMonadErrorを活用することで都合よく関数型の書き方と手続き型の書き方を使い分け、直接コンストラクタを用いる場面を減らすことでコードの柔軟性を高めた
-  - 型システムの活用
+  - 型システムの濫用
     - ASTの直書きは苦行そのものであるため、SimpleLangのコードをより楽な形で書き下したい
     - SimpleLangの関数を書く際には、Haskellのラムダ式をそのまま利用できると楽である
     - 型レベル自然数と複数の型族を濫用し、任意のnについてHaskellのn変数関数からSimpleLangのn変数関数を生成できるようにした
   
-### WASM版について
+### メモ：Wasm版をコンパイルする際の流れについて
 - 以下の流れ：
   - https://www.haskell.org/ghcup/guide/#ghc-wasm-cross-bindists-experimental に従って、GHCのWASM backendをインストール
   - `web/build.sh`

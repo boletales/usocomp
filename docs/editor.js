@@ -9,10 +9,10 @@ class Editor {
     this.sourcemap = [];
     this.srcdeco = [];
     this.asmdeco = [];
-    this.editor_src   = monaco.editor.create(document.getElementById('div_src')     , {value: "", language: "slang", theme: "mytheme"});
-    this.editor_asm   = monaco.editor.create(document.getElementById('div_asm')     , {value: "", language: "mlang", theme: "mytheme", readOnly: true});
-    this.editor_sinfo = monaco.editor.create(document.getElementById('stack_info')  , {value: "", theme: "mytheme", readOnly: true});
-    this.editor_minfo = monaco.editor.create(document.getElementById('machine_info'), {value: "", theme: "mytheme", readOnly: true});
+    this.editor_src   = monaco.editor.create(document.getElementById('div_src')     , {value: "", smoothScrolling:true, language: "slang", theme: "mytheme"});
+    this.editor_asm   = monaco.editor.create(document.getElementById('div_asm')     , {value: "", smoothScrolling:true, language: "mlang", theme: "mytheme", readOnly: true});
+    this.editor_sinfo = monaco.editor.create(document.getElementById('stack_info')  , {value: "", smoothScrolling:true, theme: "mytheme", readOnly: true});
+    this.editor_minfo = monaco.editor.create(document.getElementById('machine_info'), {value: "", smoothScrolling:true, theme: "mytheme", readOnly: true});
     this.editing = true; // disable hover* when editing
 
     this.editor_src.onDidChangeCursorPosition(e => this.hoverSrc(e.position.lineNumber, e.position.column));

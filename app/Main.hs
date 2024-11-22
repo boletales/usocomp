@@ -22,7 +22,7 @@ import System.Environment
 import Control.Monad.Except
 import MachineLang.FromSimpleLang.Test
 import Data.Set as S
-import System.IO 
+import System.IO
 import Control.Monad
 import Control.Monad.IO.Class
 import Tools.SimpleLangC
@@ -42,7 +42,7 @@ main = do
           "-d" -> (filename, S.insert SLCOptionDebug opts)
           f -> (Just f, opts)
         ) (Nothing, S.empty) args
-  
+
   case parsed of
     (Just filename, opts) -> do
       result <- runExceptT $ main' opts filename
@@ -59,11 +59,11 @@ main' opts filename = do
     Left err -> throwError err
     Right result -> do
       liftIO $ TIO.writeFile (filename <> ".mlang") result
-      liftIO $ 
+      liftIO $
         if S.member SLCOptionDebug opts
           then debugMLC slprogram
           else runMLCFast slprogram
-        
+
 
 
 except :: MonadError e m => Either e a -> m a
@@ -71,7 +71,7 @@ except = either throwError pure
 
 
 genExampleFiles :: IO ()
-genExampleFiles = 
+genExampleFiles =
   Control.Monad.forM_ mlctTests $ \test -> do
     let program = mlctTest test
     let title   = mlctName test
@@ -93,6 +93,19 @@ folderToJSON = do
     else pure Nothing
   TIO.writeFile "./docs/results.json" $ listToJSON $ Data.Maybe.catMaybes result
 
+compileAll :: IO ()
+compileAll = do
+  files <- listDirectory "./examples"
+  Control.Monad.forM_ files $ \file -> do
+    -- check if file is a .slang file
+    when (".slang" `L.isSuffixOf` file) $ do
+      text <- TIO.readFile ("./examples/" <> file)
+      let program = textToSLProgram text
+      case program of
+        Left err -> TIO.putStrLn err
+        Right parsed -> do
+          let result = mlcResultText parsed
+          TIO.writeFile ("./examples/" <> file <> ".mlang") result
 
 
 tailRecTest :: SLProgram
@@ -105,7 +118,7 @@ tailRecTest =
         slmReturn (_local x)
         pure ()
       )
-    
+
     slmSetRealFunc fibonacci (\steps a b -> slmFundef $ do
         slmCase (V.fromList [
             ( steps `_eq` _const 0, do
@@ -155,7 +168,7 @@ substTest =
           _reflocal k <<- _const 10000
           pure ()
         )
-    
+
     pure ()
 
 
