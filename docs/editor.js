@@ -123,6 +123,7 @@ monaco.editor.defineTheme('mytheme', theme);
 monaco.languages.register({ id: "slang" });
 monaco.languages.register({ id: "mlang" });
 
+
 async function initTM(){
   await loadWASM("https://cdn.jsdelivr.net/npm/onigasm@2.2.5/lib/onigasm.wasm");
   const grammers = new Map();
@@ -133,4 +134,16 @@ async function initTM(){
 await initTM();
 
 const editor = new Editor();
+
+monaco.languages.registerHoverProvider('slang', {
+  provideHover: function(model, position) { 
+    editor.hoverSrc(position.lineNumber, position.column);
+  }
+});
+
+monaco.languages.registerHoverProvider('mlang', {
+  provideHover: function(model, position) { 
+    editor.hoverAsm(position.lineNumber, position.column);
+  }
+});
 export { editor };
