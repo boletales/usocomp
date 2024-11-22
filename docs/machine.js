@@ -249,9 +249,9 @@ class Machine {
       `r4: ${this.registers.r4}`,
     ];
 
-    let text_mem = Array.from({length: 10}, (_, i) => {
+    let text_mem = Array.from({length: 20}, (_, i) => {
       let addr = i * 10;
-      return `${addr.toString().padEnd(2, " ")}: ${Array.from(this.memory.subarray(addr, addr + 10)).map(v => v.toString().padStart(4, " ")).join(" ")}`;
+      return `${addr.toString().padEnd(3, " ")}: ${Array.from(this.memory.subarray(addr, addr + 10)).map(v => v.toString().padStart(5, " ")).join(" ")}`;
     });
 
     let pretty = [
