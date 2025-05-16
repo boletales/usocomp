@@ -1,8 +1,10 @@
-import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.0/+esm';
+import * as monaco from 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/+esm';
 import { wireTmGrammars } from 'https://cdn.jsdelivr.net/npm/monaco-editor-textmate@4.0.0/+esm';
 import { Registry } from 'https://cdn.jsdelivr.net/npm/monaco-textmate@3.0.1/+esm';
-import { loadWASM } from 'https://cdn.jsdelivr.net/npm/onigasm@2.2.5/+esm';
+import { loadWASM } from 'https://cdn.jsdelivr.net/npm/onigasm@2.2.2/+esm';
 import theme from './theme.js';
+
+await loadWASM("https://cdn.jsdelivr.net/npm/onigasm@2.2.2/lib/onigasm.wasm");
 
 class Editor {
   constructor() {
@@ -127,7 +129,6 @@ monaco.languages.register({ id: "mlang" });
 
 
 async function initTM(){
-  await loadWASM("https://cdn.jsdelivr.net/npm/onigasm@2.2.5/lib/onigasm.wasm");
   const grammers = new Map();
   grammers.set("slang", "source.slang");
   grammers.set("mlang", "source.mlang");
