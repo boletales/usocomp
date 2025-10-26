@@ -8,7 +8,7 @@ module MachineLang.Tools (
 import MyPrelude
 
 import MachineLang.Def
-import Data.Text
+import Data.Text as T
 
 mlregAbbrText :: MLReg -> Text
 mlregAbbrText reg =
@@ -27,8 +27,8 @@ mliAbbrText :: MLInst' MLReg MLVal -> Text
 mliAbbrText inst =
   case inst of
     MLINop                     -> "nop   "
-    MLIConst   r1    (MLVal v) -> "const " <> mlregAbbrText r1 <> " " <> (pack . show) v
-    MLIAddI    r1 r2 (MLVal v) -> "addi  " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2 <> " " <> (pack . show) v
+    MLIConst   r1    (MLVal v) -> "const " <> mlregAbbrText r1 <> " " <> tshow v
+    MLIAddI    r1 r2 (MLVal v) -> "addi  " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2 <> " " <> tshow v
     MLILoad    r1 r2           -> "load  " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2
     MLIStore   r1 r2           -> "store " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2
     MLIAdd     r1 r2 r3        -> "add   " <> mlregAbbrText r1 <> " " <> mlregAbbrText r2 <> " " <> mlregAbbrText r3

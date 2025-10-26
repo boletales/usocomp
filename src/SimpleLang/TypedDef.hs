@@ -136,13 +136,13 @@ data TypedSLExp (t :: SLType) where
     TSLEStructGet   :: (KnownType t, KnownTypes ts, StructAt i ts t, KnownNat i, KnownOffset i ts) => TypedSLExp ('SLTStruct ts) -> Proxy i -> TypedSLExp t
 
 instance KnownType t => Show (TypedSLExp t) where
-  show = show . unTypedSLExp
+  show = sshow . unTypedSLExp
 
 data TypedSLRef (t :: SLType) where
     TSLRefPtr   :: (KnownType t) => TypedSLExp ('SLTPtr t) -> TypedSLRef t
     TSLRefLocal :: (KnownType t) => Text                   -> TypedSLRef t
 instance KnownType t => Show (TypedSLRef t) where
-  show = show . unTypedSLRef
+  show = sshow . unTypedSLRef
 
 unTypedSLExp :: forall t. KnownType t => TypedSLExp t -> SLExp
 unTypedSLExp expr =
@@ -209,7 +209,7 @@ data TypedSLBlock where
     TSLBWhile  :: TypedSLExp 'SLTInt -> TypedSLBlock -> TypedSLBlock
 
 instance Show TypedSLBlock where
-  show = show . unTypedSLBlock
+  show = sshow . unTypedSLBlock
 
 unTypedSLBlock :: TypedSLBlock -> SLBlock
 unTypedSLBlock b =

@@ -77,7 +77,7 @@ prettyPrintSLType :: SLType -> Text
 prettyPrintSLType t =
   case t of
     SLTInt         -> "int"
-    SLTFuncPtr args ret -> "(" <> T.intercalate ", " ((show >>> T.pack) <$> args) <> ") -> " <> (show >>> T.pack) ret
+    SLTFuncPtr args ret -> "(" <> T.intercalate ", " (tshow <$> args) <> ") -> " <> tshow ret
     SLTPtr t'      -> "*" <> prettyPrintSLType t'
     SLTStruct ts   -> "(" <> T.intercalate ", " (prettyPrintSLType <$> ts) <> ")"
     SLTUnion  ts   -> "[" <> T.intercalate " | " (prettyPrintSLType <$> ts) <> "]"
@@ -212,37 +212,37 @@ prettyPrintSLTypeError :: SLTypeError -> Text
 prettyPrintSLTypeError err =
   case err of
     SLTESolidFuncCall1ArgMustBeStruct call ->
-      "Error! (type check of SLang): arg#1 of SLSolidFuncCall must be SLTStruct ts, not " <> (show >>> T.pack) call
+      "Error! (type check of SLang): arg#1 of SLSolidFuncCall must be SLTStruct ts, not " <> tshow call
     SLTESolidFuncCall1ArgMismatch call expected actual ->
-      "Error! (type check of SLang): arg#1 of SLSolidFuncCall does not match! expected:" <> (show >>> T.pack) expected <> " actual:" <> (show >>> T.pack) actual <> " in " <> (show >>> T.pack) call
+      "Error! (type check of SLang): arg#1 of SLSolidFuncCall does not match! expected:" <> tshow expected <> " actual:" <> tshow actual <> " in " <> tshow call
     SLTEFuncRefCall0NotFuncPtr call actual ->
-      "Error! (type check of SLang): arg#0 of SLFuncRefCall must be SLTFuncPtr args ret, not " <> (show >>> T.pack) actual <> " in " <> (show >>> T.pack) call
+      "Error! (type check of SLang): arg#0 of SLFuncRefCall must be SLTFuncPtr args ret, not " <> tshow actual <> " in " <> tshow call
     SLTEFuncRefCall1ArgMustBeStruct call ->
-      "Error! (type check of SLang): arg#1 of SLFuncRefCall must be SLTStruct ts, not " <> (show >>> T.pack) call
+      "Error! (type check of SLang): arg#1 of SLFuncRefCall must be SLTStruct ts, not " <> tshow call
     SLTEFuncRefCall1ArgMismatch call expected actual ->
-      "Error! (type check of SLang): arg#1 of SLFuncRefCall does not match! expected:" <> (show >>> T.pack) expected <> " actual:" <> (show >>> T.pack) actual <> " in " <> (show >>> T.pack) call
+      "Error! (type check of SLang): arg#1 of SLFuncRefCall does not match! expected:" <> tshow expected <> " actual:" <> tshow actual <> " in " <> tshow call
     SLTEClosureCall0MustBeStruct call ->
-      "Error! (type check of SLang): arg#0 of SLClosureCall must be SLTStruct (SLTFuncPtr args ret : args), not " <> (show >>> T.pack) call
+      "Error! (type check of SLang): arg#0 of SLClosureCall must be SLTStruct (SLTFuncPtr args ret : args), not " <> tshow call
     SLTEClosureCall0TypeMismatch call expected actual ->
-      "Error! (type check of SLang): arg#0 of SLClosureCall does not match! expected:" <> (show >>> T.pack) expected <> " actual:" <> (show >>> T.pack) actual <> " in " <> (show >>> T.pack) call
+      "Error! (type check of SLang): arg#0 of SLClosureCall does not match! expected:" <> tshow expected <> " actual:" <> tshow actual <> " in " <> tshow call
     SLTECast1SizeMismatch expected actual ->
-      "Error! (type check of SLang): arg#1 of SLECast must be the same size as arg#0, not " <> (show >>> T.pack) expected <> " and " <> (show >>> T.pack) actual
+      "Error! (type check of SLang): arg#1 of SLECast must be the same size as arg#0, not " <> tshow expected <> " and " <> tshow actual
     SLTEDeRef0MustBePtr exp ->
-      "Error! (type check of SLang): arg#0 of SLEIndirection must be SLTPtr t, not " <> (show >>> T.pack) exp
+      "Error! (type check of SLang): arg#0 of SLEIndirection must be SLTPtr t, not " <> tshow exp
     SLTEPtrShift0MustBePtr exp ->
-      "Error! (type check of SLang): arg#0 of SLEPtrShift must be SLTPtr t, not " <> (show >>> T.pack) exp
+      "Error! (type check of SLang): arg#0 of SLEPtrShift must be SLTPtr t, not " <> tshow exp
     SLTEPtrShift1MustBeInt exp ->
-      "Error! (type check of SLang): arg#1 of SLEPtrShift must be SLTInt, not " <> (show >>> T.pack) exp
+      "Error! (type check of SLang): arg#1 of SLEPtrShift must be SLTInt, not " <> tshow exp
     SLTEStructGet0MustBeStruct exp ->
-      "Error! (type check of SLang): arg#0 of SLEStructGet must be SLTStruct ts, not " <> (show >>> T.pack) exp
+      "Error! (type check of SLang): arg#0 of SLEStructGet must be SLTStruct ts, not " <> tshow exp
     SLTEStructGet1OutOfRange exp i ->
-      "Error! (type check of SLang): arg#1 SLEStructGet of must be in [0, " <> (show >>> T.pack) i <> "), not " <> (show >>> T.pack) exp
+      "Error! (type check of SLang): arg#1 SLEStructGet of must be in [0, " <> tshow i <> "), not " <> tshow exp
     SLTEStructCons0MustBeStruct exp ->
-      "Error! (type check of SLang): arg#0 of SLEStructCons must be SLTStruct ts, not " <> (show >>> T.pack) exp
+      "Error! (type check of SLang): arg#0 of SLEStructCons must be SLTStruct ts, not " <> tshow exp
     SLTEStructCons1MustBeStruct exp ->
-      "Error! (type check of SLang): arg#1 of SLEStructCons must be SLTStruct ts, not " <> (show >>> T.pack) exp
+      "Error! (type check of SLang): arg#1 of SLEStructCons must be SLTStruct ts, not " <> tshow exp
     SLTEgetOffset1OutOfRange exp i -> 
-      "Error! (type check of SLang): arg#1 of sleGetOffset must be in [0, " <> (show >>> T.pack) i <> "), not " <> (show >>> T.pack) exp
+      "Error! (type check of SLang): arg#1 of sleGetOffset must be in [0, " <> tshow i <> "), not " <> tshow exp
 
 slFuncTypeOf :: SLFuncSignature -> SLType
 slFuncTypeOf funcName =
@@ -387,7 +387,7 @@ prettyPrintSLFuncName name =
 
 prettyPrintSLFuncSignature :: SLFuncSignature -> Text
 prettyPrintSLFuncSignature (SLFuncSignature name args ret) =
-  prettyPrintSLFuncName name <> " :: " <> "(" <> T.intercalate ", " ((show >>> T.pack) <$> args) <> ") -> " <> (show >>> T.pack) ret
+  prettyPrintSLFuncName name <> " :: " <> "(" <> T.intercalate ", " (tshow <$> args) <> ") -> " <> tshow ret
 
 prettyPrintSLRef :: SLRef -> Text
 prettyPrintSLRef ref =
@@ -405,7 +405,7 @@ prettyPrintSLCall call =
 prettyPrintSLExp :: SLExp -> Text
 prettyPrintSLExp expr =
   case expr of
-    SLEConst (SLVal x) -> pack (show x)
+    SLEConst (SLVal x) -> tshow x
 
     SLELocal _ x -> "$" <> x
 
@@ -464,7 +464,7 @@ prettyPrintSLExp expr =
           exp2Text = prettyPrintSLExp exp2
       in "(" <> exp1Text <> " @+ " <> exp2Text <> ")"
 
-    SLEStructGet exp p -> prettyPrintSLExp exp <> "." <> pack (show p)
+    SLEStructGet exp p -> prettyPrintSLExp exp <> "." <> tshow p
 
     SLECast t exp -> "%(" <> prettyPrintSLType t <> ") " <> prettyPrintSLExp exp
 
@@ -509,6 +509,6 @@ prettyPrintSLProgram program =
     (\(name, SLFuncBlock sig args block) ->
           T.intercalate "\n" $ ("function "
               <> prettyPrintSLFuncName name
-              <> "(" <> T.intercalate ", " ((\(t, i) -> pack (show t) <> " $" <> i) <$> L.zip (slfsArgs sig) args) <> ")" <> " -> " <> (show >>> T.pack) (slfsRet sig))
+              <> "(" <> T.intercalate ", " ((\(t, i) -> tshow t <> " $" <> i) <$> L.zip (slfsArgs sig) args) <> ")" <> " -> " <> tshow (slfsRet sig))
            : V.toList (prettyPrintSLBlock 0 block)
       ) <$> M.assocs program

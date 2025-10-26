@@ -36,8 +36,9 @@ default-extensions:
 - OverloadedStrings
 - GADTs
 - LambdaCase
+- TypeAbstractions
 
-language: GHC2021
+language: GHC2024
 
 ghc-options:
 - -Wall

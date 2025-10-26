@@ -42,7 +42,7 @@ data SourcePosRange =
 
 
 fancySourcePos :: SourcePos -> String
-fancySourcePos pos = sourceName pos <> ":" <> show (unPos (sourceLine pos)) <> ":" <> show (unPos (sourceColumn pos))
+fancySourcePos pos = sourceName pos <> ":" <> sshow (unPos (sourceLine pos)) <> ":" <> sshow (unPos (sourceColumn pos))
 instance Show SourcePosRange where
   show (SourcePosRange from to _) = fancySourcePos from <> " - " <> fancySourcePos to
 
@@ -419,4 +419,4 @@ textToSLProgram :: Text -> Either Text SLProgram
 textToSLProgram t = fst <$> textToSLParseResult t
 
 textToSourcemap :: Text -> Text
-textToSourcemap t = either id (\(_, sourcemap) -> T.unlines $ (\(p, s) -> pack (show s) <> "\t" <> prettyPrintSLPos p) <$> M.assocs sourcemap) (textToSLParseResult t)
+textToSourcemap t = either id (\(_, sourcemap) -> T.unlines $ (\(p, s) -> tshow s <> "\t" <> prettyPrintSLPos p) <$> M.assocs sourcemap) (textToSLParseResult t)

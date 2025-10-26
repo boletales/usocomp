@@ -1,6 +1,6 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.37.0.
+-- This file has been generated from package.yaml by hpack version 0.38.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -65,6 +65,7 @@ library
       OverloadedStrings
       GADTs
       LambdaCase
+      TypeAbstractions
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
@@ -76,7 +77,7 @@ library
     , text
     , transformers
     , vector
-  default-language: GHC2021
+  default-language: GHC2024
 
 executable slangc
   main-is: Main.hs
@@ -93,6 +94,7 @@ executable slangc
       OverloadedStrings
       GADTs
       LambdaCase
+      TypeAbstractions
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
@@ -106,7 +108,7 @@ executable slangc
     , transformers
     , usocomp
     , vector
-  default-language: GHC2021
+  default-language: GHC2024
   if flag(web)
     buildable: False
   else
@@ -127,6 +129,7 @@ executable slangcweb
       OverloadedStrings
       GADTs
       LambdaCase
+      TypeAbstractions
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -no-hs-main -optl-Wl,--export=hs_init,--export=compile -optl-mexec-model=reactor
   build-depends:
       base >=4.7 && <5
@@ -140,7 +143,7 @@ executable slangcweb
     , transformers
     , usocomp
     , vector
-  default-language: GHC2021
+  default-language: GHC2024
   if flag(web)
     buildable: True
   else
@@ -162,6 +165,7 @@ test-suite usocomp-test
       OverloadedStrings
       GADTs
       LambdaCase
+      TypeAbstractions
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
@@ -175,4 +179,4 @@ test-suite usocomp-test
     , transformers
     , usocomp
     , vector
-  default-language: GHC2021
+  default-language: GHC2024

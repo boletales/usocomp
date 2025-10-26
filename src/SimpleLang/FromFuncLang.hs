@@ -122,13 +122,13 @@ instance Show FLCPath where
         case path of
             FLCPathTop                -> "top"
             FLCPathInTopDecl t        -> T.unpack t
-            FLCPathTopLiftedFrom p    -> show p <> "!"
-            FLCPathInLiftedLambda p t -> show p <> "!" <> T.unpack t
-            FLCPathInLetDecl t p      -> show p <> ".$" <> T.unpack t
-            FLCPathInLetBody   p      -> show p <> ".b"
-            FLCPathInAppR      p      -> show p <> ".R"
-            FLCPathInAppL      p      -> show p <> ".L"
-            FLCPathInLambda    p      -> show p <> ".λ"
+            FLCPathTopLiftedFrom p    -> sshow p <> "!"
+            FLCPathInLiftedLambda p t -> sshow p <> "!" <> T.unpack t
+            FLCPathInLetDecl t p      -> sshow p <> ".$" <> T.unpack t
+            FLCPathInLetBody   p      -> sshow p <> ".b"
+            FLCPathInAppR      p      -> sshow p <> ".R"
+            FLCPathInAppL      p      -> sshow p <> ".L"
+            FLCPathInLambda    p      -> sshow p <> ".λ"
 
 flcPathRoots :: FLCPath -> [FLCPath]
 flcPathRoots path =
@@ -168,7 +168,7 @@ instance Ord FLCUniqueIdentifier where
 instance Show FLCUniqueIdentifier where
     show (FLCUniqueIdentifier path name) =
         case path of
-            FLCPathTopLiftedFrom p -> show p <> "!" <> T.unpack name
+            FLCPathTopLiftedFrom p -> sshow p <> "!" <> T.unpack name
             _ -> T.unpack name
 
 isTopLevelLambda :: FLCPath -> Bool
@@ -205,7 +205,7 @@ flcRenameAndLift program =
                                 if flcPathDeeperEq (flcuiPath newName) pathorig
                                 then pure []
                                 else pure [(newName, flTypeOf expr')]
-                              Nothing      -> throwError $ "Undefined variable: " <> name <> " at " <> T.pack (show path')
+                              Nothing      -> throwError $ "Undefined variable: " <> name <> " at " <> tshow path'
                       FLELambda (FLVar name) body ->
                           let newpath = FLCPathInLambda path'
                               newdict = M.insert name (FLCUniqueIdentifier newpath name) dict'
@@ -323,7 +323,7 @@ flcRenameAndLift program =
                 FLEVar (FLVar name) ->
                     case M.lookup name dict of
                         Just newName ->  pure $ FLCEVar newName (flTypeOf e)
-                        Nothing -> throwError $ "Undefined variable: " <> name <> " at " <> T.pack (show path)
+                        Nothing -> throwError $ "Undefined variable: " <> name <> " at " <> tshow path
                 FLELambda _ _ -> liftLambda e dict path
 
                 FLEApp f x ->
@@ -358,7 +358,7 @@ flcRenameAndLift program =
 
 
 prettyPrintFLCVarDecl :: FLCVarDecl -> Text
-prettyPrintFLCVarDecl (FLCVarDecl v _ e) = T.pack (show v) <> " = " <> prettyPrintFLCExp e
+prettyPrintFLCVarDecl (FLCVarDecl v _ e) = tshow v <> " = " <> prettyPrintFLCExp e
 
 
 prettyPrintFLCExp :: FLCExp -> Text

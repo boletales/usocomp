@@ -67,13 +67,13 @@ instance SLMNAryC '[] where
 instance forall args newarg. (SLMNAryC args , KnownType newarg, KnownTypes args) => SLMNAryC (newarg : args) where
   type SLMNaryF (newarg : args) x = TypedSLExp newarg -> SLMNaryF args x
   slmfuncToHsFunc       f arg       = slmfuncToHsFunc (f . TSLEStructCons arg)
-  hsFuncToSLMFuncHelper argscnt f  = (hsFuncToSLMFuncHelper @args)  (argscnt + 1) (f (TSLEArg ((("A" <>) . T.pack . show) argscnt) :: TypedSLExp newarg))
+  hsFuncToSLMFuncHelper argscnt f  = (hsFuncToSLMFuncHelper @args)  (argscnt + 1) (f (TSLEArg ((("A" <>) . tshow) argscnt) :: TypedSLExp newarg))
 
 hsFuncToSLMFunc :: forall args ret. (SLMNAryC args, KnownTypes args, KnownType ret) => SLFuncName -> SLMNaryF args (SLManualBlockM ret ()) -> TypedSLFuncBlock args ret
 hsFuncToSLMFunc name f =
   TSLFuncBlock {
       tslfSignature = TypedSLFunc (SLFuncSignature name (tslTypesVal (Proxy @args)) (tslTypeVal (Proxy @ret))) :: TypedSLFunc args ret
-    , tslfArgs     = ("A" <>) . T.pack . show <$> [0 .. L.length (tslTypesVal (Proxy @args)) - 1]
+    , tslfArgs     = ("A" <>) . tshow <$> [0 .. L.length (tslTypesVal (Proxy @args)) - 1]
     , tslfBlock    =  (hsFuncToSLMFuncHelper @args @(SLManualBlockM ret ()) 0
                         >>> flip execState (SLMState 0 V.empty)
                         >>> slmBlocks
@@ -113,7 +113,7 @@ slmVirtualFunc :: forall args ret. (KnownType ret, KnownTypes args) => SLFuncNam
 slmVirtualFunc name =
   TSLFuncBlock {
       tslfSignature = TypedSLFunc (SLFuncSignature name (tslTypesVal (Proxy @args)) (tslTypeVal (Proxy @ret))) :: TypedSLFunc args ret
-    , tslfArgs      = T.pack . show <$> [0 .. L.length (tslTypesVal (Proxy @args)) - 1]
+    , tslfArgs      = tshow <$> [0 .. L.length (tslTypesVal (Proxy @args)) - 1]
     , tslfBlock     = TSLBMulti V.empty
   }
 

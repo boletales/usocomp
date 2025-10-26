@@ -69,7 +69,7 @@ type (!-->) args ret = 'SLTFuncPtr args ret
 slmNewVar :: forall t r. KnownType t => TypedSLExp t -> SLManualBlockM r (SLMVar t)
 slmNewVar exp = do
   SLMState cnt blocks <- get
-  let newVarId = (T.pack . show) $ cnt
+  let newVarId = tshow $ cnt
   put (SLMState (cnt + (tslTypeVal >>> sltSizeOf) (Proxy :: Proxy t)) blocks)
   slmStmt (TSLSInitVar newVarId exp)
   pure (SLMVar newVarId)

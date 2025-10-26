@@ -48,8 +48,8 @@ mlctUnitTest expectedout program = do
   first prettyPrintSLSCError $ slscCheck program
   (out, ticks) <- runMLCinST' program
   if out == expectedout
-    then Right $ "(" <> (pack . show) ticks <> " ticks) successfully terminated. code:" <> (pack . show) out
-    else Left $ "expected out: " <> (pack . show) expectedout <> " but got: " <> (pack . show) out
+    then Right $ "(" <> tshow ticks <> " ticks) successfully terminated. code:" <> tshow out
+    else Left $ "expected out: " <> tshow expectedout <> " but got: " <> tshow out
 
 substTest :: SLProgram
 substTest =

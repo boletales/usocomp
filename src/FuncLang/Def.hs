@@ -36,7 +36,7 @@ prettyPrintFLType t =
 
 newtype FLVar (tag :: Type) (t :: FLType) = FLVar tag deriving (Eq)
 instance Show tag => Show (FLVar tag t) where
-  show (FLVar tag) = show tag
+  show (FLVar tag) = sshow tag
 
 data UntypedFLVar (tag :: Type) = UFLVar tag FLType
 data FLVarDecl (tag :: Type) where
@@ -78,7 +78,7 @@ flTypeOf e = case e of
   --(UnsafeFLECast t _)                -> t
 
 prettyPrintFLVarDecl :: Show tag => FLVarDecl tag -> Text
-prettyPrintFLVarDecl (FLVarDecl v e) = T.pack (show v) <> " = " <> prettyPrintFLExp e
+prettyPrintFLVarDecl (FLVarDecl v e) = tshow v <> " = " <> prettyPrintFLExp e
 
 --{-# WARNING UnsafeFLECast "This function is unsafe. It should be used only in the compiler." #-}
 data FLExp (tag :: Type) (t :: FLType) where

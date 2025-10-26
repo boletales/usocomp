@@ -81,5 +81,5 @@ compileToJSON text =
             ]
 
 showAsmMap :: M.Map SLPos (Int, Int) -> Text
-showAsmMap m = T.unlines $ (\(p, s) -> pack (show s) <> "\t" <> prettyPrintSLPos p) <$> M.assocs m
+showAsmMap m = T.unlines $ (\(p, s) -> tshow s <> "\t" <> prettyPrintSLPos p) <$> M.assocs m
 

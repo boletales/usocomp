@@ -34,15 +34,15 @@ instance Show SLLocalPos where
 prettyPrintSLLocalPos :: SLLocalPos -> Text
 prettyPrintSLLocalPos p =
   case p of
-    SLLPMulti i -> "[" <> (pack . show) i <> "]"
-    SLLPCaseCond i -> ".whenCond_" <> (pack . show) i
-    SLLPCaseBody i -> ".whenBody_" <> (pack . show) i
+    SLLPMulti i -> "[" <> tshow i <> "]"
+    SLLPCaseCond i -> ".whenCond_" <> tshow i
+    SLLPCaseBody i -> ".whenBody_" <> tshow i
     SLLPCaseElseBody -> ".whenElseBody"
     SLLPWhileCond -> ".whileCond"
     SLLPWhileBody -> ".whileBody"
     SLLPWhileFooter -> ".whileFooter"
     SLLPForceReturn -> ".forceReturn"
-    SLLPExpr e -> ".expr " <> (pack . show) e
+    SLLPExpr e -> ".expr " <> tshow e
 
 data SLPos = SLPos {
     slpFuncName :: SLFuncName
@@ -74,4 +74,4 @@ popPos (SLPos f [])     = SLPos f []
 slPosAbbrText :: SLPos -> Text
 slPosAbbrText pos =
   let SLPos f xs = pos
-  in (pack . show) f <> intercalate "" (L.map (pack . show) (L.reverse xs))
+  in tshow f <> intercalate "" (L.map tshow (L.reverse xs))
