@@ -98,7 +98,8 @@ folderToJSON = do
           , ("result", compileToJSON text)
         ] <> "\n"
     else pure Nothing
-  TIO.writeFile "./docs/results.json" $ listToJSON $ Data.Maybe.catMaybes result
+  TIO.writeFile "./docs/examples.js" $
+     "const examples = " <> listToJSON (Data.Maybe.catMaybes result) <> ";\nexport default examples;\n"
 
 compileAll :: IO ()
 compileAll = do

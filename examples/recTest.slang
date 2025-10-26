@@ -22,7 +22,7 @@ function main.fibonacci(int $steps, int $a, int $b) -> int
   else
   {
     // change "return" to "tailcall" and see the difference!
-    return fibonacci($countdown - 1, $fib2, $fib1 + $fib2)
+    tailcall main.fibonacci(($steps - 1), $b, ($a + $b))
   }
 
 }
