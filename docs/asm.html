@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>asm playground</title>
+  <style>
+    .topbox {
+      display: flex;
+      flex-direction: row;
+    }
+    #fileselector {
+      margin-right: auto;
+    }
+    .container {
+      display: flex;
+      flex-direction: row;
+    }
+
+    .code {
+      flex: 1;
+      border: 1px solid #ccc;
+      height: 50vh;
+    }
+
+    .info {
+      flex: 1;
+      border: 1px solid #ccc;
+      height: 40vh;
+    }
+
+    .sourcemap {
+      background-color: #ff880022;
+    }
+    .sourcemap_thin {
+      background-color: #88ff0008;
+    }
+
+    .instexec {
+      background-color: #88ff0022;
+    }
+  </style>
+  <link href="https://unpkg.com/@vscode/codicons/dist/codicon.css" rel="stylesheet">
+</head>
+<body>
+  <div class="topbox">
+  <a href="https://github.com/boletales/usocomp" id="ghlink" >Source Repo</a>
+  </div>
+  <div class="container">
+    <div class="code" id="div_asm">
+    </div>
+  </div>
+  <button id="step">step</button> <button id="run">run</button> <button id="reset">reset</button> <input type="range" id="speed" min="1" max="11" value="2">
+
+  <div id="machine" class="container">
+    <div class="info" id="machine_info">
+    </div>
+  </div>
+  <script type="module">
+    import {editor} from './editor_asm.js';
+    import Machine from './machine.js';
+
+    const runbutton = document.getElementById('run');
+    const stepbutton = document.getElementById('step');
+    const resetbutton = document.getElementById('reset');
+    const speedinput = document.getElementById('speed');
+    const machineinfo = document.getElementById('machine_info');
+
+    /*
+    editor.onedit = ()=>{
+      runbutton.disabled = true;
+      stepbutton.disabled = true;
+      resetbutton.disabled = true;
+    };
+    */
+
+    let machine;
+
+    function step(){
+      resetbutton.disabled = false;
+      if(machine){
+        let result = machine.step();
+        editor.focusAsm(result.lastinst);
+        if(result.error){
+          editor.setInfo(
+            machine.pretty().pretty
+          );
+          reset();
+          return result;
+        }else{
+          editor.setInfo(
+            result.pretty
+          );
+        }
+        return result;
+      }else{
+        if(!editor.editing){
+          initMacine();
+          return step();
+        }else{
+          return {};
+        }
+      }
+    }
+
+    function initMacine(){
+      if(!editor.editing){
+        machine = new Machine(editor.editor_asm.getModel().getValue());
+      }
+    }
+
+    function reset(){
+      if(!editor.editing){
+        machine = new Machine(editor.editor_asm.getModel().getValue());
+      }
+      stop();
+    }
+
+    function stop(){
+      runbutton.textContent = 'run';
+      clearTimeout(handle);
+      handle = null;
+    }
+
+    let handle;
+    function run(){
+      if(machine){
+        clearTimeout(handle);
+        let result = step();
+        if(!result.error){
+          handle = setTimeout(run, speedinput.value == 11 ? 0 : 1000/speedinput.value);
+        }
+      }else{
+        initMacine();
+        run();
+      }
+    }
+
+    function onrun(){
+      if(handle){
+        stop();
+      }else{
+        runbutton.textContent = 'stop';
+        run();
+      }
+    }
+
+    runbutton.addEventListener('click', onrun);
+    stepbutton.addEventListener('click', step);
+    resetbutton.addEventListener('click', ()=>{
+      reset();
+      stepbutton.disabled = false;
+      runbutton.disabled = false;
+      resetbutton.disabled = true;
+    });
+
+      
+    const fileselector = document.getElementById('fileselector');
+    results.forEach(r => {
+      const option = document.createElement('option');
+      option.value = r.name;
+      option.text = r.name;
+      fileselector.appendChild(option);
+    });
+
+    fileselector.addEventListener('change', (event) => {
+      const selected = results.find(r => r.name === event.target.value);
+      editor.loadResultJSON(selected.result);
+    });
+
+
+    fileselector.value = "recTest.slang";
+    fileselector.dispatchEvent(new Event('change'));
+
+  </script>
+</body>
+</html>
