@@ -8,6 +8,7 @@
 
 module SimpleLang.Tools.Manual (
     slmNewVar
+  , slmNewNamedVar
   , slmStmt
   , slmBlk
   , slmWhile
@@ -69,10 +70,17 @@ type (!-->) args ret = 'SLTFuncPtr args ret
 slmNewVar :: forall t r. KnownType t => TypedSLExp t -> SLManualBlockM r (SLMVar t)
 slmNewVar exp = do
   SLMState cnt blocks <- get
-  let newVarId = tshow $ cnt
   put (SLMState (cnt + (tslTypeVal >>> sltSizeOf) (Proxy :: Proxy t)) blocks)
-  slmStmt (TSLSInitVar newVarId exp)
-  pure (SLMVar newVarId)
+  let varname = tshow $ cnt
+  slmStmt (TSLSInitVar varname exp)
+  pure (SLMVar varname)
+
+slmNewNamedVar :: forall t r. KnownType t => Text -> TypedSLExp t -> SLManualBlockM r (SLMVar t)
+slmNewNamedVar varname exp = do
+  SLMState cnt blocks <- get
+  put (SLMState (cnt + (tslTypeVal >>> sltSizeOf) (Proxy :: Proxy t)) blocks)
+  slmStmt (TSLSInitVar varname exp)
+  pure (SLMVar varname)
 
 slmStmt :: TypedSLStatement -> SLManualBlockM r ()
 slmStmt stmt = do

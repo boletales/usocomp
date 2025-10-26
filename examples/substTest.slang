@@ -1,9 +1,9 @@
 function main() -> int
 {
-  int $0 = 100
-  int $1 = 200
-  int $2 = 300
-  int $3 = 400
-  $2 = 10000
-  return ((($0 + $1) + $2) + $3)
+  int $i = 100
+  int $j = 200
+  int $k = 300
+  int $l = 400
+  $k = 10000
+  return ((($i + $j) + $k) + $l)
 }

@@ -39,37 +39,37 @@ load  r2 r1                             #main[4]
 addi  r1 r1 -1                          #main[4]
 addi  r3 r0 3                           #main[4]
 store r2 r3                             #main[4]
-addi  r1 r1 1                           #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr ($0 + $1).expr $0
-addi  r2 r0 1                           #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr ($0 + $1).expr $0
-load  r2 r2                             #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr ($0 + $1).expr $0
-store r2 r1                             #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr ($0 + $1).expr $0
-addi  r1 r1 1                           #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr ($0 + $1).expr $1
-addi  r2 r0 2                           #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr ($0 + $1).expr $1
-load  r2 r2                             #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr ($0 + $1).expr $1
-store r2 r1                             #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr ($0 + $1).expr $1
-load  r3 r1                             #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr ($0 + $1)
-addi  r1 r1 -1                          #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr ($0 + $1)
-load  r2 r1                             #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr ($0 + $1)
-add   r2 r2 r3                          #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr ($0 + $1)
-store r2 r1                             #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr ($0 + $1)
-addi  r1 r1 1                           #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr $2
-addi  r2 r0 3                           #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr $2
-load  r2 r2                             #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr $2
-store r2 r1                             #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2).expr $2
-load  r3 r1                             #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2)
-addi  r1 r1 -1                          #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2)
-load  r2 r1                             #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2)
-add   r2 r2 r3                          #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2)
-store r2 r1                             #main[5].expr ((($0 + $1) + $2) + $3).expr (($0 + $1) + $2)
-addi  r1 r1 1                           #main[5].expr ((($0 + $1) + $2) + $3).expr $3
-addi  r2 r0 4                           #main[5].expr ((($0 + $1) + $2) + $3).expr $3
-load  r2 r2                             #main[5].expr ((($0 + $1) + $2) + $3).expr $3
-store r2 r1                             #main[5].expr ((($0 + $1) + $2) + $3).expr $3
-load  r3 r1                             #main[5].expr ((($0 + $1) + $2) + $3)
-addi  r1 r1 -1                          #main[5].expr ((($0 + $1) + $2) + $3)
-load  r2 r1                             #main[5].expr ((($0 + $1) + $2) + $3)
-add   r2 r2 r3                          #main[5].expr ((($0 + $1) + $2) + $3)
-store r2 r1                             #main[5].expr ((($0 + $1) + $2) + $3)
+addi  r1 r1 1                           #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr ($i + $j).expr $i
+addi  r2 r0 1                           #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr ($i + $j).expr $i
+load  r2 r2                             #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr ($i + $j).expr $i
+store r2 r1                             #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr ($i + $j).expr $i
+addi  r1 r1 1                           #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr ($i + $j).expr $j
+addi  r2 r0 2                           #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr ($i + $j).expr $j
+load  r2 r2                             #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr ($i + $j).expr $j
+store r2 r1                             #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr ($i + $j).expr $j
+load  r3 r1                             #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr ($i + $j)
+addi  r1 r1 -1                          #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr ($i + $j)
+load  r2 r1                             #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr ($i + $j)
+add   r2 r2 r3                          #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr ($i + $j)
+store r2 r1                             #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr ($i + $j)
+addi  r1 r1 1                           #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr $k
+addi  r2 r0 3                           #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr $k
+load  r2 r2                             #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr $k
+store r2 r1                             #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k).expr $k
+load  r3 r1                             #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k)
+addi  r1 r1 -1                          #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k)
+load  r2 r1                             #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k)
+add   r2 r2 r3                          #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k)
+store r2 r1                             #main[5].expr ((($i + $j) + $k) + $l).expr (($i + $j) + $k)
+addi  r1 r1 1                           #main[5].expr ((($i + $j) + $k) + $l).expr $l
+addi  r2 r0 4                           #main[5].expr ((($i + $j) + $k) + $l).expr $l
+load  r2 r2                             #main[5].expr ((($i + $j) + $k) + $l).expr $l
+store r2 r1                             #main[5].expr ((($i + $j) + $k) + $l).expr $l
+load  r3 r1                             #main[5].expr ((($i + $j) + $k) + $l)
+addi  r1 r1 -1                          #main[5].expr ((($i + $j) + $k) + $l)
+load  r2 r1                             #main[5].expr ((($i + $j) + $k) + $l)
+add   r2 r2 r3                          #main[5].expr ((($i + $j) + $k) + $l)
+store r2 r1                             #main[5].expr ((($i + $j) + $k) + $l)
 addi  r3 r0 -1                          #main[5]
 load  r3 r3                             #main[5]
 load  r2 r1                             #main[5]

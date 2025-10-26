@@ -69,6 +69,13 @@ main' opts filename = do
 except :: MonadError e m => Either e a -> m a
 except = either throwError pure
 
+-- mlctTests から examples/*.slang を生成し、docs/results.json を更新する
+updateExamples :: IO ()
+updateExamples = do
+  genExampleFiles
+  folderToJSON
+  compileAll
+
 
 genExampleFiles :: IO ()
 genExampleFiles =
@@ -113,13 +120,13 @@ tailRecTest =
   runSLMFuncsM $ do
     let fibonacci = slmVirtualFunc (SLUserFunc "main" "fibonacci") :: '[SLTInt, SLTInt, SLTInt] --> SLTInt
 
-    _ :: '[] --> SLTInt <- slmFunc SLFuncMain (do
+    _ :: '[] --> SLTInt <- slmFunc SLFuncMain [] (do
         x <- slmNewVar $ _app fibonacci (_const 20) (_const 0) (_const 1)
         slmReturn (_local x)
         pure ()
       )
 
-    slmSetRealFunc fibonacci (\steps a b -> slmFundef $ do
+    slmSetRealFunc fibonacci ["steps", "a", "b"] (\steps a b -> slmFundef $ do
         slmCase (V.fromList [
             ( steps `_eq` _const 0, do
                 slmReturn b
@@ -160,11 +167,11 @@ function #main.fibonacci ($A0, $A1, $A2, $A3)
 substTest :: SLProgram
 substTest =
   runSLMFuncsM $ do
-    _ :: '[] --> SLTInt <- slmFunc SLFuncMain (do
-          i <- slmNewVar (_const 100)
-          j <- slmNewVar (_const 200)
-          k <- slmNewVar (_const 300)
-          l <- slmNewVar (_const 400)
+    _ :: '[] --> SLTInt <- slmFunc SLFuncMain [] (do
+          i <- slmNewNamedVar "i" (_const 100)
+          j <- slmNewNamedVar "j" (_const 200)
+          k <- slmNewNamedVar "k" (_const 300)
+          l <- slmNewNamedVar "l" (_const 400)
           _reflocal k <<- _const 10000
           pure ()
         )

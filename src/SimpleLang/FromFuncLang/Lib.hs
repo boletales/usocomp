@@ -94,7 +94,7 @@ instance FLPrim (FLTInt ->> FLTInt ->> FLTInt) FLPrimII2I where
   flPrim p = FLEVar @Text @(FLTInt ->> FLTInt ->> FLTInt) (FLVar (flpname p))
   
   flptoSL p = 
-    hsFuncToSLFuncBlock @'[SLTInt, SLTInt] @SLTInt (SLUserFunc "LibFLC" (flpname p)) $ \x1 x2 -> 
+    hsFuncToSLFuncBlock @'[SLTInt, SLTInt] @SLTInt (SLUserFunc "LibFLC" (flpname p)) [] $ \x1 x2 -> 
       slmReturn $
         (
           case p of

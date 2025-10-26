@@ -9,19 +9,20 @@ Reset   : reset execution
 
 function main() -> int
 {
-  int $result = fibonacci(20, 0, 1)
-  return $result
+  int $fib20 = main.fibonacci(20, 0, 1)
+  return $fib20
 }
 
-function fibonacci(int $countdown, int $fib1, int $fib2) -> int
+function main.fibonacci(int $steps, int $a, int $b) -> int
 {
-  when ($countdown == 0)
+  if ($steps == 0)
   {
-    return $fib2
+    return $b
   }
   else
   {
     // change "return" to "tailcall" and see the difference!
     return fibonacci($countdown - 1, $fib2, $fib1 + $fib2)
   }
+
 }

@@ -71,82 +71,82 @@ const r3 -1000000000                    #main.loop
 store r3 r2                             #main.loop
 const r3 163                            #main.loop
 jump  r3                                #main.loop
-addi  r1 r1 1                           #main.loop[0].whenCond_0.expr ($cnt < 10000).expr $cnt
-addi  r2 r0 -1                          #main.loop[0].whenCond_0.expr ($cnt < 10000).expr $cnt
-load  r2 r2                             #main.loop[0].whenCond_0.expr ($cnt < 10000).expr $cnt
-addi  r2 r2 1                           #main.loop[0].whenCond_0.expr ($cnt < 10000).expr $cnt
-load  r2 r2                             #main.loop[0].whenCond_0.expr ($cnt < 10000).expr $cnt
-store r2 r1                             #main.loop[0].whenCond_0.expr ($cnt < 10000).expr $cnt
-addi  r1 r1 1                           #main.loop[0].whenCond_0.expr ($cnt < 10000).expr 10000
-const r2 10000                          #main.loop[0].whenCond_0.expr ($cnt < 10000).expr 10000
-store r2 r1                             #main.loop[0].whenCond_0.expr ($cnt < 10000).expr 10000
-load  r3 r1                             #main.loop[0].whenCond_0.expr ($cnt < 10000)
-addi  r1 r1 -1                          #main.loop[0].whenCond_0.expr ($cnt < 10000)
-load  r2 r1                             #main.loop[0].whenCond_0.expr ($cnt < 10000)
-lt    r2 r2 r3                          #main.loop[0].whenCond_0.expr ($cnt < 10000)
-store r2 r1                             #main.loop[0].whenCond_0.expr ($cnt < 10000)
-load  r3 r1                             #main.loop[0].whenCond_0
-addi  r1 r1 -1                          #main.loop[0].whenCond_0
-addi  r2 pc 41                          #main.loop[0].whenCond_0
-jz    r2 r3                             #main.loop[0].whenCond_0
-addi  r1 r1 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
-addi  r1 r1 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
-addi  r2 r0 -1                          #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
-load  r2 r2                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
-addi  r2 r2 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
-load  r2 r2                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
-store r2 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
-addi  r1 r1 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr 1
-const r2 1                              #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr 1
-store r2 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr 1
-load  r3 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
-addi  r1 r1 -1                          #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
-load  r2 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
-add   r2 r2 r3                          #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
-store r2 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
-const r3 63                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
-addi  r1 r1 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
-addi  r2 pc 8                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
-store r2 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
-addi  r1 r1 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
-addi  r2 r1 -3                          #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
-store r2 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
-addi  r1 r1 1                           #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
-store r0 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
-copy  r0 r1                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
-copy  pc r3                             #main.loop[0].whenBody_0[0].expr main.loop(($cnt + 1))
-addi  r3 r0 -1                          #main.loop[0].whenBody_0[0]
-load  r3 r3                             #main.loop[0].whenBody_0[0]
-load  r2 r1                             #main.loop[0].whenBody_0[0]
-store r2 r3                             #main.loop[0].whenBody_0[0]
-addi  r1 r1 -1                          #main.loop[0].whenBody_0[0]
-addi  r3 r3 -1                          #main.loop[0].whenBody_0[0]
-copy  r2 r0                             #main.loop[0].whenBody_0[0]
-load  r0 r0                             #main.loop[0].whenBody_0[0]
-addi  r2 r2 -1                          #main.loop[0].whenBody_0[0]
-load  r1 r2                             #main.loop[0].whenBody_0[0]
-addi  r2 r2 -1                          #main.loop[0].whenBody_0[0]
-load  pc r2                             #main.loop[0].whenBody_0[0]
-addi  r2 pc 19                          #main.loop[0].whenBody_0
-jump  r2                                #main.loop[0].whenBody_0
-addi  r1 r1 1                           #main.loop[0].whenElseBody[0].expr $cnt
-addi  r2 r0 -1                          #main.loop[0].whenElseBody[0].expr $cnt
-load  r2 r2                             #main.loop[0].whenElseBody[0].expr $cnt
-addi  r2 r2 1                           #main.loop[0].whenElseBody[0].expr $cnt
-load  r2 r2                             #main.loop[0].whenElseBody[0].expr $cnt
-store r2 r1                             #main.loop[0].whenElseBody[0].expr $cnt
-addi  r3 r0 -1                          #main.loop[0].whenElseBody[0]
-load  r3 r3                             #main.loop[0].whenElseBody[0]
-load  r2 r1                             #main.loop[0].whenElseBody[0]
-store r2 r3                             #main.loop[0].whenElseBody[0]
-addi  r1 r1 -1                          #main.loop[0].whenElseBody[0]
-addi  r3 r3 -1                          #main.loop[0].whenElseBody[0]
-copy  r2 r0                             #main.loop[0].whenElseBody[0]
-load  r0 r0                             #main.loop[0].whenElseBody[0]
-addi  r2 r2 -1                          #main.loop[0].whenElseBody[0]
-load  r1 r2                             #main.loop[0].whenElseBody[0]
-addi  r2 r2 -1                          #main.loop[0].whenElseBody[0]
-load  pc r2                             #main.loop[0].whenElseBody[0]
+addi  r1 r1 1                           #main.loop[0].ifCond_0.expr ($cnt < 10000).expr $cnt
+addi  r2 r0 -1                          #main.loop[0].ifCond_0.expr ($cnt < 10000).expr $cnt
+load  r2 r2                             #main.loop[0].ifCond_0.expr ($cnt < 10000).expr $cnt
+addi  r2 r2 1                           #main.loop[0].ifCond_0.expr ($cnt < 10000).expr $cnt
+load  r2 r2                             #main.loop[0].ifCond_0.expr ($cnt < 10000).expr $cnt
+store r2 r1                             #main.loop[0].ifCond_0.expr ($cnt < 10000).expr $cnt
+addi  r1 r1 1                           #main.loop[0].ifCond_0.expr ($cnt < 10000).expr 10000
+const r2 10000                          #main.loop[0].ifCond_0.expr ($cnt < 10000).expr 10000
+store r2 r1                             #main.loop[0].ifCond_0.expr ($cnt < 10000).expr 10000
+load  r3 r1                             #main.loop[0].ifCond_0.expr ($cnt < 10000)
+addi  r1 r1 -1                          #main.loop[0].ifCond_0.expr ($cnt < 10000)
+load  r2 r1                             #main.loop[0].ifCond_0.expr ($cnt < 10000)
+lt    r2 r2 r3                          #main.loop[0].ifCond_0.expr ($cnt < 10000)
+store r2 r1                             #main.loop[0].ifCond_0.expr ($cnt < 10000)
+load  r3 r1                             #main.loop[0].ifCond_0
+addi  r1 r1 -1                          #main.loop[0].ifCond_0
+addi  r2 pc 41                          #main.loop[0].ifCond_0
+jz    r2 r3                             #main.loop[0].ifCond_0
+addi  r1 r1 1                           #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1))
+addi  r1 r1 1                           #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
+addi  r2 r0 -1                          #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
+load  r2 r2                             #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
+addi  r2 r2 1                           #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
+load  r2 r2                             #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
+store r2 r1                             #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr $cnt
+addi  r1 r1 1                           #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr 1
+const r2 1                              #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr 1
+store r2 r1                             #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1).expr 1
+load  r3 r1                             #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
+addi  r1 r1 -1                          #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
+load  r2 r1                             #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
+add   r2 r2 r3                          #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
+store r2 r1                             #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1)).expr (($cnt + 1)).expr ($cnt + 1)
+const r3 63                             #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1))
+addi  r1 r1 1                           #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1))
+addi  r2 pc 8                           #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1))
+store r2 r1                             #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1))
+addi  r1 r1 1                           #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1))
+addi  r2 r1 -3                          #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1))
+store r2 r1                             #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1))
+addi  r1 r1 1                           #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1))
+store r0 r1                             #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1))
+copy  r0 r1                             #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1))
+copy  pc r3                             #main.loop[0].ifBody_0[0].expr main.loop(($cnt + 1))
+addi  r3 r0 -1                          #main.loop[0].ifBody_0[0]
+load  r3 r3                             #main.loop[0].ifBody_0[0]
+load  r2 r1                             #main.loop[0].ifBody_0[0]
+store r2 r3                             #main.loop[0].ifBody_0[0]
+addi  r1 r1 -1                          #main.loop[0].ifBody_0[0]
+addi  r3 r3 -1                          #main.loop[0].ifBody_0[0]
+copy  r2 r0                             #main.loop[0].ifBody_0[0]
+load  r0 r0                             #main.loop[0].ifBody_0[0]
+addi  r2 r2 -1                          #main.loop[0].ifBody_0[0]
+load  r1 r2                             #main.loop[0].ifBody_0[0]
+addi  r2 r2 -1                          #main.loop[0].ifBody_0[0]
+load  pc r2                             #main.loop[0].ifBody_0[0]
+addi  r2 pc 19                          #main.loop[0].ifBody_0
+jump  r2                                #main.loop[0].ifBody_0
+addi  r1 r1 1                           #main.loop[0].ifElseBody[0].expr $cnt
+addi  r2 r0 -1                          #main.loop[0].ifElseBody[0].expr $cnt
+load  r2 r2                             #main.loop[0].ifElseBody[0].expr $cnt
+addi  r2 r2 1                           #main.loop[0].ifElseBody[0].expr $cnt
+load  r2 r2                             #main.loop[0].ifElseBody[0].expr $cnt
+store r2 r1                             #main.loop[0].ifElseBody[0].expr $cnt
+addi  r3 r0 -1                          #main.loop[0].ifElseBody[0]
+load  r3 r3                             #main.loop[0].ifElseBody[0]
+load  r2 r1                             #main.loop[0].ifElseBody[0]
+store r2 r3                             #main.loop[0].ifElseBody[0]
+addi  r1 r1 -1                          #main.loop[0].ifElseBody[0]
+addi  r3 r3 -1                          #main.loop[0].ifElseBody[0]
+copy  r2 r0                             #main.loop[0].ifElseBody[0]
+load  r0 r0                             #main.loop[0].ifElseBody[0]
+addi  r2 r2 -1                          #main.loop[0].ifElseBody[0]
+load  r1 r2                             #main.loop[0].ifElseBody[0]
+addi  r2 r2 -1                          #main.loop[0].ifElseBody[0]
+load  pc r2                             #main.loop[0].ifElseBody[0]
 addi  r1 r1 1                           #main.loop.forceReturn.expr 0
 const r2 0                              #main.loop.forceReturn.expr 0
 store r2 r1                             #main.loop.forceReturn.expr 0

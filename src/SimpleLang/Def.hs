@@ -490,7 +490,7 @@ prettyPrintSLBlock indent block =
 
       SLBCase cases elseBlock ->
             ((\(exp, body) ->
-                V.singleton (indentText <> "when " <> prettyPrintSLExp exp ) <>
+                V.singleton (indentText <> "if " <> prettyPrintSLExp exp ) <>
                 prettyPrintSLBlock indent body
               ) =<< cases)
         <>  (   V.singleton (indentText <> "else") <>

@@ -19,7 +19,7 @@
 		"keywords": {
 			"patterns": [{
 				"name": "keyword.control.simplelang",
-				"match": "\\b(when|else|tailcall|while|return|function)\\b"
+				"match": "\\b(if|else|tailcall|while|return|function)\\b"
 			},
 			{
 				"name": "keyword.types.simplelang",

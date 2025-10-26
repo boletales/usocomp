@@ -2,7 +2,11 @@
   "name": "usocomp-machinelang-highlighting",
   "displayName": "usocomp MachineLang Highlighting",
   "description": "syntax support for MachineLang of boletales/usocomp",
-  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/boletales/usocomp"
+  },
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.85.0"
   },

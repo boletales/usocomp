@@ -35,9 +35,9 @@ prettyPrintSLLocalPos :: SLLocalPos -> Text
 prettyPrintSLLocalPos p =
   case p of
     SLLPMulti i -> "[" <> tshow i <> "]"
-    SLLPCaseCond i -> ".whenCond_" <> tshow i
-    SLLPCaseBody i -> ".whenBody_" <> tshow i
-    SLLPCaseElseBody -> ".whenElseBody"
+    SLLPCaseCond i -> ".ifCond_" <> tshow i
+    SLLPCaseBody i -> ".ifBody_" <> tshow i
+    SLLPCaseElseBody -> ".ifElseBody"
     SLLPWhileCond -> ".whileCond"
     SLLPWhileBody -> ".whileBody"
     SLLPWhileFooter -> ".whileFooter"
@@ -57,7 +57,6 @@ rootsSLPos (SLPos f xs) =
   SLPos f <$> L.tails xs
 
 -- >>> rootsSLPos (SLPos SLFuncMain [SLLPMulti 1, SLLPCaseCond 2, SLLPCaseBody 3])
--- [main.whenBody_3.whenCond_2[1],main.whenBody_3.whenCond_2,main.whenBody_3,main]
 
 prettyPrintSLPos :: SLPos -> Text
 prettyPrintSLPos pos =

@@ -1,10 +1,10 @@
 function main() -> int
 {
-  int $0 = 1
-  while ($0 < 1000)
+  int $i = 1
+  while ($i < 1000)
   {
-    $0 = ($0 + $0)
+    $i = ($i + $i)
   }
 
-  return $0
+  return $i
 }

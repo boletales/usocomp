@@ -1,17 +1,18 @@
 function main() -> int
 {
-  int $0 = main.fibonacci(20, 0, 1)
-  return $0
+  int $fib20 = main.fibonacci(20, 0, 1)
+  return $fib20
 }
 
-function main.fibonacci(int $A0, int $A1, int $A2) -> int
+function main.fibonacci(int $steps, int $a, int $b) -> int
 {
-  when ($A0 == 0)
+  if ($steps == 0)
   {
-    return $A2
+    return $b
   }
   else
   {
-    tailcall main.fibonacci(($A0 - 1), $A2, ($A1 + $A2))
+    tailcall main.fibonacci(($steps - 1), $b, ($a + $b))
   }
+
 }

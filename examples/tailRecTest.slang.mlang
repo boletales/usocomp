@@ -1,7 +1,7 @@
 
 nop                                     #main
 const r1 1                              #main
-const r2 214                            #main
+const r2 190                            #main
 store r2 r1                             #main
 addi  r1 r1 1                           #main
 const r2 0                              #main
@@ -18,7 +18,7 @@ jnz   r3 r2                             #main
 const r2 0                              #main
 const r3 -1000000000                    #main
 store r3 r2                             #main
-const r3 214                            #main
+const r3 190                            #main
 jump  r3                                #main
 addi  r1 r1 1                           #main[0].expr main.fibonacci(20, 0, 1)
 addi  r1 r1 1                           #main[0].expr main.fibonacci(20, 0, 1).expr (20, 0, 1).expr 20
@@ -41,10 +41,10 @@ addi  r1 r1 1                           #main[0].expr main.fibonacci(20, 0, 1)
 store r0 r1                             #main[0].expr main.fibonacci(20, 0, 1)
 copy  r0 r1                             #main[0].expr main.fibonacci(20, 0, 1)
 copy  pc r3                             #main[0].expr main.fibonacci(20, 0, 1)
-addi  r1 r1 1                           #main[1].expr $0
-addi  r2 r0 1                           #main[1].expr $0
-load  r2 r2                             #main[1].expr $0
-store r2 r1                             #main[1].expr $0
+addi  r1 r1 1                           #main[1].expr $fib20
+addi  r2 r0 1                           #main[1].expr $fib20
+load  r2 r2                             #main[1].expr $fib20
+store r2 r1                             #main[1].expr $fib20
 addi  r3 r0 -1                          #main[1]
 load  r3 r3                             #main[1]
 load  r2 r1                             #main[1]
@@ -80,124 +80,100 @@ jnz   r3 r2                             #main.fibonacci
 const r2 0                              #main.fibonacci
 const r3 -1000000000                    #main.fibonacci
 store r3 r2                             #main.fibonacci
-const r3 214                            #main.fibonacci
+const r3 190                            #main.fibonacci
 jump  r3                                #main.fibonacci
-addi  r1 r1 1                           #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
-addi  r2 r0 -1                          #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
-load  r2 r2                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
-addi  r2 r2 1                           #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
-load  r2 r2                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
-store r2 r1                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr $A0
-addi  r1 r1 1                           #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr 0
-const r2 0                              #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr 0
-store r2 r1                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0).expr 0
-load  r3 r1                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0)
-addi  r1 r1 -1                          #main.fibonacci[0].whenCond_0.expr ($A0 == 0)
-load  r2 r1                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0)
-eq    r2 r2 r3                          #main.fibonacci[0].whenCond_0.expr ($A0 == 0)
-store r2 r1                             #main.fibonacci[0].whenCond_0.expr ($A0 == 0)
-load  r3 r1                             #main.fibonacci[0].whenCond_0
-addi  r1 r1 -1                          #main.fibonacci[0].whenCond_0
-addi  r2 pc 21                          #main.fibonacci[0].whenCond_0
-jz    r2 r3                             #main.fibonacci[0].whenCond_0
-addi  r1 r1 1                           #main.fibonacci[0].whenBody_0[0].expr $A2
-addi  r2 r0 -1                          #main.fibonacci[0].whenBody_0[0].expr $A2
-load  r2 r2                             #main.fibonacci[0].whenBody_0[0].expr $A2
-addi  r2 r2 3                           #main.fibonacci[0].whenBody_0[0].expr $A2
-load  r2 r2                             #main.fibonacci[0].whenBody_0[0].expr $A2
-store r2 r1                             #main.fibonacci[0].whenBody_0[0].expr $A2
-addi  r3 r0 -1                          #main.fibonacci[0].whenBody_0[0]
-load  r3 r3                             #main.fibonacci[0].whenBody_0[0]
-load  r2 r1                             #main.fibonacci[0].whenBody_0[0]
-store r2 r3                             #main.fibonacci[0].whenBody_0[0]
-addi  r1 r1 -1                          #main.fibonacci[0].whenBody_0[0]
-addi  r3 r3 -1                          #main.fibonacci[0].whenBody_0[0]
-copy  r2 r0                             #main.fibonacci[0].whenBody_0[0]
-load  r0 r0                             #main.fibonacci[0].whenBody_0[0]
-addi  r2 r2 -1                          #main.fibonacci[0].whenBody_0[0]
-load  r1 r2                             #main.fibonacci[0].whenBody_0[0]
-addi  r2 r2 -1                          #main.fibonacci[0].whenBody_0[0]
-load  pc r2                             #main.fibonacci[0].whenBody_0[0]
-addi  r2 pc 79                          #main.fibonacci[0].whenBody_0
-jump  r2                                #main.fibonacci[0].whenBody_0
-addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
-addi  r2 r0 -1                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
-load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
-addi  r2 r2 1                           #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
-load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
-store r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr $A0
-addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr 1
-const r2 1                              #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr 1
-store r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1).expr 1
-load  r3 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1)
-addi  r1 r1 -1                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1)
-load  r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1)
-sub   r2 r2 r3                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1)
-store r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A0 - 1)
-addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
-addi  r2 r0 -1                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
-load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
-addi  r2 r2 3                           #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
-load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
-store r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr $A2
-addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
-addi  r2 r0 -1                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
-load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
-addi  r2 r2 2                           #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
-load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
-store r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A1
-addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
-addi  r2 r0 -1                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
-load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
-addi  r2 r2 3                           #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
-load  r2 r2                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
-store r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2).expr $A2
-load  r3 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
-addi  r1 r1 -1                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
-load  r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
-add   r2 r2 r3                          #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
-store r2 r1                             #main.fibonacci[0].whenElseBody[0].expr (($A0 - 1), $A2, ($A1 + $A2)).expr ($A1 + $A2)
-const r4 74                             #main.fibonacci[0].whenElseBody[0]
-addi  r2 r0 -2                          #main.fibonacci[0].whenElseBody[0]
-addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0]
-load  r3 r2                             #main.fibonacci[0].whenElseBody[0]
-store r3 r1                             #main.fibonacci[0].whenElseBody[0]
-addi  r2 r2 1                           #main.fibonacci[0].whenElseBody[0]
-addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0]
-load  r3 r2                             #main.fibonacci[0].whenElseBody[0]
-store r3 r1                             #main.fibonacci[0].whenElseBody[0]
-addi  r2 r2 1                           #main.fibonacci[0].whenElseBody[0]
-addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0]
-load  r3 r2                             #main.fibonacci[0].whenElseBody[0]
-store r3 r1                             #main.fibonacci[0].whenElseBody[0]
-addi  r2 r1 -5                          #main.fibonacci[0].whenElseBody[0]
-addi  r3 r1 -1                          #main.fibonacci[0].whenElseBody[0]
-load  r1 r3                             #main.fibonacci[0].whenElseBody[0]
-addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0]
-addi  r0 r1 5                           #main.fibonacci[0].whenElseBody[0]
-load  r3 r2                             #main.fibonacci[0].whenElseBody[0]
-store r3 r1                             #main.fibonacci[0].whenElseBody[0]
-addi  r2 r2 1                           #main.fibonacci[0].whenElseBody[0]
-addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0]
-load  r3 r2                             #main.fibonacci[0].whenElseBody[0]
-store r3 r1                             #main.fibonacci[0].whenElseBody[0]
-addi  r2 r2 1                           #main.fibonacci[0].whenElseBody[0]
-addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0]
-load  r3 r2                             #main.fibonacci[0].whenElseBody[0]
-store r3 r1                             #main.fibonacci[0].whenElseBody[0]
-addi  r2 r2 1                           #main.fibonacci[0].whenElseBody[0]
-addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0]
-load  r3 r2                             #main.fibonacci[0].whenElseBody[0]
-store r3 r1                             #main.fibonacci[0].whenElseBody[0]
-addi  r2 r2 1                           #main.fibonacci[0].whenElseBody[0]
-addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0]
-load  r3 r2                             #main.fibonacci[0].whenElseBody[0]
-store r3 r1                             #main.fibonacci[0].whenElseBody[0]
-addi  r2 r2 1                           #main.fibonacci[0].whenElseBody[0]
-addi  r1 r1 1                           #main.fibonacci[0].whenElseBody[0]
-load  r3 r2                             #main.fibonacci[0].whenElseBody[0]
-store r3 r1                             #main.fibonacci[0].whenElseBody[0]
-copy  pc r4                             #main.fibonacci[0].whenElseBody[0]
+addi  r1 r1 1                           #main.fibonacci[0].ifCond_0.expr ($steps == 0).expr $steps
+addi  r2 r0 -1                          #main.fibonacci[0].ifCond_0.expr ($steps == 0).expr $steps
+load  r2 r2                             #main.fibonacci[0].ifCond_0.expr ($steps == 0).expr $steps
+addi  r2 r2 1                           #main.fibonacci[0].ifCond_0.expr ($steps == 0).expr $steps
+load  r2 r2                             #main.fibonacci[0].ifCond_0.expr ($steps == 0).expr $steps
+store r2 r1                             #main.fibonacci[0].ifCond_0.expr ($steps == 0).expr $steps
+addi  r1 r1 1                           #main.fibonacci[0].ifCond_0.expr ($steps == 0).expr 0
+const r2 0                              #main.fibonacci[0].ifCond_0.expr ($steps == 0).expr 0
+store r2 r1                             #main.fibonacci[0].ifCond_0.expr ($steps == 0).expr 0
+load  r3 r1                             #main.fibonacci[0].ifCond_0.expr ($steps == 0)
+addi  r1 r1 -1                          #main.fibonacci[0].ifCond_0.expr ($steps == 0)
+load  r2 r1                             #main.fibonacci[0].ifCond_0.expr ($steps == 0)
+eq    r2 r2 r3                          #main.fibonacci[0].ifCond_0.expr ($steps == 0)
+store r2 r1                             #main.fibonacci[0].ifCond_0.expr ($steps == 0)
+load  r3 r1                             #main.fibonacci[0].ifCond_0
+addi  r1 r1 -1                          #main.fibonacci[0].ifCond_0
+addi  r2 pc 21                          #main.fibonacci[0].ifCond_0
+jz    r2 r3                             #main.fibonacci[0].ifCond_0
+addi  r1 r1 1                           #main.fibonacci[0].ifBody_0[0].expr $b
+addi  r2 r0 -1                          #main.fibonacci[0].ifBody_0[0].expr $b
+load  r2 r2                             #main.fibonacci[0].ifBody_0[0].expr $b
+addi  r2 r2 3                           #main.fibonacci[0].ifBody_0[0].expr $b
+load  r2 r2                             #main.fibonacci[0].ifBody_0[0].expr $b
+store r2 r1                             #main.fibonacci[0].ifBody_0[0].expr $b
+addi  r3 r0 -1                          #main.fibonacci[0].ifBody_0[0]
+load  r3 r3                             #main.fibonacci[0].ifBody_0[0]
+load  r2 r1                             #main.fibonacci[0].ifBody_0[0]
+store r2 r3                             #main.fibonacci[0].ifBody_0[0]
+addi  r1 r1 -1                          #main.fibonacci[0].ifBody_0[0]
+addi  r3 r3 -1                          #main.fibonacci[0].ifBody_0[0]
+copy  r2 r0                             #main.fibonacci[0].ifBody_0[0]
+load  r0 r0                             #main.fibonacci[0].ifBody_0[0]
+addi  r2 r2 -1                          #main.fibonacci[0].ifBody_0[0]
+load  r1 r2                             #main.fibonacci[0].ifBody_0[0]
+addi  r2 r2 -1                          #main.fibonacci[0].ifBody_0[0]
+load  pc r2                             #main.fibonacci[0].ifBody_0[0]
+addi  r2 pc 55                          #main.fibonacci[0].ifBody_0
+jump  r2                                #main.fibonacci[0].ifBody_0
+addi  r1 r1 1                           #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($steps - 1).expr $steps
+addi  r2 r0 -1                          #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($steps - 1).expr $steps
+load  r2 r2                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($steps - 1).expr $steps
+addi  r2 r2 1                           #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($steps - 1).expr $steps
+load  r2 r2                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($steps - 1).expr $steps
+store r2 r1                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($steps - 1).expr $steps
+addi  r1 r1 1                           #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($steps - 1).expr 1
+const r2 1                              #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($steps - 1).expr 1
+store r2 r1                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($steps - 1).expr 1
+load  r3 r1                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($steps - 1)
+addi  r1 r1 -1                          #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($steps - 1)
+load  r2 r1                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($steps - 1)
+sub   r2 r2 r3                          #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($steps - 1)
+store r2 r1                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($steps - 1)
+addi  r1 r1 1                           #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr $b
+addi  r2 r0 -1                          #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr $b
+load  r2 r2                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr $b
+addi  r2 r2 3                           #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr $b
+load  r2 r2                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr $b
+store r2 r1                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr $b
+addi  r1 r1 1                           #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b).expr $a
+addi  r2 r0 -1                          #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b).expr $a
+load  r2 r2                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b).expr $a
+addi  r2 r2 2                           #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b).expr $a
+load  r2 r2                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b).expr $a
+store r2 r1                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b).expr $a
+addi  r1 r1 1                           #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b).expr $b
+addi  r2 r0 -1                          #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b).expr $b
+load  r2 r2                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b).expr $b
+addi  r2 r2 3                           #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b).expr $b
+load  r2 r2                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b).expr $b
+store r2 r1                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b).expr $b
+load  r3 r1                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b)
+addi  r1 r1 -1                          #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b)
+load  r2 r1                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b)
+add   r2 r2 r3                          #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b)
+store r2 r1                             #main.fibonacci[0].ifElseBody[0].expr (($steps - 1), $b, ($a + $b)).expr ($a + $b)
+const r4 74                             #main.fibonacci[0].ifElseBody[0]
+addi  r2 r1 -2                          #main.fibonacci[0].ifElseBody[0]
+addi  r3 r0 -1                          #main.fibonacci[0].ifElseBody[0]
+load  r1 r3                             #main.fibonacci[0].ifElseBody[0]
+addi  r1 r1 1                           #main.fibonacci[0].ifElseBody[0]
+load  r3 r2                             #main.fibonacci[0].ifElseBody[0]
+store r3 r1                             #main.fibonacci[0].ifElseBody[0]
+addi  r2 r2 1                           #main.fibonacci[0].ifElseBody[0]
+addi  r1 r1 1                           #main.fibonacci[0].ifElseBody[0]
+load  r3 r2                             #main.fibonacci[0].ifElseBody[0]
+store r3 r1                             #main.fibonacci[0].ifElseBody[0]
+addi  r2 r2 1                           #main.fibonacci[0].ifElseBody[0]
+addi  r1 r1 1                           #main.fibonacci[0].ifElseBody[0]
+load  r3 r2                             #main.fibonacci[0].ifElseBody[0]
+store r3 r1                             #main.fibonacci[0].ifElseBody[0]
+addi  r1 r1 3                           #main.fibonacci[0].ifElseBody[0]
+copy  pc r4                             #main.fibonacci[0].ifElseBody[0]
 addi  r1 r1 1                           #main.fibonacci.forceReturn.expr 0
 const r2 0                              #main.fibonacci.forceReturn.expr 0
 store r2 r1                             #main.fibonacci.forceReturn.expr 0

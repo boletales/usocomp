@@ -34,7 +34,7 @@ mlctTests = [
     , mlctStructTest2
     , mlctComplexTest
     , mlctTailRecTest
-    , mlctClosureTest
+    , mlctHigherOrderTest
   ]
 
 data MLCTUnit = MLCTUnit {
@@ -54,11 +54,11 @@ mlctUnitTest expectedout program = do
 substTest :: SLProgram
 substTest =
   runSLMFuncsM $ do
-    main :: ('[] --> 'SLTInt) <- slmFunc SLFuncMain (slmFundef $ do
-          i <- slmNewVar (_const 100)
-          j <- slmNewVar (_const 200)
-          k <- slmNewVar (_const 300)
-          l <- slmNewVar (_const 400)
+    main :: ('[] --> 'SLTInt) <- slmFunc SLFuncMain [] (slmFundef $ do
+          i <- slmNewNamedVar "i" (_const 100)
+          j <- slmNewNamedVar "j" (_const 200)
+          k <- slmNewNamedVar "k" (_const 300)
+          l <- slmNewNamedVar "l" (_const 400)
           _reflocal k <<- _const 10000
 
           slmReturn (_local i `_add` _local j `_add` _local k `_add` _local l)
@@ -80,13 +80,13 @@ mlctSubstTest = MLCTUnit {
 ifTest :: SLProgram
 ifTest =
   runSLMFuncsM $ do
-    main :: ('[] --> 'SLTInt) <- slmFunc SLFuncMain (slmFundef $ do
-          i <- slmNewVar (_const 100 )
-          j <- slmNewVar (_const 200 )
-          a <- slmNewVar (_const 1000)
-          b <- slmNewVar (_const 2000)
-          c <- slmNewVar (_const 3000)
-          d <- slmNewVar (_const 4000)
+    main :: ('[] --> 'SLTInt) <- slmFunc SLFuncMain [] (slmFundef $ do
+          i <- slmNewNamedVar "i" (_const 100 )
+          j <- slmNewNamedVar "j" (_const 200 )
+          a <- slmNewNamedVar "a" (_const 1000)
+          b <- slmNewNamedVar "b" (_const 2000)
+          c <- slmNewNamedVar "c" (_const 3000)
+          d <- slmNewNamedVar "d" (_const 4000)
           slmCase (V.fromList [
               (_local i `_gt` _local j , do
                   _reflocal a <<- _const 10000
@@ -143,8 +143,8 @@ mlctIfTest = MLCTUnit {
 whileTest :: SLProgram
 whileTest =
   runSLMFuncsM $ do
-    main :: ('[] --> 'SLTInt) <- slmFunc SLFuncMain (slmFundef $ do
-        i <- slmNewVar (_const 1)
+    main :: ('[] --> 'SLTInt) <- slmFunc SLFuncMain [] (slmFundef $ do
+        i <- slmNewNamedVar "i" (_const 1)
         slmWhile (_local i `_lt` _const 1000) (do
             _reflocal i <<- _local i `_add` _local i
             pure ()
@@ -168,7 +168,7 @@ mlctWhileTest = MLCTUnit {
 smallTest :: SLProgram
 smallTest =
   runSLMFuncsM $ do
-    main :: ('[] --> 'SLTInt) <- slmFunc SLFuncMain (do
+    main :: ('[] --> 'SLTInt) <- slmFunc SLFuncMain [] (do
         slmReturn (_const 12345) 
         pure ()
       )
@@ -188,9 +188,9 @@ mlctSmallTest = MLCTUnit {
 structTest :: SLProgram
 structTest =
   runSLMFuncsM $ do
-    _ :: ('[] --> SLTInt) <- slmFunc SLFuncMain (slmFundef $ do
-        y <- slmNewVar (_const 100)
-        str <- slmNewVar (_const 100 >: _const 200 >: _const 300 >: TSLEStructNil)
+    _ :: ('[] --> SLTInt) <- slmFunc SLFuncMain [] (slmFundef $ do
+        y <- slmNewNamedVar "y" (_const 100)
+        str <- slmNewNamedVar "tuple" (_const 100 >: _const 200 >: _const 300 >: TSLEStructNil)
         x :: SLMVar 'SLTInt <- slmNewVar (_local str `TSLEStructGet` Proxy @2)
         slmReturn (_local x)
       )
@@ -209,10 +209,9 @@ mlctStructTest = MLCTUnit {
 structTest2 :: SLProgram
 structTest2 =
   runSLMFuncsM $ do
-    _ :: ('[] --> SLTInt) <- slmFunc SLFuncMain (do
-        str <- slmNewVar ((_const 100 >: _const 200 >: _const 300 >: TSLEStructNil) >: (_const 1000 >: _const 2000 >: _const 3000 >: TSLEStructNil) >: (_const 10000 >: _const 20000 >: _const 30000 >: TSLEStructNil) >: TSLEStructNil)
-        x :: SLMVar 'SLTInt <- slmNewVar ((_local str `TSLEStructGet` Proxy @1) `TSLEStructGet` Proxy @1)
-        slmReturn (_local x)
+    _ :: ('[] --> SLTInt) <- slmFunc SLFuncMain [] (do
+        str <- slmNewNamedVar "bigTuple" ((_const 100 >: _const 200 >: _const 300 >: TSLEStructNil) >: (_const 1000 >: _const 2000 >: _const 3000 >: TSLEStructNil) >: (_const 10000 >: _const 20000 >: _const 30000 >: TSLEStructNil) >: TSLEStructNil)
+        slmReturn ((_local str `TSLEStructGet` Proxy @1) `TSLEStructGet` Proxy @1)
       )
     pure ()
 
@@ -231,23 +230,21 @@ type SLTComplex = 'SLTStruct '[ 'SLTInt, 'SLTInt ]
 complexTest :: SLProgram
 complexTest =
   runSLMFuncsM $ do
-    complexProd :: ('[SLTComplex, SLTComplex] --> SLTComplex) <- slmFunc (SLUserFunc "main" "complexProd") (\c1 c2 -> do
-        re1 <- slmNewVar (c1 `TSLEStructGet` Proxy @0)
-        im1 <- slmNewVar (c1 `TSLEStructGet` Proxy @1)
-        re2 <- slmNewVar (c2 `TSLEStructGet` Proxy @0)
-        im2 <- slmNewVar (c2 `TSLEStructGet` Proxy @1)
-        re3 <- slmNewVar ((_local re1 `_mul` _local re2) `_sub` (_local im1 `_mul` _local im2))
-        im3 <- slmNewVar ((_local re1 `_mul` _local im2) `_add` (_local im1 `_mul` _local re2))
+    complexProd :: ('[SLTComplex, SLTComplex] --> SLTComplex) <- slmFunc (SLUserFunc "main" "complexProd") ["c1", "c2"] (\c1 c2 -> do
+        re1 <- slmNewNamedVar "re1" (c1 `TSLEStructGet` Proxy @0)
+        im1 <- slmNewNamedVar "im1" (c1 `TSLEStructGet` Proxy @1)
+        re2 <- slmNewNamedVar "re2" (c2 `TSLEStructGet` Proxy @0)
+        im2 <- slmNewNamedVar "im2" (c2 `TSLEStructGet` Proxy @1)
+        re3 <- slmNewNamedVar "reAns" ((_local re1 `_mul` _local re2) `_sub` (_local im1 `_mul` _local im2))
+        im3 <- slmNewNamedVar "imAns" ((_local re1 `_mul` _local im2) `_add` (_local im1 `_mul` _local re2))
         slmReturn (_local re3 >: _local im3 >: TSLEStructNil)
         pure ()
       )
 
-    _ :: ('[] --> SLTInt) <- slmFunc SLFuncMain (do
-        c1 <- slmNewVar (TSLEStructCons (_const 100) (TSLEStructCons (_const 200) TSLEStructNil))
-        c2 <- slmNewVar (TSLEStructCons (_const 300) (TSLEStructCons (_const 400) TSLEStructNil))
-        d <- slmNewVar (_const 1111111)
-        c3 <- slmNewVar (_app complexProd (_local c1) (_local c2))
-        e <- slmNewVar (_const 2222222)
+    _ :: ('[] --> SLTInt) <- slmFunc SLFuncMain [] (do
+        c1 <- slmNewNamedVar "c1" (TSLEStructCons (_const 100) (TSLEStructCons (_const 200) TSLEStructNil))
+        c2 <- slmNewNamedVar "c2" (TSLEStructCons (_const 300) (TSLEStructCons (_const 400) TSLEStructNil))
+        c3 <- slmNewNamedVar "ans" (_app complexProd (_local c1) (_local c2))
         slmReturn (_local c3 `TSLEStructGet` Proxy @1)
         pure ()
       )
@@ -290,13 +287,13 @@ tailRecTest =
   runSLMFuncsM $ do
     let fibonacci = slmVirtualFunc (SLUserFunc "main" "fibonacci") :: '[SLTInt, SLTInt, SLTInt] --> SLTInt
 
-    _ :: '[] --> SLTInt <- slmFunc SLFuncMain (do
-        x <- slmNewVar $ _app fibonacci (_const 20) (_const 0) (_const 1)
+    _ :: '[] --> SLTInt <- slmFunc SLFuncMain [] (do
+        x <- slmNewNamedVar "fib20" $ _app fibonacci (_const 20) (_const 0) (_const 1)
         slmReturn (_local x)
         pure ()
       )
     
-    slmSetRealFunc fibonacci (\steps a b -> slmFundef $ do
+    slmSetRealFunc fibonacci ["steps", "a", "b"] (\steps a b -> slmFundef $ do
         slmCase (V.fromList [
             ( steps `_eq` _const 0, do
                 slmReturn b
@@ -322,51 +319,51 @@ mlctTailRecTest = MLCTUnit {
 -- 
 
 
-closureTest :: SLProgram
-closureTest =
+higherOrderTest :: SLProgram
+higherOrderTest =
   runSLMFuncsM $ do
-    let func1 = slmVirtualFunc (SLUserFunc "main" "func1") :: '[SLTInt, '[SLTInt, SLTInt] !--> SLTInt] --> SLTInt
-    let func2 = slmVirtualFunc (SLUserFunc "main" "func2") :: '[SLTInt, SLTInt] --> SLTInt
+    let func1 = slmVirtualFunc (SLUserFunc "main" "x_op_2") :: '[SLTInt, '[SLTInt, SLTInt] !--> SLTInt] --> SLTInt
+    let add = slmVirtualFunc (SLUserFunc "main" "add") :: '[SLTInt, SLTInt] --> SLTInt
+    let sub = slmVirtualFunc (SLUserFunc "main" "sub") :: '[SLTInt, SLTInt] --> SLTInt
+    let mul = slmVirtualFunc (SLUserFunc "main" "mul") :: '[SLTInt, SLTInt] --> SLTInt
 
-    _ :: '[] --> SLTInt <- slmFunc SLFuncMain (do
-        slmReturn (TSLEPushCall (TSLClosureCall (_funcptr func1 >: _const 12345 >: _funcptr func2 >: TSLEStructNil)))
+    _ :: '[] --> SLTInt <- slmFunc SLFuncMain [] (do
+        result_4plus2  <- slmNewNamedVar "result_4plus2"  (_app func1 (_const 4) (_funcptr add))
+        result_4minus2 <- slmNewNamedVar "result_4minus2" (_app func1 (_const 4) (_funcptr sub))
+        result_4times2 <- slmNewNamedVar "result_4times2" (_app func1 (_const 4) (_funcptr mul))
+        slmReturn (((_local result_4plus2) `_mul` (_const 100)) `_add` ((_local result_4minus2) `_mul` (_const 10)) `_add` (_local result_4times2))
         pure ()
       )
 
-    slmSetRealFunc func1 (\x g -> slmFundef $ do
-        y <- slmNewVar (_const 2345)
-        slmClsTailCall (g >: x >: _local y >: TSLEStructNil)
+    slmSetRealFunc func1 ["x", "op"] (\x op -> slmFundef $ do
+        slmClsTailCall (op >: x >: _const 2 >: TSLEStructNil)
         pure ()
       )
 
-    slmSetRealFunc func2 (\x y -> slmFundef $ do
+    slmSetRealFunc add ["x", "y"] (\x y -> slmFundef $ do
+        slmReturn (x `_add` y)
+        pure ()
+      )
+
+    slmSetRealFunc sub ["x", "y"] (\x y -> slmFundef $ do
         slmReturn (x `_sub` y)
+        pure ()
+      )
+
+    slmSetRealFunc mul ["x", "y"] (\x y -> slmFundef $ do
+        slmReturn (x `_mul` y)
         pure ()
       )
 
     pure ()
 
-mlctClosureTest :: MLCTUnit
-mlctClosureTest = MLCTUnit {
-      mlctName = "closureTest"
-    , mlctTest = closureTest
-    , mlctExpected = 10000
+mlctHigherOrderTest :: MLCTUnit
+mlctHigherOrderTest = MLCTUnit {
+      mlctName = "higherOrderTest"
+    , mlctTest =  higherOrderTest
+    , mlctExpected = 628
   }
 
--- >>> runMLCinST closureTest
--- "(168 ticks) successfully terminated. code:10000"
+-- >>> runMLCinST higherOrderTest
 
--- >>> error $ unpack $ prettyPrintSLProgram closureTest
--- function #main() -> int
--- {
---   return (#main/func1, 12345, #main/func2)()
--- }
--- function #main/func1(int $A0, (int, int) -> int $A1) -> int
--- {
---   int $L0 = 2345
---   tailcall ($A1, $A0, $L0)()
--- }
--- function #main/func2(int $A0, int $A1) -> int
--- {
---   return ($A0 - $A1)
--- }
+-- >>> error $ unpack $ prettyPrintSLProgram higherOrderTest

@@ -1,0 +1,355 @@
+
+nop                                     #main
+const r1 1                              #main
+const r2 353                            #main
+store r2 r1                             #main
+addi  r1 r1 1                           #main
+const r2 0                              #main
+store r2 r1                             #main
+const r2 0                              #main
+addi  r1 r1 1                           #main
+store r2 r1                             #main
+copy  r0 r1                             #main
+const pc 12                             #main
+const r2 4992                           #main
+lt    r2 r1 r2                          #main
+addi  r3 pc 6                           #main
+jnz   r3 r2                             #main
+const r2 0                              #main
+const r3 -1000000000                    #main
+store r3 r2                             #main
+const r3 353                            #main
+jump  r3                                #main
+addi  r1 r1 1                           #main[0].expr main.x_op_2(4, &main.add)
+addi  r1 r1 1                           #main[0].expr main.x_op_2(4, &main.add).expr (4, &main.add).expr 4
+const r2 4                              #main[0].expr main.x_op_2(4, &main.add).expr (4, &main.add).expr 4
+store r2 r1                             #main[0].expr main.x_op_2(4, &main.add).expr (4, &main.add).expr 4
+addi  r1 r1 1                           #main[0].expr main.x_op_2(4, &main.add).expr (4, &main.add).expr &main.add
+const r2 141                            #main[0].expr main.x_op_2(4, &main.add).expr (4, &main.add).expr &main.add
+store r2 r1                             #main[0].expr main.x_op_2(4, &main.add).expr (4, &main.add).expr &main.add
+const r3 300                            #main[0].expr main.x_op_2(4, &main.add)
+addi  r1 r1 1                           #main[0].expr main.x_op_2(4, &main.add)
+addi  r2 pc 8                           #main[0].expr main.x_op_2(4, &main.add)
+store r2 r1                             #main[0].expr main.x_op_2(4, &main.add)
+addi  r1 r1 1                           #main[0].expr main.x_op_2(4, &main.add)
+addi  r2 r1 -4                          #main[0].expr main.x_op_2(4, &main.add)
+store r2 r1                             #main[0].expr main.x_op_2(4, &main.add)
+addi  r1 r1 1                           #main[0].expr main.x_op_2(4, &main.add)
+store r0 r1                             #main[0].expr main.x_op_2(4, &main.add)
+copy  r0 r1                             #main[0].expr main.x_op_2(4, &main.add)
+copy  pc r3                             #main[0].expr main.x_op_2(4, &main.add)
+addi  r1 r1 1                           #main[1].expr main.x_op_2(4, &main.sub)
+addi  r1 r1 1                           #main[1].expr main.x_op_2(4, &main.sub).expr (4, &main.sub).expr 4
+const r2 4                              #main[1].expr main.x_op_2(4, &main.sub).expr (4, &main.sub).expr 4
+store r2 r1                             #main[1].expr main.x_op_2(4, &main.sub).expr (4, &main.sub).expr 4
+addi  r1 r1 1                           #main[1].expr main.x_op_2(4, &main.sub).expr (4, &main.sub).expr &main.sub
+const r2 247                            #main[1].expr main.x_op_2(4, &main.sub).expr (4, &main.sub).expr &main.sub
+store r2 r1                             #main[1].expr main.x_op_2(4, &main.sub).expr (4, &main.sub).expr &main.sub
+const r3 300                            #main[1].expr main.x_op_2(4, &main.sub)
+addi  r1 r1 1                           #main[1].expr main.x_op_2(4, &main.sub)
+addi  r2 pc 8                           #main[1].expr main.x_op_2(4, &main.sub)
+store r2 r1                             #main[1].expr main.x_op_2(4, &main.sub)
+addi  r1 r1 1                           #main[1].expr main.x_op_2(4, &main.sub)
+addi  r2 r1 -4                          #main[1].expr main.x_op_2(4, &main.sub)
+store r2 r1                             #main[1].expr main.x_op_2(4, &main.sub)
+addi  r1 r1 1                           #main[1].expr main.x_op_2(4, &main.sub)
+store r0 r1                             #main[1].expr main.x_op_2(4, &main.sub)
+copy  r0 r1                             #main[1].expr main.x_op_2(4, &main.sub)
+copy  pc r3                             #main[1].expr main.x_op_2(4, &main.sub)
+addi  r1 r1 1                           #main[2].expr main.x_op_2(4, &main.mul)
+addi  r1 r1 1                           #main[2].expr main.x_op_2(4, &main.mul).expr (4, &main.mul).expr 4
+const r2 4                              #main[2].expr main.x_op_2(4, &main.mul).expr (4, &main.mul).expr 4
+store r2 r1                             #main[2].expr main.x_op_2(4, &main.mul).expr (4, &main.mul).expr 4
+addi  r1 r1 1                           #main[2].expr main.x_op_2(4, &main.mul).expr (4, &main.mul).expr &main.mul
+const r2 194                            #main[2].expr main.x_op_2(4, &main.mul).expr (4, &main.mul).expr &main.mul
+store r2 r1                             #main[2].expr main.x_op_2(4, &main.mul).expr (4, &main.mul).expr &main.mul
+const r3 300                            #main[2].expr main.x_op_2(4, &main.mul)
+addi  r1 r1 1                           #main[2].expr main.x_op_2(4, &main.mul)
+addi  r2 pc 8                           #main[2].expr main.x_op_2(4, &main.mul)
+store r2 r1                             #main[2].expr main.x_op_2(4, &main.mul)
+addi  r1 r1 1                           #main[2].expr main.x_op_2(4, &main.mul)
+addi  r2 r1 -4                          #main[2].expr main.x_op_2(4, &main.mul)
+store r2 r1                             #main[2].expr main.x_op_2(4, &main.mul)
+addi  r1 r1 1                           #main[2].expr main.x_op_2(4, &main.mul)
+store r0 r1                             #main[2].expr main.x_op_2(4, &main.mul)
+copy  r0 r1                             #main[2].expr main.x_op_2(4, &main.mul)
+copy  pc r3                             #main[2].expr main.x_op_2(4, &main.mul)
+addi  r1 r1 1                           #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4plus2 * 100).expr $result_4plus2
+addi  r2 r0 1                           #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4plus2 * 100).expr $result_4plus2
+load  r2 r2                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4plus2 * 100).expr $result_4plus2
+store r2 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4plus2 * 100).expr $result_4plus2
+addi  r1 r1 1                           #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4plus2 * 100).expr 100
+const r2 100                            #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4plus2 * 100).expr 100
+store r2 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4plus2 * 100).expr 100
+load  r3 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4plus2 * 100)
+addi  r1 r1 -1                          #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4plus2 * 100)
+load  r2 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4plus2 * 100)
+mult  r2 r2 r3                          #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4plus2 * 100)
+store r2 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4plus2 * 100)
+addi  r1 r1 1                           #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4minus2 * 10).expr $result_4minus2
+addi  r2 r0 2                           #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4minus2 * 10).expr $result_4minus2
+load  r2 r2                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4minus2 * 10).expr $result_4minus2
+store r2 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4minus2 * 10).expr $result_4minus2
+addi  r1 r1 1                           #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4minus2 * 10).expr 10
+const r2 10                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4minus2 * 10).expr 10
+store r2 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4minus2 * 10).expr 10
+load  r3 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4minus2 * 10)
+addi  r1 r1 -1                          #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4minus2 * 10)
+load  r2 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4minus2 * 10)
+mult  r2 r2 r3                          #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4minus2 * 10)
+store r2 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10)).expr ($result_4minus2 * 10)
+load  r3 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10))
+addi  r1 r1 -1                          #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10))
+load  r2 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10))
+add   r2 r2 r3                          #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10))
+store r2 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr (($result_4plus2 * 100) + ($result_4minus2 * 10))
+addi  r1 r1 1                           #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr $result_4times2
+addi  r2 r0 3                           #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr $result_4times2
+load  r2 r2                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr $result_4times2
+store r2 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2).expr $result_4times2
+load  r3 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2)
+addi  r1 r1 -1                          #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2)
+load  r2 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2)
+add   r2 r2 r3                          #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2)
+store r2 r1                             #main[3].expr ((($result_4plus2 * 100) + ($result_4minus2 * 10)) + $result_4times2)
+addi  r3 r0 -1                          #main[3]
+load  r3 r3                             #main[3]
+load  r2 r1                             #main[3]
+store r2 r3                             #main[3]
+addi  r1 r1 -1                          #main[3]
+addi  r3 r3 -1                          #main[3]
+copy  r2 r0                             #main[3]
+load  r0 r0                             #main[3]
+addi  r2 r2 -1                          #main[3]
+load  r1 r2                             #main[3]
+addi  r2 r2 -1                          #main[3]
+load  pc r2                             #main[3]
+addi  r1 r1 -3                          #main
+addi  r1 r1 1                           #main.forceReturn.expr 0
+const r2 0                              #main.forceReturn.expr 0
+store r2 r1                             #main.forceReturn.expr 0
+addi  r3 r0 -1                          #main.forceReturn
+load  r3 r3                             #main.forceReturn
+load  r2 r1                             #main.forceReturn
+store r2 r3                             #main.forceReturn
+addi  r1 r1 -1                          #main.forceReturn
+addi  r3 r3 -1                          #main.forceReturn
+copy  r2 r0                             #main.forceReturn
+load  r0 r0                             #main.forceReturn
+addi  r2 r2 -1                          #main.forceReturn
+load  r1 r2                             #main.forceReturn
+addi  r2 r2 -1                          #main.forceReturn
+load  pc r2                             #main.forceReturn
+const r2 4998                           #main.add
+lt    r2 r1 r2                          #main.add
+addi  r3 pc 6                           #main.add
+jnz   r3 r2                             #main.add
+const r2 0                              #main.add
+const r3 -1000000000                    #main.add
+store r3 r2                             #main.add
+const r3 353                            #main.add
+jump  r3                                #main.add
+addi  r1 r1 1                           #main.add[0].expr ($x + $y).expr $x
+addi  r2 r0 -1                          #main.add[0].expr ($x + $y).expr $x
+load  r2 r2                             #main.add[0].expr ($x + $y).expr $x
+addi  r2 r2 1                           #main.add[0].expr ($x + $y).expr $x
+load  r2 r2                             #main.add[0].expr ($x + $y).expr $x
+store r2 r1                             #main.add[0].expr ($x + $y).expr $x
+addi  r1 r1 1                           #main.add[0].expr ($x + $y).expr $y
+addi  r2 r0 -1                          #main.add[0].expr ($x + $y).expr $y
+load  r2 r2                             #main.add[0].expr ($x + $y).expr $y
+addi  r2 r2 2                           #main.add[0].expr ($x + $y).expr $y
+load  r2 r2                             #main.add[0].expr ($x + $y).expr $y
+store r2 r1                             #main.add[0].expr ($x + $y).expr $y
+load  r3 r1                             #main.add[0].expr ($x + $y)
+addi  r1 r1 -1                          #main.add[0].expr ($x + $y)
+load  r2 r1                             #main.add[0].expr ($x + $y)
+add   r2 r2 r3                          #main.add[0].expr ($x + $y)
+store r2 r1                             #main.add[0].expr ($x + $y)
+addi  r3 r0 -1                          #main.add[0]
+load  r3 r3                             #main.add[0]
+load  r2 r1                             #main.add[0]
+store r2 r3                             #main.add[0]
+addi  r1 r1 -1                          #main.add[0]
+addi  r3 r3 -1                          #main.add[0]
+copy  r2 r0                             #main.add[0]
+load  r0 r0                             #main.add[0]
+addi  r2 r2 -1                          #main.add[0]
+load  r1 r2                             #main.add[0]
+addi  r2 r2 -1                          #main.add[0]
+load  pc r2                             #main.add[0]
+addi  r1 r1 1                           #main.add.forceReturn.expr 0
+const r2 0                              #main.add.forceReturn.expr 0
+store r2 r1                             #main.add.forceReturn.expr 0
+addi  r3 r0 -1                          #main.add.forceReturn
+load  r3 r3                             #main.add.forceReturn
+load  r2 r1                             #main.add.forceReturn
+store r2 r3                             #main.add.forceReturn
+addi  r1 r1 -1                          #main.add.forceReturn
+addi  r3 r3 -1                          #main.add.forceReturn
+copy  r2 r0                             #main.add.forceReturn
+load  r0 r0                             #main.add.forceReturn
+addi  r2 r2 -1                          #main.add.forceReturn
+load  r1 r2                             #main.add.forceReturn
+addi  r2 r2 -1                          #main.add.forceReturn
+load  pc r2                             #main.add.forceReturn
+const r2 4998                           #main.mul
+lt    r2 r1 r2                          #main.mul
+addi  r3 pc 6                           #main.mul
+jnz   r3 r2                             #main.mul
+const r2 0                              #main.mul
+const r3 -1000000000                    #main.mul
+store r3 r2                             #main.mul
+const r3 353                            #main.mul
+jump  r3                                #main.mul
+addi  r1 r1 1                           #main.mul[0].expr ($x * $y).expr $x
+addi  r2 r0 -1                          #main.mul[0].expr ($x * $y).expr $x
+load  r2 r2                             #main.mul[0].expr ($x * $y).expr $x
+addi  r2 r2 1                           #main.mul[0].expr ($x * $y).expr $x
+load  r2 r2                             #main.mul[0].expr ($x * $y).expr $x
+store r2 r1                             #main.mul[0].expr ($x * $y).expr $x
+addi  r1 r1 1                           #main.mul[0].expr ($x * $y).expr $y
+addi  r2 r0 -1                          #main.mul[0].expr ($x * $y).expr $y
+load  r2 r2                             #main.mul[0].expr ($x * $y).expr $y
+addi  r2 r2 2                           #main.mul[0].expr ($x * $y).expr $y
+load  r2 r2                             #main.mul[0].expr ($x * $y).expr $y
+store r2 r1                             #main.mul[0].expr ($x * $y).expr $y
+load  r3 r1                             #main.mul[0].expr ($x * $y)
+addi  r1 r1 -1                          #main.mul[0].expr ($x * $y)
+load  r2 r1                             #main.mul[0].expr ($x * $y)
+mult  r2 r2 r3                          #main.mul[0].expr ($x * $y)
+store r2 r1                             #main.mul[0].expr ($x * $y)
+addi  r3 r0 -1                          #main.mul[0]
+load  r3 r3                             #main.mul[0]
+load  r2 r1                             #main.mul[0]
+store r2 r3                             #main.mul[0]
+addi  r1 r1 -1                          #main.mul[0]
+addi  r3 r3 -1                          #main.mul[0]
+copy  r2 r0                             #main.mul[0]
+load  r0 r0                             #main.mul[0]
+addi  r2 r2 -1                          #main.mul[0]
+load  r1 r2                             #main.mul[0]
+addi  r2 r2 -1                          #main.mul[0]
+load  pc r2                             #main.mul[0]
+addi  r1 r1 1                           #main.mul.forceReturn.expr 0
+const r2 0                              #main.mul.forceReturn.expr 0
+store r2 r1                             #main.mul.forceReturn.expr 0
+addi  r3 r0 -1                          #main.mul.forceReturn
+load  r3 r3                             #main.mul.forceReturn
+load  r2 r1                             #main.mul.forceReturn
+store r2 r3                             #main.mul.forceReturn
+addi  r1 r1 -1                          #main.mul.forceReturn
+addi  r3 r3 -1                          #main.mul.forceReturn
+copy  r2 r0                             #main.mul.forceReturn
+load  r0 r0                             #main.mul.forceReturn
+addi  r2 r2 -1                          #main.mul.forceReturn
+load  r1 r2                             #main.mul.forceReturn
+addi  r2 r2 -1                          #main.mul.forceReturn
+load  pc r2                             #main.mul.forceReturn
+const r2 4998                           #main.sub
+lt    r2 r1 r2                          #main.sub
+addi  r3 pc 6                           #main.sub
+jnz   r3 r2                             #main.sub
+const r2 0                              #main.sub
+const r3 -1000000000                    #main.sub
+store r3 r2                             #main.sub
+const r3 353                            #main.sub
+jump  r3                                #main.sub
+addi  r1 r1 1                           #main.sub[0].expr ($x - $y).expr $x
+addi  r2 r0 -1                          #main.sub[0].expr ($x - $y).expr $x
+load  r2 r2                             #main.sub[0].expr ($x - $y).expr $x
+addi  r2 r2 1                           #main.sub[0].expr ($x - $y).expr $x
+load  r2 r2                             #main.sub[0].expr ($x - $y).expr $x
+store r2 r1                             #main.sub[0].expr ($x - $y).expr $x
+addi  r1 r1 1                           #main.sub[0].expr ($x - $y).expr $y
+addi  r2 r0 -1                          #main.sub[0].expr ($x - $y).expr $y
+load  r2 r2                             #main.sub[0].expr ($x - $y).expr $y
+addi  r2 r2 2                           #main.sub[0].expr ($x - $y).expr $y
+load  r2 r2                             #main.sub[0].expr ($x - $y).expr $y
+store r2 r1                             #main.sub[0].expr ($x - $y).expr $y
+load  r3 r1                             #main.sub[0].expr ($x - $y)
+addi  r1 r1 -1                          #main.sub[0].expr ($x - $y)
+load  r2 r1                             #main.sub[0].expr ($x - $y)
+sub   r2 r2 r3                          #main.sub[0].expr ($x - $y)
+store r2 r1                             #main.sub[0].expr ($x - $y)
+addi  r3 r0 -1                          #main.sub[0]
+load  r3 r3                             #main.sub[0]
+load  r2 r1                             #main.sub[0]
+store r2 r3                             #main.sub[0]
+addi  r1 r1 -1                          #main.sub[0]
+addi  r3 r3 -1                          #main.sub[0]
+copy  r2 r0                             #main.sub[0]
+load  r0 r0                             #main.sub[0]
+addi  r2 r2 -1                          #main.sub[0]
+load  r1 r2                             #main.sub[0]
+addi  r2 r2 -1                          #main.sub[0]
+load  pc r2                             #main.sub[0]
+addi  r1 r1 1                           #main.sub.forceReturn.expr 0
+const r2 0                              #main.sub.forceReturn.expr 0
+store r2 r1                             #main.sub.forceReturn.expr 0
+addi  r3 r0 -1                          #main.sub.forceReturn
+load  r3 r3                             #main.sub.forceReturn
+load  r2 r1                             #main.sub.forceReturn
+store r2 r3                             #main.sub.forceReturn
+addi  r1 r1 -1                          #main.sub.forceReturn
+addi  r3 r3 -1                          #main.sub.forceReturn
+copy  r2 r0                             #main.sub.forceReturn
+load  r0 r0                             #main.sub.forceReturn
+addi  r2 r2 -1                          #main.sub.forceReturn
+load  r1 r2                             #main.sub.forceReturn
+addi  r2 r2 -1                          #main.sub.forceReturn
+load  pc r2                             #main.sub.forceReturn
+const r2 4995                           #main.x_op_2
+lt    r2 r1 r2                          #main.x_op_2
+addi  r3 pc 6                           #main.x_op_2
+jnz   r3 r2                             #main.x_op_2
+const r2 0                              #main.x_op_2
+const r3 -1000000000                    #main.x_op_2
+store r3 r2                             #main.x_op_2
+const r3 353                            #main.x_op_2
+jump  r3                                #main.x_op_2
+addi  r1 r1 1                           #main.x_op_2[0].expr ($op, $x, 2).expr $op
+addi  r2 r0 -1                          #main.x_op_2[0].expr ($op, $x, 2).expr $op
+load  r2 r2                             #main.x_op_2[0].expr ($op, $x, 2).expr $op
+addi  r2 r2 2                           #main.x_op_2[0].expr ($op, $x, 2).expr $op
+load  r2 r2                             #main.x_op_2[0].expr ($op, $x, 2).expr $op
+store r2 r1                             #main.x_op_2[0].expr ($op, $x, 2).expr $op
+addi  r1 r1 1                           #main.x_op_2[0].expr ($op, $x, 2).expr $x
+addi  r2 r0 -1                          #main.x_op_2[0].expr ($op, $x, 2).expr $x
+load  r2 r2                             #main.x_op_2[0].expr ($op, $x, 2).expr $x
+addi  r2 r2 1                           #main.x_op_2[0].expr ($op, $x, 2).expr $x
+load  r2 r2                             #main.x_op_2[0].expr ($op, $x, 2).expr $x
+store r2 r1                             #main.x_op_2[0].expr ($op, $x, 2).expr $x
+addi  r1 r1 1                           #main.x_op_2[0].expr ($op, $x, 2).expr 2
+const r2 2                              #main.x_op_2[0].expr ($op, $x, 2).expr 2
+store r2 r1                             #main.x_op_2[0].expr ($op, $x, 2).expr 2
+addi  r4 r1 -2                          #main.x_op_2[0]
+load  r4 r4                             #main.x_op_2[0]
+addi  r2 r1 -1                          #main.x_op_2[0]
+addi  r3 r0 -1                          #main.x_op_2[0]
+load  r1 r3                             #main.x_op_2[0]
+addi  r1 r1 1                           #main.x_op_2[0]
+load  r3 r2                             #main.x_op_2[0]
+store r3 r1                             #main.x_op_2[0]
+addi  r2 r2 1                           #main.x_op_2[0]
+addi  r1 r1 1                           #main.x_op_2[0]
+load  r3 r2                             #main.x_op_2[0]
+store r3 r1                             #main.x_op_2[0]
+addi  r1 r1 3                           #main.x_op_2[0]
+copy  pc r4                             #main.x_op_2[0]
+addi  r1 r1 1                           #main.x_op_2.forceReturn.expr 0
+const r2 0                              #main.x_op_2.forceReturn.expr 0
+store r2 r1                             #main.x_op_2.forceReturn.expr 0
+addi  r3 r0 -1                          #main.x_op_2.forceReturn
+load  r3 r3                             #main.x_op_2.forceReturn
+load  r2 r1                             #main.x_op_2.forceReturn
+store r2 r3                             #main.x_op_2.forceReturn
+addi  r1 r1 -1                          #main.x_op_2.forceReturn
+addi  r3 r3 -1                          #main.x_op_2.forceReturn
+copy  r2 r0                             #main.x_op_2.forceReturn
+load  r0 r0                             #main.x_op_2.forceReturn
+addi  r2 r2 -1                          #main.x_op_2.forceReturn
+load  r1 r2                             #main.x_op_2.forceReturn
+addi  r2 r2 -1                          #main.x_op_2.forceReturn
+load  pc r2                             #main.x_op_2.forceReturn
+nop                                     #main

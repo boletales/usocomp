@@ -5,6 +5,7 @@
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-# OPTIONS_GHC -Wno-unused-imports #-}
 
+import MyPrelude
 
 import SimpleLang.TypedDef
 import SimpleLang.Tools.Manual

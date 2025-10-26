@@ -1,7 +1,7 @@
 
 nop                                     #main
 const r1 1                              #main
-const r2 306                            #main
+const r2 282                            #main
 store r2 r1                             #main
 addi  r1 r1 1                           #main
 const r2 0                              #main
@@ -18,7 +18,7 @@ jnz   r3 r2                             #main
 const r2 0                              #main
 const r3 -1000000000                    #main
 store r3 r2                             #main
-const r3 306                            #main
+const r3 282                            #main
 jump  r3                                #main
 addi  r1 r1 1                           #main[0].expr (10, 5, 0).expr 10
 const r2 10                             #main[0].expr (10, 5, 0).expr 10
@@ -92,204 +92,180 @@ jnz   r3 r2                             #main.tarai
 const r2 0                              #main.tarai
 const r3 -1000000000                    #main.tarai
 store r3 r2                             #main.tarai
-const r3 306                            #main.tarai
+const r3 282                            #main.tarai
 jump  r3                                #main.tarai
-addi  r1 r1 1                           #main.tarai[0].whenCond_0.expr ($x > $y).expr $x
-addi  r2 r0 -1                          #main.tarai[0].whenCond_0.expr ($x > $y).expr $x
-load  r2 r2                             #main.tarai[0].whenCond_0.expr ($x > $y).expr $x
-addi  r2 r2 1                           #main.tarai[0].whenCond_0.expr ($x > $y).expr $x
-load  r2 r2                             #main.tarai[0].whenCond_0.expr ($x > $y).expr $x
-store r2 r1                             #main.tarai[0].whenCond_0.expr ($x > $y).expr $x
-addi  r1 r1 1                           #main.tarai[0].whenCond_0.expr ($x > $y).expr $y
-addi  r2 r0 -1                          #main.tarai[0].whenCond_0.expr ($x > $y).expr $y
-load  r2 r2                             #main.tarai[0].whenCond_0.expr ($x > $y).expr $y
-addi  r2 r2 2                           #main.tarai[0].whenCond_0.expr ($x > $y).expr $y
-load  r2 r2                             #main.tarai[0].whenCond_0.expr ($x > $y).expr $y
-store r2 r1                             #main.tarai[0].whenCond_0.expr ($x > $y).expr $y
-load  r3 r1                             #main.tarai[0].whenCond_0.expr ($x > $y)
-addi  r1 r1 -1                          #main.tarai[0].whenCond_0.expr ($x > $y)
-load  r2 r1                             #main.tarai[0].whenCond_0.expr ($x > $y)
-gt    r2 r2 r3                          #main.tarai[0].whenCond_0.expr ($x > $y)
-store r2 r1                             #main.tarai[0].whenCond_0.expr ($x > $y)
-load  r3 r1                             #main.tarai[0].whenCond_0
-addi  r1 r1 -1                          #main.tarai[0].whenCond_0
-addi  r2 pc 158                         #main.tarai[0].whenCond_0
-jz    r2 r3                             #main.tarai[0].whenCond_0
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr $x
-addi  r2 r0 -1                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr $x
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr $x
-addi  r2 r2 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr $x
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr $x
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr $x
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr 1
-const r2 1                              #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr 1
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr 1
-load  r3 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1)
-addi  r1 r1 -1                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1)
-load  r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1)
-sub   r2 r2 r3                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1)
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $y
-addi  r2 r0 -1                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $y
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $y
-addi  r2 r2 2                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $y
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $y
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $y
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
-addi  r2 r0 -1                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
-addi  r2 r2 3                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
-const r3 86                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
-addi  r2 pc 8                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
-addi  r2 r1 -5                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
-store r0 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
-copy  r0 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
-copy  pc r3                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr $y
-addi  r2 r0 -1                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr $y
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr $y
-addi  r2 r2 2                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr $y
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr $y
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr $y
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr 1
-const r2 1                              #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr 1
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr 1
-load  r3 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1)
-addi  r1 r1 -1                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1)
-load  r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1)
-sub   r2 r2 r3                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1)
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $z
-addi  r2 r0 -1                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $z
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $z
-addi  r2 r2 3                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $z
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $z
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $z
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
-addi  r2 r0 -1                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
-addi  r2 r2 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
-const r3 86                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
-addi  r2 pc 8                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
-addi  r2 r1 -5                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
-store r0 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
-copy  r0 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
-copy  pc r3                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr $z
-addi  r2 r0 -1                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr $z
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr $z
-addi  r2 r2 3                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr $z
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr $z
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr $z
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr 1
-const r2 1                              #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr 1
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr 1
-load  r3 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1)
-addi  r1 r1 -1                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1)
-load  r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1)
-sub   r2 r2 r3                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1)
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $y
-addi  r2 r0 -1                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $y
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $y
-addi  r2 r2 2                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $y
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $y
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $y
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
-addi  r2 r0 -1                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
-addi  r2 r2 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
-load  r2 r2                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
-const r3 86                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
-addi  r2 pc 8                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
-addi  r2 r1 -5                          #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
-store r2 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
-store r0 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
-copy  r0 r1                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
-copy  pc r3                             #main.tarai[0].whenBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
-const r4 86                             #main.tarai[0].whenBody_0[0]
-addi  r2 r0 -2                          #main.tarai[0].whenBody_0[0]
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0]
-load  r3 r2                             #main.tarai[0].whenBody_0[0]
-store r3 r1                             #main.tarai[0].whenBody_0[0]
-addi  r2 r2 1                           #main.tarai[0].whenBody_0[0]
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0]
-load  r3 r2                             #main.tarai[0].whenBody_0[0]
-store r3 r1                             #main.tarai[0].whenBody_0[0]
-addi  r2 r2 1                           #main.tarai[0].whenBody_0[0]
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0]
-load  r3 r2                             #main.tarai[0].whenBody_0[0]
-store r3 r1                             #main.tarai[0].whenBody_0[0]
-addi  r2 r1 -5                          #main.tarai[0].whenBody_0[0]
-addi  r3 r1 -1                          #main.tarai[0].whenBody_0[0]
-load  r1 r3                             #main.tarai[0].whenBody_0[0]
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0]
-addi  r0 r1 5                           #main.tarai[0].whenBody_0[0]
-load  r3 r2                             #main.tarai[0].whenBody_0[0]
-store r3 r1                             #main.tarai[0].whenBody_0[0]
-addi  r2 r2 1                           #main.tarai[0].whenBody_0[0]
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0]
-load  r3 r2                             #main.tarai[0].whenBody_0[0]
-store r3 r1                             #main.tarai[0].whenBody_0[0]
-addi  r2 r2 1                           #main.tarai[0].whenBody_0[0]
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0]
-load  r3 r2                             #main.tarai[0].whenBody_0[0]
-store r3 r1                             #main.tarai[0].whenBody_0[0]
-addi  r2 r2 1                           #main.tarai[0].whenBody_0[0]
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0]
-load  r3 r2                             #main.tarai[0].whenBody_0[0]
-store r3 r1                             #main.tarai[0].whenBody_0[0]
-addi  r2 r2 1                           #main.tarai[0].whenBody_0[0]
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0]
-load  r3 r2                             #main.tarai[0].whenBody_0[0]
-store r3 r1                             #main.tarai[0].whenBody_0[0]
-addi  r2 r2 1                           #main.tarai[0].whenBody_0[0]
-addi  r1 r1 1                           #main.tarai[0].whenBody_0[0]
-load  r3 r2                             #main.tarai[0].whenBody_0[0]
-store r3 r1                             #main.tarai[0].whenBody_0[0]
-copy  pc r4                             #main.tarai[0].whenBody_0[0]
-addi  r2 pc 19                          #main.tarai[0].whenBody_0
-jump  r2                                #main.tarai[0].whenBody_0
-addi  r1 r1 1                           #main.tarai[0].whenElseBody[0].expr $z
-addi  r2 r0 -1                          #main.tarai[0].whenElseBody[0].expr $z
-load  r2 r2                             #main.tarai[0].whenElseBody[0].expr $z
-addi  r2 r2 3                           #main.tarai[0].whenElseBody[0].expr $z
-load  r2 r2                             #main.tarai[0].whenElseBody[0].expr $z
-store r2 r1                             #main.tarai[0].whenElseBody[0].expr $z
-addi  r3 r0 -1                          #main.tarai[0].whenElseBody[0]
-load  r3 r3                             #main.tarai[0].whenElseBody[0]
-load  r2 r1                             #main.tarai[0].whenElseBody[0]
-store r2 r3                             #main.tarai[0].whenElseBody[0]
-addi  r1 r1 -1                          #main.tarai[0].whenElseBody[0]
-addi  r3 r3 -1                          #main.tarai[0].whenElseBody[0]
-copy  r2 r0                             #main.tarai[0].whenElseBody[0]
-load  r0 r0                             #main.tarai[0].whenElseBody[0]
-addi  r2 r2 -1                          #main.tarai[0].whenElseBody[0]
-load  r1 r2                             #main.tarai[0].whenElseBody[0]
-addi  r2 r2 -1                          #main.tarai[0].whenElseBody[0]
-load  pc r2                             #main.tarai[0].whenElseBody[0]
+addi  r1 r1 1                           #main.tarai[0].ifCond_0.expr ($x > $y).expr $x
+addi  r2 r0 -1                          #main.tarai[0].ifCond_0.expr ($x > $y).expr $x
+load  r2 r2                             #main.tarai[0].ifCond_0.expr ($x > $y).expr $x
+addi  r2 r2 1                           #main.tarai[0].ifCond_0.expr ($x > $y).expr $x
+load  r2 r2                             #main.tarai[0].ifCond_0.expr ($x > $y).expr $x
+store r2 r1                             #main.tarai[0].ifCond_0.expr ($x > $y).expr $x
+addi  r1 r1 1                           #main.tarai[0].ifCond_0.expr ($x > $y).expr $y
+addi  r2 r0 -1                          #main.tarai[0].ifCond_0.expr ($x > $y).expr $y
+load  r2 r2                             #main.tarai[0].ifCond_0.expr ($x > $y).expr $y
+addi  r2 r2 2                           #main.tarai[0].ifCond_0.expr ($x > $y).expr $y
+load  r2 r2                             #main.tarai[0].ifCond_0.expr ($x > $y).expr $y
+store r2 r1                             #main.tarai[0].ifCond_0.expr ($x > $y).expr $y
+load  r3 r1                             #main.tarai[0].ifCond_0.expr ($x > $y)
+addi  r1 r1 -1                          #main.tarai[0].ifCond_0.expr ($x > $y)
+load  r2 r1                             #main.tarai[0].ifCond_0.expr ($x > $y)
+gt    r2 r2 r3                          #main.tarai[0].ifCond_0.expr ($x > $y)
+store r2 r1                             #main.tarai[0].ifCond_0.expr ($x > $y)
+load  r3 r1                             #main.tarai[0].ifCond_0
+addi  r1 r1 -1                          #main.tarai[0].ifCond_0
+addi  r2 pc 134                         #main.tarai[0].ifCond_0
+jz    r2 r3                             #main.tarai[0].ifCond_0
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr $x
+addi  r2 r0 -1                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr $x
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr $x
+addi  r2 r2 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr $x
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr $x
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr $x
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr 1
+const r2 1                              #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr 1
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1).expr 1
+load  r3 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1)
+addi  r1 r1 -1                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1)
+load  r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1)
+sub   r2 r2 r3                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1)
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr ($x - 1)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $y
+addi  r2 r0 -1                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $y
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $y
+addi  r2 r2 2                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $y
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $y
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $y
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
+addi  r2 r0 -1                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
+addi  r2 r2 3                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z).expr (($x - 1), $y, $z).expr $z
+const r3 86                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
+addi  r2 pc 8                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
+addi  r2 r1 -5                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
+store r0 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
+copy  r0 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
+copy  pc r3                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($x - 1), $y, $z)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr $y
+addi  r2 r0 -1                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr $y
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr $y
+addi  r2 r2 2                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr $y
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr $y
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr $y
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr 1
+const r2 1                              #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr 1
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1).expr 1
+load  r3 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1)
+addi  r1 r1 -1                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1)
+load  r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1)
+sub   r2 r2 r3                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1)
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr ($y - 1)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $z
+addi  r2 r0 -1                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $z
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $z
+addi  r2 r2 3                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $z
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $z
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $z
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
+addi  r2 r0 -1                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
+addi  r2 r2 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x).expr (($y - 1), $z, $x).expr $x
+const r3 86                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
+addi  r2 pc 8                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
+addi  r2 r1 -5                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
+store r0 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
+copy  r0 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
+copy  pc r3                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($y - 1), $z, $x)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr $z
+addi  r2 r0 -1                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr $z
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr $z
+addi  r2 r2 3                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr $z
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr $z
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr $z
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr 1
+const r2 1                              #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr 1
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1).expr 1
+load  r3 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1)
+addi  r1 r1 -1                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1)
+load  r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1)
+sub   r2 r2 r3                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1)
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr ($z - 1)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $y
+addi  r2 r0 -1                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $y
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $y
+addi  r2 r2 2                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $y
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $y
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $y
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
+addi  r2 r0 -1                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
+addi  r2 r2 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
+load  r2 r2                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x).expr (($z - 1), $y, $x).expr $x
+const r3 86                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
+addi  r2 pc 8                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
+addi  r2 r1 -5                          #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
+store r2 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
+store r0 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
+copy  r0 r1                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
+copy  pc r3                             #main.tarai[0].ifBody_0[0].expr (main.tarai(($x - 1), $y, $z), main.tarai(($y - 1), $z, $x), main.tarai(($z - 1), $y, $x)).expr main.tarai(($z - 1), $y, $x)
+const r4 86                             #main.tarai[0].ifBody_0[0]
+addi  r2 r1 -2                          #main.tarai[0].ifBody_0[0]
+addi  r3 r0 -1                          #main.tarai[0].ifBody_0[0]
+load  r1 r3                             #main.tarai[0].ifBody_0[0]
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0]
+load  r3 r2                             #main.tarai[0].ifBody_0[0]
+store r3 r1                             #main.tarai[0].ifBody_0[0]
+addi  r2 r2 1                           #main.tarai[0].ifBody_0[0]
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0]
+load  r3 r2                             #main.tarai[0].ifBody_0[0]
+store r3 r1                             #main.tarai[0].ifBody_0[0]
+addi  r2 r2 1                           #main.tarai[0].ifBody_0[0]
+addi  r1 r1 1                           #main.tarai[0].ifBody_0[0]
+load  r3 r2                             #main.tarai[0].ifBody_0[0]
+store r3 r1                             #main.tarai[0].ifBody_0[0]
+addi  r1 r1 3                           #main.tarai[0].ifBody_0[0]
+copy  pc r4                             #main.tarai[0].ifBody_0[0]
+addi  r2 pc 19                          #main.tarai[0].ifBody_0
+jump  r2                                #main.tarai[0].ifBody_0
+addi  r1 r1 1                           #main.tarai[0].ifElseBody[0].expr $z
+addi  r2 r0 -1                          #main.tarai[0].ifElseBody[0].expr $z
+load  r2 r2                             #main.tarai[0].ifElseBody[0].expr $z
+addi  r2 r2 3                           #main.tarai[0].ifElseBody[0].expr $z
+load  r2 r2                             #main.tarai[0].ifElseBody[0].expr $z
+store r2 r1                             #main.tarai[0].ifElseBody[0].expr $z
+addi  r3 r0 -1                          #main.tarai[0].ifElseBody[0]
+load  r3 r3                             #main.tarai[0].ifElseBody[0]
+load  r2 r1                             #main.tarai[0].ifElseBody[0]
+store r2 r3                             #main.tarai[0].ifElseBody[0]
+addi  r1 r1 -1                          #main.tarai[0].ifElseBody[0]
+addi  r3 r3 -1                          #main.tarai[0].ifElseBody[0]
+copy  r2 r0                             #main.tarai[0].ifElseBody[0]
+load  r0 r0                             #main.tarai[0].ifElseBody[0]
+addi  r2 r2 -1                          #main.tarai[0].ifElseBody[0]
+load  r1 r2                             #main.tarai[0].ifElseBody[0]
+addi  r2 r2 -1                          #main.tarai[0].ifElseBody[0]
+load  pc r2                             #main.tarai[0].ifElseBody[0]
 addi  r1 r1 1                           #main.tarai.forceReturn.expr 0
 const r2 0                              #main.tarai.forceReturn.expr 0
 store r2 r1                             #main.tarai.forceReturn.expr 0

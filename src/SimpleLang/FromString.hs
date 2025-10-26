@@ -91,7 +91,7 @@ parseType = unwrapspace $ do
 
 {-# SPECIALISE parseFuncName :: LocalParser SLFuncName #-}
 parseName :: MonadParsec SLParserError Text m => m Text
-parseName = T.pack <$> some alphaNumChar
+parseName = T.pack <$> some (alphaNumChar <|> char '_')
 
 parseLocal :: LocalParser (SLType, Text)
 parseLocal =  unwrapspace $ do
@@ -247,7 +247,7 @@ parseTerm = unwrapspace $ appendExprPosMap $
     , try $ SLEPushCall <$> parseCall parseTerm
     , try parseParensExpr
     , try $ L.foldr SLEStructCons SLEStructNil <$> (char '(' *> sepBy parseExpInExp (char ',') <* char ')')
-    , try $ some alphaNumChar $> SLELocal SLTInt "dummy" <* registerCustomError (SLParserError "Invalid expression (forgot to put $?)")
+    , try $ parseName $> SLELocal SLTInt "dummy" <* registerCustomError (SLParserError "Invalid expression (forgot to put $?)")
     ]
 
 parseTypedExp :: LocalParser (SLType, SLExp)
@@ -292,7 +292,7 @@ parseBlock :: LocalParser SLBlock
 parseBlock = do
   choice [
       try $ SLBMulti  <$ scn <*> (char '{' *> scn *> (V.fromList . catMaybes <$> sepByIndex (\i -> try (Just <$> inPos (SLLPMulti i) parseBlock) <|> pure Nothing) parseEOS) <* scn <* char '}')
-    , try $ SLBCase   <$ scn <*> (fmap V.fromList . someIndex $ (\i -> (,) <$ string "when" <* hspace <*> inPos (SLLPCaseCond i) parseExp <* scn <*> inPos (SLLPCaseBody i) parseBlock)) <* scn <* string "else" <* scn <*> inPos SLLPCaseElseBody parseBlock
+    , try $ SLBCase   <$ scn <*> (fmap V.fromList . someIndex $ (\i -> (,) <$ string "if" <* hspace <*> inPos (SLLPCaseCond i) parseExp <* scn <*> inPos (SLLPCaseBody i) parseBlock)) <* scn <* string "else" <* scn <*> inPos SLLPCaseElseBody parseBlock
     , try $ SLBWhile  <$ scn <*  string "while" <*> inPos SLLPWhileCond parseExp <*> inPos SLLPWhileBody parseBlock
     , try $ SLBSingle <$ scn <*> parseStatement
     ]
